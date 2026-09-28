@@ -45,11 +45,41 @@ medical app of this size. The migration is **incremental and hybrid**:
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | Foundation: dependency upgrades, Compose setup, `targetSdk` bump | **Done** |
-| 1 | Theme foundation (dynamic color) + interop patterns + drawer content migration | Next |
-| 2 | Home / dashboard shell (charts wrapped via `AndroidView`) | Planned |
+| 1 | Theme foundation (dynamic color) + interop patterns + drawer content migration | **Done** |
+| 2 | Home / dashboard (component library + slice-by-slice migration; charts wrapped via `AndroidView`) | **In progress** |
 | 3 | Charts to Vico (line graphs), basal column editor last | Planned |
 | 4 | Settings / preferences screens | Planned |
 | 5 | Long tail: simple CRUD screens; low-touch screens stay legacy | Planned |
+
+---
+
+## Phase 2 — Home dashboard
+
+`Home.java` (~3,800 LOC) + `BgGraphBuilder.java` (~2,500 LOC) are the largest,
+most tightly-coupled surfaces in the app (Data Binding + `hellocharts` + viewport
+syncing + treatment/voice logic). It is migrated **slice-by-slice**, not in one
+pass:
+
+1. **Component library first.** Build small, reusable composables in
+   `ui/home/` that mirror Home's visual language and use the Phase 1
+   `XdripTheme` + `xdripColor` (reactive data colors). Seed: `CurrentGlucose`
+   (value + delta, colored low/in-range/high via `ColorCache`).
+2. **Chart stays `hellocharts`**, wrapped via `AndroidView` when its area is
+   converted. Do not re-derive the glucose→screen mapping yet (that's Phase 3).
+3. **Slice order** (each lands independently, feature-parity checked):
+   a. Header (current glucose + delta + trend arrow).
+   b. Status lines (notices, extra status, battery, sensor age).
+   c. Treatment / note / undo-redo action cluster.
+   d. Time-range buttons.
+   e. Nano/expiry status + source-wizard rows.
+4. **State extraction**: pull the shared screen state out of `Home.java` into a
+   `ViewModel`/`StateFlow` as each slice is migrated, so the chart (via
+   `BgGraphBuilder`) and the Compose UI read from the same source.
+
+**Interop pattern** (used when a slice needs a legacy `View`): Compose's
+`AndroidView(factory, modifier, update, onRelease)` embeds a framework view
+inside the composable tree; `factory` creates it, `update` syncs state, and
+`onRelease` releases resources. This is the bridge for `hellocharts` until Phase 3.
 
 ---
 
