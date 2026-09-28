@@ -81,6 +81,30 @@ pass:
 inside the composable tree; `factory` creates it, `update` syncs state, and
 `onRelease` releases resources. This is the bridge for `hellocharts` until Phase 3.
 
+### Header slice — deferred (state extracted, rendering reverted)
+
+The header state is now extracted into `HomeGlucoseState`, which captures the
+value, delta, level, and the former text-formatting edge cases as **semantic
+flags** (`isStale`, `isFiltered`, `isNoise`, `isPredictive`, `fromPlugin`,
+`slopeArrow`). This is populated by `Home.java` at the point the level color is
+computed, and is view-agnostic.
+
+The **rendering was reverted to the original design** (big value + graphical
+trend arrow, with the delta in the notices/status area) pending a proper
+redesign. A Compose header (edge cases → status pills) was prototyped and then
+removed; when the redesign resumes, it will read the already-extracted
+`HomeGlucoseState` flags.
+
+Mapping retained for the future redesign:
+
+| Legacy rendering | Semantic flag |
+| --- | --- |
+| strikethrough (stale data) | `isStale` |
+| underline (filtered value) | `isFiltered` |
+| italic + "⚠" prefix (noise) | `isNoise` |
+| predictive slope arrow / uncalibrated | `isPredictive` |
+| "P" prefix (plugin value) | `fromPlugin` |
+
 ---
 
 ## Design Decisions
@@ -176,6 +200,26 @@ component:
   notification-listener, `AlwaysOnDisplayService` accessibility) per the
   Android 12 guidance.
 
+### 8. `targetSdk` 34 runtime corrections (done)
+
+Beyond the manifest `android:exported` work, bumping to 34 surfaced several
+runtime requirements that crash on startup:
+
+- **`registerReceiver` flags** — added `RECEIVER_EXPORTED`/`RECEIVER_NOT_EXPORTED`
+  to all context-registered receivers (companion-app receivers exported; system
+  and internal receivers not).
+- **`PendingIntent` flags** — added `FLAG_IMMUTABLE` everywhere, including a
+  `TaskStackBuilder.getPendingIntent` call the initial single-line scan missed.
+- **Foreground-service types** — declared `FOREGROUND_SERVICE_CONNECTED_DEVICE`
+  and `FOREGROUND_SERVICE_DATA_SYNC` permissions, and dropped the `location`
+  type (a BLE app, not a GPS tracker) so services can actually reach
+  `startForeground` on Android 14.
+- **Bluetooth runtime permissions** — the manifest had `tools:node="remove"` on
+  `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT` (a targetSdk-26 leftover). Re-declared
+  them (`BLUETOOTH_SCAN` with `neverForLocation`) and enabled the Android 12+
+  path in `LocationHelper` (`newType` flag removed), so BLE scanning/connection
+  actually works on real hardware.
+
 ### 7. Theme & color system (Phase 1)
 
 Two-layer color model:
@@ -247,3 +291,10 @@ Highlights:
 - **Dynamic color fallback**: Android < 12 devices use the brand fallback scheme;
   legacy screens remain Holo-themed until migrated (a temporary visual mismatch
   between Compose and legacy surfaces).
+- **R8 produces a malformed dex (`Out-of-order annotation_element name_idx`)** on
+  minified builds. Reproduced on the `debug` build type (which had
+  `minifyEnabled true`); the offending annotation element is `accessFlags` from a
+  library. **Workaround:** disabled minification for `debug` (now uses D8 like
+  `dev`). The **`release` build still minifies** and must be device-tested before
+  shipping — if it hits the same R8 bug, investigate a newer AGP/R8 or a
+  `-keepattributes` workaround.
