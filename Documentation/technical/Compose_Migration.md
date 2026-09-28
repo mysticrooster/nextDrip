@@ -1,0 +1,171 @@
+# Jetpack Compose Migration
+
+## Overview
+
+xDrip+ is being migrated from its legacy XML View + Data Binding UI to
+[Jetpack Compose](https://developer.android.com/jetpack/compose), alongside a
+broader modernization of the design and the AndroidX dependency stack.
+
+This document records the strategy and the design decisions made along the way,
+so that the work can continue incrementally and consistently.
+
+---
+
+## Current State
+
+| Area | Before migration |
+| --- | --- |
+| UI framework | XML layouts + Android Data Binding (`bindingcollectionadapter2`, `me.tatarka`) |
+| Navigation | Legacy `NavigationDrawerFragment` + `NavDrawerBuilder` |
+| Charts | `hellocharts` (local, unmaintained AAR) |
+| Source | ~980 Java files, 2 Kotlin files, ~172k LOC |
+| Activities / Fragments | 37 / 10 |
+| `targetSdkVersion` | 26 |
+| Key libraries | `appcompat 1.0.0`, `material 1.1.0`, `constraintlayout 1.1.3`, `recyclerview 1.0.0`, `preference 1.0.0` |
+
+The single most complex screen is `Home.java` (~3,800 LOC) which owns the main
+dashboard, charts, and most of the shared state.
+
+---
+
+## Strategy: Incremental Hybrid
+
+A full rewrite of 37 activities and ~100 layouts in one pass is not viable for a
+medical app of this size. The migration is **incremental and hybrid**:
+
+1. Existing screens keep working while being replaced one at a time.
+2. New UI is written in Compose and embedded via `ComposeView` inside existing
+   activities, and legacy components (notably charts) are embedded via
+   `AndroidView` until replaced.
+3. The global navigation shell (drawer) is migrated early to establish the
+   Compose navigation pattern.
+
+### Order of work
+
+| Phase | Scope | Status |
+| --- | --- | --- |
+| 0 | Foundation: dependency upgrades, Compose setup, `targetSdk` bump | **Done** |
+| 1 | Interop patterns + navigation drawer migration | Next |
+| 2 | Home / dashboard shell (charts wrapped via `AndroidView`) | Planned |
+| 3 | Charts to Vico (line graphs), basal column editor last | Planned |
+| 4 | Settings / preferences screens | Planned |
+| 5 | Long tail: simple CRUD screens; low-touch screens stay legacy | Planned |
+
+---
+
+## Design Decisions
+
+### 1. Compose setup (done)
+
+- Compose BOM `2024.09.03` (`material3`, `ui`, `ui-graphics`, `ui-tooling-preview`).
+- `androidx.activity:activity-compose` and `androidx.navigation:navigation-compose`.
+- The Kotlin 2.2 **Compose compiler plugin**
+  (`org.jetbrains.kotlin.plugin.compose`) — no `composeOptions` block is needed.
+- `buildFeatures { compose true }` in `app/build.gradle`.
+
+### 2. Charting: wrap `hellocharts` first, adopt Vico later
+
+`hellocharts` is an abandoned local AAR that is deeply embedded (the Home/BGHistory
+line charts with synchronized viewports and the interactive basal column editor).
+
+**Decision:** do **not** migrate charts to a Compose library upfront.
+
+- Short term: wrap `hellocharts` in `AndroidView` so screens can go Compose
+  without re-deriving the glucose→screen mapping in `BgGraphBuilder`.
+- Mid term: replace the **line graphs** (`Home`, `BGHistory`) with
+  [Vico](https://github.com/patrykandpatrick/vico), a Compose-native time-series
+  chart library, reusing the existing `BgGraphBuilder` data pipeline.
+- Last: replace the interactive **basal column editor** (custom drag-to-edit
+  behavior that no Compose chart library reproduces out of the box).
+
+Rationale: gets the Compose win fast while de-risking the critical graph
+rendering in a medical device app.
+
+### 3. JDK 17 toolchain
+
+The project targets Java 17. The default system JDK on the primary dev machine is
+JDK 26, which is incompatible with the build (Lombok 1.18.42 cannot process
+`@val`/`val` on JDK 26, and Gradle 8.14.3's Groovy cannot read JDK 26 class
+files).
+
+- Every module now declares `java { toolchain { languageVersion = 17 } }`
+  (`app`, `libkeks`, `wear` already had it; `libglupro`, `ipluginda`,
+  `localeapi` were missing it and have been fixed).
+- Locally, `org.gradle.java.home` is pinned to a JDK 17 in
+  `~/.gradle/gradle.properties` (machine-local, not committed).
+
+### 4. Dependency upgrades (done)
+
+| Dependency | Before | After |
+| --- | --- | --- |
+| `targetSdkVersion` | 26 | 34 |
+| `appcompat` | 1.0.0 | 1.7.0 |
+| `material` | 1.1.0 | 1.12.0 |
+| `constraintlayout` | 1.1.3 | 2.1.4 |
+| `recyclerview` | 1.0.0 | 1.3.2 |
+| `preference` | 1.0.0 | 1.2.1 |
+| `androidx.collection` | 1.0.0 (transitive) | 1.4.4 (via Compose) |
+
+### 5. `androidx.collection` 1.4 compatibility — composition (done)
+
+`androidx.collection` 1.4.x rewrote `SimpleArrayMap` in Kotlin with generic
+methods (`get(K)`, `indexOfKey(K)`), while `ArrayMap` (Java) keeps the
+non-generic `Map` bridge (`get(Object)`). This makes it **impossible** for a
+Java subclass to override `get()` (javac reports "name clash … same erasure").
+
+`PrefsViewString` and `PrefsViewImpl` (the transparent preference-binding maps)
+used to override `get(Object)` for lazy loading. They now use **composition**
+instead of inheritance:
+
+- They extend Guava's `ForwardingMap<K, V>` (already a dependency) and implement
+  `ObservableMap<K, V>`.
+- Storage and change-notification are delegated to an internal
+  `ObservableArrayMapNoNotify` instance.
+- `get` is a plain interface method (no generic/non-generic clash) and does the
+  lazy read + `putNoNotify` caching as before.
+- The two `ObservableMap` callbacks forward to the delegate, so two-way binding
+  (`@={prefs[...]}` / `@={sprefs[...]}`) keeps working.
+
+This is the pattern to follow elsewhere: **prefer composition over extending
+framework collections**, and avoid new `ObservableMap` + `@={...}` bindings in
+favor of `ViewModel`/`StateFlow`.
+
+### 6. `targetSdk` 34 manifest changes (done)
+
+Bumping to `targetSdk 34` required explicit `android:exported` on 24 components
+(receivers, services, activities) with intent filters. Values were chosen per
+component:
+
+- `exported="true"` for launcher, system-broadcast receivers
+  (BOOT_COMPLETED, power, headset, bluetooth, package-added), widget receivers,
+  NFC/USB, and companion-app receivers (Nightscout Client, LibreLink, Aidex,
+  ThinJam).
+- `exported="false"` for Firebase messaging (`GcmListenerSvc`,
+  `MyInstanceIDListenerService`) and the internal `SendFeedBack` activity.
+- `exported="true"` for system-bound services (`UiBasedCollector`
+  notification-listener, `AlwaysOnDisplayService` accessibility) per the
+  Android 12 guidance.
+
+---
+
+## Conventions Going Forward
+
+- **Kotlin-first for new UI.** New screens/components are Kotlin. Java classes are
+  consumed, not extended (see `Documentation/technical/Kotlin_Policy.md`).
+- **State in `ViewModel`/`StateFlow`**, not `ObservableMap` + two-way binding.
+- **No new `hellocharts` usage**; route new charting through the Vico migration.
+- **Thin, delegate-based bridges** for anything that must still touch the legacy
+  binding/collection stack (as done for `PrefsView*`).
+- **Screen-by-screen feature parity** with manual + UI tests before deleting the
+  legacy layout.
+
+---
+
+## Risks / Open Items
+
+- **`targetSdk 34` runtime behavior** (foreground-service types, exact-alarm,
+  notification permission, scoped storage) is built but not yet device-tested.
+- **`hellocharts` is a dead dependency** — do not let `AndroidView` wrapping
+  become permanent.
+- **Data Binding remains in use** across most screens until migrated; the
+  `PrefsView*` composition bridge will be removable once those bindings are gone.

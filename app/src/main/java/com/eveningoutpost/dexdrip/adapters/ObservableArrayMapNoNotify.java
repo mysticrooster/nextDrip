@@ -64,11 +64,12 @@ public class ObservableArrayMapNoNotify<K, V> extends ArrayMap<K, V> implements 
         return v;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public boolean removeAll(Collection<?> collection) {
         boolean removed = false;
         for (Object key : collection) {
-            int index = indexOfKey(key);
+            int index = indexOfKey((K) key);
             if (index >= 0) {
                 removed = true;
                 removeAt(index);

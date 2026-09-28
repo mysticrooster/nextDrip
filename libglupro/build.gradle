@@ -66,3 +66,8 @@ dependencies {
     testImplementation "com.google.truth:truth:1.4.5"
 
 }
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
