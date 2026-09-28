@@ -628,6 +628,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
         }
 
         currentBgValueText.setText(""); // clear any design prototyping default
+        glucoseState.clear();
     }
 
     private boolean firstRunDialogs(final boolean checkedeula) {
@@ -2876,6 +2877,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
     private void showUncalibratedSlope() {
         currentBgValueText.setText(BgReading.getSlopeArrowSymbolBeforeCalibration());
         currentBgValueText.setTextColor(getCol(X.color_predictive));
+        glucoseState.update("", "", GlucoseLevel.IN_RANGE, BgReading.getSlopeArrowSymbolBeforeCalibration(), false, false, false, true, false);
     }
 
     private void updateCurrentBgInfoForBtShare(TextView notificationText) {
@@ -3032,6 +3034,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
 
             if (!displayCurrentInfoFromReading(lastBgReading, predictive)) {
                 currentBgValueText.setText("");
+                glucoseState.clear();
                 display_delta = "";
                 if (itr != null) {
                     itr.update(null); // hide graphical arrow
@@ -3039,6 +3042,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
             }
         } else {
             currentBgValueText.setText(""); // clear value if no reading
+            glucoseState.clear();
             display_delta = "";
         }
 
@@ -3068,6 +3072,8 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
         String slope_arrow = dg.delta_arrow;
         String extrastring = "";
         boolean hide_slope = false;
+        boolean stale = false;
+        boolean filtered = false;
         // when stale
         if ((new Date().getTime()) - stale_data_millis() - lastBgReading.timestamp > 0) { // TODO fix
             notificationText.setText(R.string.signal_missed);
@@ -3081,6 +3087,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
             currentBgValueText.setPaintFlags(currentBgValueText.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             dexbridgeBattery.setPaintFlags(dexbridgeBattery.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             hide_slope = true;
+            stale = true;
         } else {
             // not stale
             if (notificationText.getText().length() == 0) {
@@ -3117,6 +3124,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
                 } else {
                     currentBgValueText.setPaintFlags(currentBgValueText.getPaintFlags() & ~Paint.UNDERLINE_TEXT_FLAG);
                 }
+                filtered = bg_from_filtered;
                 String stringEstimate = bgGraphBuilder.unitized_string(estimate);
                 if ((lastBgReading.hide_slope) || (bg_from_filtered)) {
                     slope_arrow = "";
@@ -3184,10 +3192,23 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
             level = GlucoseLevel.IN_RANGE;
         }
         currentBgValueText.setTextColor(getCol(levelColor));
-        glucoseState.update(bgGraphBuilder.unitized_string(estimate), display_delta, level);
+        final boolean noise = BestGlucose.compensateNoise();
+        final boolean fromPlugin = Pref.getBooleanDefaultFalse("display_glucose_from_plugin")
+                && (PluggableCalibration.getCalibrationPluginFromPreferences() != null);
+        glucoseState.update(
+                bgGraphBuilder.unitized_string(estimate),
+                display_delta,
+                level,
+                slope_arrow,
+                stale,
+                filtered,
+                noise,
+                predictive,
+                fromPlugin
+        );
 
         // TODO this should be made more efficient probably
-        if (Pref.getBooleanDefaultFalse("display_glucose_from_plugin") && (PluggableCalibration.getCalibrationPluginFromPreferences() != null)) {
+        if (fromPlugin) {
             currentBgValueText.setText(getString(R.string.p_in_circle) + currentBgValueText.getText()); // adds warning P in circle icon
         }
 
