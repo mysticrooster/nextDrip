@@ -219,6 +219,15 @@ runtime requirements that crash on startup:
   them (`BLUETOOTH_SCAN` with `neverForLocation`) and enabled the Android 12+
   path in `LocationHelper` (`newType` flag removed), so BLE scanning/connection
   actually works on real hardware.
+- **Background foreground-service starts** — Android 12+ disallows starting a
+  foreground service from the background. `CollectionServiceStarter` now routes
+  background collection restarts through an exact alarm
+  (`setExactAndAllowWhileIdle`) + `WakeLockTrampoline`, whose firing grants the
+  temporary allow-list needed for `startForegroundService`. The in-process
+  Handler path is kept only for foreground restarts (where the full
+  stop-all/start-correct-collector logic is needed). The direct
+  `startForegroundService` call sites are also wrapped so they log instead of
+  crashing when the allow-list is absent.
 
 ### 7. Theme & color system (Phase 1)
 

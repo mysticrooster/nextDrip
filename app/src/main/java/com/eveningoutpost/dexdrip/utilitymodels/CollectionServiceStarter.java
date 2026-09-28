@@ -1,10 +1,14 @@
 package com.eveningoutpost.dexdrip.utilitymodels;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ProcessLifecycleOwner;
 
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
@@ -19,6 +23,7 @@ import com.eveningoutpost.dexdrip.services.WifiCollectionService;
 import com.eveningoutpost.dexdrip.utilitymodels.pebble.PebbleUtil;
 import com.eveningoutpost.dexdrip.utilitymodels.pebble.PebbleWatchSync;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
+import com.eveningoutpost.dexdrip.utils.framework.WakeLockTrampoline;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 import com.eveningoutpost.dexdrip.xdrip;
 
@@ -47,6 +52,9 @@ public class CollectionServiceStarter {
 
     private static volatile boolean stopPending;
     private static volatile boolean startPending;
+
+    private static final int BACKGROUND_RESTART_REQUEST_CODE = 0x5c0e;
+    private static final long BACKGROUND_RESTART_DELAY_MS = 1500;
 
 
     private static void queueRestart() {
@@ -362,7 +370,32 @@ public class CollectionServiceStarter {
 
     public static void restartCollectionServiceBackground() {
         Log.d(TAG, "restartCollectionServiceBackground Restart no args");
-        Inevitable.task("restart-collection-service", 500, CollectionServiceStarter::queueRestart);
+        if (isAppInForeground()) {
+            // In the foreground the Handler-based stop/start flow works and preserves the
+            // "stop all collectors, start the correct one" logic (needed on collector change).
+            Inevitable.task("restart-collection-service", 500, CollectionServiceStarter::queueRestart);
+        } else {
+            // On Android 12+ a foreground service cannot be started from the background. Route
+            // the restart through an exact alarm, whose firing grants a temporary allow-list that
+            // lets WakeLockTrampoline call startForegroundService.
+            restartCollectorViaAlarm();
+        }
+    }
+
+    private static boolean isAppInForeground() {
+        try {
+            return ProcessLifecycleOwner.get().getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.STARTED);
+        } catch (Throwable t) {
+            // Lifecycle not (yet) available - assume foreground so the legacy path is used.
+            return true;
+        }
+    }
+
+    private static void restartCollectorViaAlarm() {
+        final Class<?> serviceClass = DexCollectionType.getCollectorServiceClass();
+        final PendingIntent pendingIntent = WakeLockTrampoline.getPendingIntent(serviceClass, BACKGROUND_RESTART_REQUEST_CODE);
+        JoH.wakeUpIntent(xdrip.getAppContext(), BACKGROUND_RESTART_DELAY_MS, pendingIntent);
+        Log.d(TAG, "Scheduled background collector restart via alarm for: " + serviceClass.getSimpleName());
     }
 
 
