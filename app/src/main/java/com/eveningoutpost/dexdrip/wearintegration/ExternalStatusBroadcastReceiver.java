@@ -21,7 +21,11 @@ public class ExternalStatusBroadcastReceiver extends BroadcastReceiver {
             Intent serviceIntent = new Intent(context, ExternalStatusService.class)
                     .setAction(ExternalStatusService.ACTION_NEW_EXTERNAL_STATUSLINE)
                     .putExtras(intent);
-            context.startForegroundService(serviceIntent);
+            try {
+                context.startForegroundService(serviceIntent);
+            } catch (Exception e) {
+                UserError.Log.e(TAG, "Could not start foreground service: " + e);
+            }
         } else {
             UserError.Log.d(TAG, "Not accepting external status line due to preference switch");
         }

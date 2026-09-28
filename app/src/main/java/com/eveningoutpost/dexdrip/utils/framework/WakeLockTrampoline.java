@@ -65,7 +65,13 @@ public class WakeLockTrampoline extends BroadcastReceiver {
         } catch (NullPointerException e) {
             UserError.Log.d(TAG, "Null pointer exception in startServiceCompat");
         }
-        startResult = context.startForegroundService(serviceIntent);
+        startResult = null;
+        try {
+            startResult = context.startForegroundService(serviceIntent);
+        } catch (Exception e) {
+            UserError.Log.e(TAG, "Could not start foreground service (background?): " + e);
+            return;
+        }
         if (D) UserError.Log.d(TAG, "Start result: " + startResult);
 
     }
