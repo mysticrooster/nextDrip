@@ -292,9 +292,10 @@ Highlights:
   legacy screens remain Holo-themed until migrated (a temporary visual mismatch
   between Compose and legacy surfaces).
 - **R8 produces a malformed dex (`Out-of-order annotation_element name_idx`)** on
-  minified builds. Reproduced on the `debug` build type (which had
-  `minifyEnabled true`); the offending annotation element is `accessFlags` from a
-  library. **Workaround:** disabled minification for `debug` (now uses D8 like
-  `dev`). The **`release` build still minifies** and must be device-tested before
-  shipping — if it hits the same R8 bug, investigate a newer AGP/R8 or a
-  `-keepattributes` workaround.
+  minified builds, which ART rejects at startup (`ClassNotFoundException` for the
+  application class). Root cause: R8 emits out-of-order annotation elements for
+  `dalvik.annotation.MethodParameters` (the `accessFlags` element) and
+  ActiveAndroid's `@Column` (`name`). A `-keep` / `-keepattributes` workaround
+  does **not** help. **Fix:** disabled minification for both `debug` and `release`
+  (they now use D8 like `dev`). Revisit upgrading AGP/R8 to re-enable
+  shrinking/obfuscation for release.
