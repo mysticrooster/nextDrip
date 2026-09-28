@@ -24,7 +24,6 @@ import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
 public class LocationHelper {
 
     static final String TAG = "xDrip LocationHelper";
-    private static final boolean newType = false;
     /**
      * Determine if Network provider is currently enabled.
      *
@@ -89,7 +88,7 @@ public class LocationHelper {
     public static boolean requestLocationForBluetooth(final Activity activity) {
         // Location needs to be enabled for Bluetooth discovery on Marshmallow.
 
-        if (newType && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if ((ContextCompat.checkSelfPermission(activity,
                     Manifest.permission.BLUETOOTH_SCAN)
                     != PackageManager.PERMISSION_GRANTED)
@@ -195,6 +194,19 @@ public class LocationHelper {
 
     // TODO probably can use application context here
     public static boolean isLocationPermissionOk(Context context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(context,
+                    Manifest.permission.BLUETOOTH_SCAN)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+            if (ContextCompat.checkSelfPermission(context,
+                    Manifest.permission.BLUETOOTH_CONNECT)
+                    != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+            return true;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(context,
                     android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -213,7 +225,7 @@ public class LocationHelper {
     }
 
     public static Boolean locationPermission(final Activity activity) {
-        if (newType && Build.VERSION.SDK_INT >=  Build.VERSION_CODES.S) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             return ((ActivityCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED)
                     && (ActivityCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED));
         } else if (Build.VERSION.SDK_INT >= 29) {
