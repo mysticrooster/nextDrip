@@ -45,7 +45,7 @@ medical app of this size. The migration is **incremental and hybrid**:
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | Foundation: dependency upgrades, Compose setup, `targetSdk` bump | **Done** |
-| 1 | Interop patterns + navigation drawer migration | Next |
+| 1 | Theme foundation (dynamic color) + interop patterns + drawer content migration | Next |
 | 2 | Home / dashboard shell (charts wrapped via `AndroidView`) | Planned |
 | 3 | Charts to Vico (line graphs), basal column editor last | Planned |
 | 4 | Settings / preferences screens | Planned |
@@ -146,6 +146,49 @@ component:
   notification-listener, `AlwaysOnDisplayService` accessibility) per the
   Android 12 guidance.
 
+### 7. Theme & color system (Phase 1)
+
+Two-layer color model:
+
+- **App chrome** (drawer, surfaces, typography, controls) uses a **Material 3 dynamic
+  color scheme** derived from the device theme:
+  - `isSystemInDarkTheme()` selects light vs. dark.
+  - Android 12+ (`Build.VERSION.SDK_INT >= 31`) uses
+    `dynamicLightColorScheme`/`dynamicDarkColorScheme` (Material You).
+  - Older devices fall back to a defined brand `lightColorScheme`/`darkColorScheme`
+    (minSdk is 26, so this fallback path is required).
+- **Data colors** (glucose high/low/in-range, chart lines/backgrounds, basal, number
+  wall) continue to come from the user's in-app color picker via `ColorCache`. These
+  are exposed to Compose through a `LocalXdripColors` composition local.
+
+Decision: the dynamic scheme is **limited to chrome**; user-picked `ColorCache` data
+colors always take precedence for their elements (a user's chosen "low BG" color must
+not be overridden by wallpaper tones).
+
+`ColorCache` is a static cache with manual `invalidateCache()` and no observers, so it
+needs a change-notification bridge to be reactive in Compose: a Kotlin `StateFlow`-based
+bridge updates `LocalXdripColors` on invalidation so Compose recomposes when a color is
+picked.
+
+The **Compose-native color picker is deferred to Phase 4**; the existing `colorpicker`
+AAR remains in use until then (see [`Tech_Debt.md`](./Tech_Debt.md)).
+
+---
+
+## Dependency Migration Register
+
+The full inventory of dependencies to replace or retire — Compose targets, dead AARs,
+legacy frameworks, and the Wear module — lives in
+[`Tech_Debt.md`](./Tech_Debt.md).
+
+Highlights:
+
+- `hellocharts` → Vico (Phase 3), `colorpicker` / `search-preference` → Compose
+  (Phase 4).
+- ActiveAndroid ORM → Room is **in scope** as a parallel modernization track — the
+  largest single win, and it makes the Home/chart Compose work much simpler (see
+  `Tech_Debt.md` §5).
+
 ---
 
 ## Conventions Going Forward
@@ -154,6 +197,8 @@ component:
   consumed, not extended (see `Documentation/technical/Kotlin_Policy.md`).
 - **State in `ViewModel`/`StateFlow`**, not `ObservableMap` + two-way binding.
 - **No new `hellocharts` usage**; route new charting through the Vico migration.
+- **Two-layer color:** `MaterialTheme.colorScheme` for chrome (dynamic), and
+  `LocalXdripColors` for user-picked data colors.
 - **Thin, delegate-based bridges** for anything that must still touch the legacy
   binding/collection stack (as done for `PrefsView*`).
 - **Screen-by-screen feature parity** with manual + UI tests before deleting the
@@ -169,3 +214,6 @@ component:
   become permanent.
 - **Data Binding remains in use** across most screens until migrated; the
   `PrefsView*` composition bridge will be removable once those bindings are gone.
+- **Dynamic color fallback**: Android < 12 devices use the brand fallback scheme;
+  legacy screens remain Holo-themed until migrated (a temporary visual mismatch
+  between Compose and legacy surfaces).
