@@ -149,6 +149,8 @@ import com.eveningoutpost.dexdrip.ui.dialog.HeyFamUpdateOptInDialog;
 import com.eveningoutpost.dexdrip.ui.dialog.QuickSettingsDialogs;
 import com.eveningoutpost.dexdrip.ui.graphic.ITrendArrow;
 import com.eveningoutpost.dexdrip.ui.graphic.TrendArrowFactory;
+import com.eveningoutpost.dexdrip.ui.home.GlucoseLevel;
+import com.eveningoutpost.dexdrip.ui.home.HomeGlucoseState;
 import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.BgToSpeech;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
@@ -218,6 +220,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
     public final static String CHOOSE_INSULIN_PEN = "CHOOSE_INSULIN_PEN";
     public final static int SENSOR_READY_ID = 4912;
     private final UiPing ui = new UiPing();
+    private final HomeGlucoseState glucoseState = new HomeGlucoseState();
     public static boolean activityVisible = false;
     public static boolean blockTouches = false;
     private static boolean is_follower = false;
@@ -3167,13 +3170,21 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
                 addDisplayDelta();
             }
         }
-        if (bgGraphBuilder.unitized(estimate) <= bgGraphBuilder.lowMark) {
-            currentBgValueText.setTextColor(getCol(ColorCache.X.color_low_bg_values));
-        } else if (bgGraphBuilder.unitized(estimate) >= bgGraphBuilder.highMark) {
-            currentBgValueText.setTextColor(getCol(ColorCache.X.color_high_bg_values));
+        final double unitizedEstimate = bgGraphBuilder.unitized(estimate);
+        final X levelColor;
+        final GlucoseLevel level;
+        if (unitizedEstimate <= bgGraphBuilder.lowMark) {
+            levelColor = X.color_low_bg_values;
+            level = GlucoseLevel.LOW;
+        } else if (unitizedEstimate >= bgGraphBuilder.highMark) {
+            levelColor = X.color_high_bg_values;
+            level = GlucoseLevel.HIGH;
         } else {
-            currentBgValueText.setTextColor(getCol(ColorCache.X.color_inrange_bg_values));
+            levelColor = X.color_inrange_bg_values;
+            level = GlucoseLevel.IN_RANGE;
         }
+        currentBgValueText.setTextColor(getCol(levelColor));
+        glucoseState.update(bgGraphBuilder.unitized_string(estimate), display_delta, level);
 
         // TODO this should be made more efficient probably
         if (Pref.getBooleanDefaultFalse("display_glucose_from_plugin") && (PluggableCalibration.getCalibrationPluginFromPreferences() != null)) {
