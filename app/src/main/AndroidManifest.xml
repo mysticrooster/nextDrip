@@ -39,7 +39,6 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
@@ -254,7 +253,7 @@
             android:name=".services.DexCollectionService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".services.WifiCollectionService"
             android:enabled="true"
@@ -544,22 +543,22 @@
         <service
             android:name=".services.Ob1G5CollectionService"
             android:enabled="true"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".insulin.pendiq.PendiqService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".cgm.medtrum.MedtrumCollectionService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".cgm.glupro.GluProService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
 
         <activity
             android:name=".ShareTest"
@@ -634,7 +633,7 @@
             android:name=".utilitymodels.pebble.PebbleWatchSync"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".services.DailyIntentService"
             android:exported="false" />
@@ -837,7 +836,7 @@
             android:name=".services.DoNothingService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
 
         <activity android:name=".HelpActivity" />
         <activity
@@ -936,16 +935,16 @@
             android:exported="true" />
         <service
             android:name=".watch.lefun.LeFunService"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".watch.miband.MiBandService"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".cgm.nsfollow.NightscoutFollowService"
             android:foregroundServiceType="dataSync" />
         <service
             android:name=".insulin.inpen.InPenService"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".cgm.sharefollow.ShareFollowService"
             android:foregroundServiceType="dataSync" />
@@ -982,7 +981,7 @@
 
         <service
             android:name=".watch.thinjam.BlueJayService"
-            android:foregroundServiceType="connectedDevice|location" />
+            android:foregroundServiceType="connectedDevice" />
         <service android:name=".cgm.webfollow.WebFollowService" />
     </application>
 
