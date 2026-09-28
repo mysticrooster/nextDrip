@@ -18,14 +18,19 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.compose.ui.platform.ComposeView;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LifecycleRegistry;
+import androidx.lifecycle.ViewTreeLifecycleOwner;
+
+import com.eveningoutpost.dexdrip.ui.drawer.NavDrawerMenuState;
 
 import java.util.List;
 
@@ -35,7 +40,16 @@ public class NavigationDrawerFragment extends Fragment {
     private NavigationDrawerCallbacks mCallbacks;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
-    private ListView mDrawerListView;
+    private ComposeView mComposeView;
+    private final NavDrawerMenuState menuState = new NavDrawerMenuState();
+    private final LifecycleOwner composeLifecycleOwner = new LifecycleOwner() {
+        @NonNull
+        @Override
+        public Lifecycle getLifecycle() {
+            return composeLifecycle;
+        }
+    };
+    private final LifecycleRegistry composeLifecycle = new LifecycleRegistry(composeLifecycleOwner);
     private View mFragmentContainerView;
     private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
@@ -61,6 +75,8 @@ public class NavigationDrawerFragment extends Fragment {
             mCurrentSelectedPosition = 0;
             mFromSavedInstanceState = true;
         }
+
+        composeLifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
     }
 
     @Override
@@ -72,27 +88,41 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mDrawerListView = (ListView) inflater.inflate(
+        mComposeView = (ComposeView) inflater.inflate(
                 R.layout.fragment_navigation_drawer, container, false);
-        mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectItem(position);
-            }
-        });
+        ViewTreeLifecycleOwner.set(mComposeView, composeLifecycleOwner);
+        menuState.install(mComposeView);
+        return mComposeView;
+    }
 
-        navDrawerBuilder = new NavDrawerBuilder(getActivity());
-        List<String> menu_option_list = navDrawerBuilder.nav_drawer_options;
-        // String[] menu_options = menu_option_list.toArray(new String[menu_option_list.size()]);
-        intent_list = navDrawerBuilder.nav_drawer_intents;
+    @Override
+    public void onStart() {
+        super.onStart();
+        composeLifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START);
+    }
 
-        // mDrawerListView.setAdapter(new ArrayAdapter<String>(
-        //         getActionBar().getThemedContext(),
-        //         android.R.layout.simple_list_item_activated_1,
-        //         android.R.id.text1,
-        //        menu_options
-        //        ));
-        return mDrawerListView;
+    @Override
+    public void onResume() {
+        super.onResume();
+        composeLifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
+    }
+
+    @Override
+    public void onPause() {
+        composeLifecycle.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        composeLifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP);
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroy() {
+        composeLifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
+        super.onDestroy();
     }
 
     public boolean isDrawerOpen() {
@@ -103,15 +133,13 @@ public class NavigationDrawerFragment extends Fragment {
         navDrawerBuilder = new NavDrawerBuilder(context);
         menu_name = current_activity;
         menu_option_list = navDrawerBuilder.nav_drawer_options;
-        String[] menu_options = menu_option_list.toArray(new String[menu_option_list.size()]);
         menu_position = menu_option_list.indexOf(menu_name);
         intent_list = navDrawerBuilder.nav_drawer_intents;
 
         mFragmentContainerView = getActivity().findViewById(fragmentId);
         mDrawerLayout = drawerLayout;
         mCurrentSelectedPosition = menu_position;
-        mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
-        // mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        menuState.update(menu_option_list, menu_position, this::selectItem);
 
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
@@ -123,40 +151,6 @@ public class NavigationDrawerFragment extends Fragment {
                 getActivity().getActionBar().setHomeButtonEnabled(true);
             } catch (Exception e) {
                 Log.d("NavigationDrawerFrag", "Exception with getActionBar: " + e.toString());
-            }
-        }
-
-//        mDrawerListView = (ListView) inflater.inflate(
-//                R.layout.fragment_navigation_drawer, container, false);
-//        mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                selectItem(position);
-//            }
-//        });
-
-//        navDrawerBuilder = new NavDrawerBuilder();
-//        List<String> menu_option_list = navDrawerBuilder.nav_drawer_options();
-//        String[] menu_options = menu_option_list.toArray(new String[menu_option_list.size()]);
-
-        try {
-            mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                    actionBar.getThemedContext(),
-                    android.R.layout.simple_list_item_activated_1,
-                    android.R.id.text1,
-                    menu_options
-            ));
-
-        } catch (NullPointerException e) {
-            try {
-                mDrawerListView.setAdapter(new ArrayAdapter<String>(
-                        getActivity().getActionBar().getThemedContext(),
-                        android.R.layout.simple_list_item_activated_1,
-                        android.R.id.text1,
-                        menu_options
-                ));
-            } catch (NullPointerException ex) {
-                Log.d("NavigationDrawerFrag", "Got second null pointer: " + ex.toString());
             }
         }
 
@@ -211,9 +205,7 @@ public class NavigationDrawerFragment extends Fragment {
 
     private void selectItem(int position) {
         mCurrentSelectedPosition = position;
-        if (mDrawerListView != null) {
-            mDrawerListView.setItemChecked(position, true);
-        }
+        menuState.setSelected(position);
         if (mDrawerLayout != null) {
             mDrawerLayout.closeDrawer(mFragmentContainerView);
         }

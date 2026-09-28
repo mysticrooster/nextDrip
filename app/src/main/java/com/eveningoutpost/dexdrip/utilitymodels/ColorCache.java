@@ -25,6 +25,7 @@ public class ColorCache {
 
     public static void invalidateCache() {
         the_cache.clear();
+        ColorCacheBridge.invalidate();
         if (debug) Log.i(TAG, "Cache cleared");
     }
 

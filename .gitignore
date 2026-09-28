@@ -24,6 +24,7 @@ app/src/test/java/com/eveningoutpost/dexdrip/spike/
 
 # Gradle files
 .gradle/
+gradle/gradle-daemon-jvm.properties
 build/
 app/release
 localeapi/gradle/
