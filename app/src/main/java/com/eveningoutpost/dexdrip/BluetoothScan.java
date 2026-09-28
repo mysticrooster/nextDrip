@@ -192,13 +192,11 @@ public class BluetoothScan extends ListActivityWithMenu {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_scan:
-                return doScan();
-
-            default:
-                return super.onOptionsItemSelected(item);
+        final int itemId = item.getItemId();
+        if (itemId == R.id.menu_scan) {
+            return doScan();
         }
+        return super.onOptionsItemSelected(item);
     }
 
     @TargetApi(19)

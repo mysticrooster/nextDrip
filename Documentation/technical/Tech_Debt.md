@@ -68,6 +68,12 @@ Modernization that is not Compose-specific but is part of the overall cleanup.
 
 The `wear` module is its own legacy surface and should be planned independently.
 
+Note (AGP 9 upgrade): the `wear` module no longer builds under AGP 9.4.1 — its old
+`androidx.vectordrawable` 1.0.0 transitive dependency uses a duplicate `namespace`
+that AGP 9 now rejects. The module was partially migrated (`compileSdk =`,
+`androidComponents`, `resValues`, `proguard-android-optimize.txt`) but still needs
+its dependency stack modernized before it compiles.
+
 | Dependency | Notes | Recommendation | Effort | Status |
 | --- | --- | --- | --- | --- |
 | `com.google.android.support:wearable:2.5.0` | old support lib | → Wear Compose / `androidx.wear` | High | Not started |

@@ -240,14 +240,13 @@ public class CalibrationGraph extends ActivityWithMenu {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId()) {
-            case R.id.action_overwrite_intercept:
-                overWriteIntercept();
-                return true;
-            //break;
-            case R.id.action_overwrite_slope:
-                overWriteSlope();
-                return true;
+        final int itemId = item.getItemId();
+        if (itemId == R.id.action_overwrite_intercept) {
+            overWriteIntercept();
+            return true;
+        } else if (itemId == R.id.action_overwrite_slope) {
+            overWriteSlope();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);

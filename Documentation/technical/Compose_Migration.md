@@ -296,6 +296,8 @@ Highlights:
   application class). Root cause: R8 emits out-of-order annotation elements for
   `dalvik.annotation.MethodParameters` (the `accessFlags` element) and
   ActiveAndroid's `@Column` (`name`). A `-keep` / `-keepattributes` workaround
-  does **not** help. **Fix:** disabled minification for both `debug` and `release`
-  (they now use D8 like `dev`). Revisit upgrading AGP/R8 to re-enable
-  shrinking/obfuscation for release.
+  does **not** help. **Fix:** upgraded to AGP 9.4.1 (newer R8) and re-enabled
+  minification for `debug` and `release`. This also required migrating several
+  deprecated AGP APIs (`applicationVariants` → `androidComponents`,
+  `kotlin-android` → built-in Kotlin, `compileSdk =`, non-final `R.id`, and
+  `resValues`/`wearApp` changes) — see the `AGP 9` notes.

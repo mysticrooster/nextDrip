@@ -142,18 +142,15 @@ public class NoteSearch extends ListActivityWithMenu {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_searchnote:
-                doSearch(true);
-                return true;
-
-            case R.id.menu_allnote:
-                doAll(true);
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
+        final int itemId = item.getItemId();
+        if (itemId == R.id.menu_searchnote) {
+            doSearch(true);
+            return true;
+        } else if (itemId == R.id.menu_allnote) {
+            doAll(true);
+            return true;
         }
+        return super.onOptionsItemSelected(item);
 
     }
 
