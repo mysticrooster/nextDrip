@@ -525,7 +525,7 @@ public class Notifications extends IntentService {
 
         if (wakeIntent == null) {
             // TODO request code??
-            wakeIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), 0);
+            wakeIntent = PendingIntent.getService(this, 0, new Intent(this, this.getClass()), PendingIntent.FLAG_IMMUTABLE);
         }
         JoH.wakeUpIntent(context, wakeTime - now, wakeIntent);
 
@@ -868,7 +868,7 @@ public class Notifications extends IntentService {
     }
 
     private PendingIntent notificationIntent(Intent intent){
-        return PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        return PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     private void notificationDismiss(int notificationId) {
@@ -1036,7 +1036,7 @@ public class Notifications extends IntentService {
                             .setContentText(message)
                             .setLocalOnly(localOnly)
                             .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                            .setContentIntent(PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT));
+                            .setContentIntent(PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE));
             if (addDeleteIntent) {
                 Intent deleteIntent = new Intent(context, SnoozeOnNotificationDismissService.class);
                 deleteIntent.putExtra("alertType", type);

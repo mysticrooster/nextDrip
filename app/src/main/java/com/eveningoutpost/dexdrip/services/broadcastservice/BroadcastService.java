@@ -231,7 +231,7 @@ public class BroadcastService extends Service {
     public void onCreate() {
         UserError.Log.e(TAG, "starting service");
         broadcastEntities = new HashMap<>();
-        registerReceiver(broadcastReceiver, new IntentFilter(ACTION_WATCH_COMMUNICATION_RECEIVER));
+        registerReceiver(broadcastReceiver, new IntentFilter(ACTION_WATCH_COMMUNICATION_RECEIVER), Context.RECEIVER_NOT_EXPORTED);
 
         JoH.startService(BroadcastService.class, Const.INTENT_FUNCTION_KEY, Const.CMD_START);
 

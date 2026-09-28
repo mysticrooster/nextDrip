@@ -206,7 +206,7 @@ public class CompatibleApps extends BroadcastReceiver {
                         .putExtra("action", action)
                         .putExtra("id", parent_id)
                         .putExtra("auth", BuildConfig.buildUUID),
-                PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     public static PendingIntent createChoiceIntent(int parent_id, int id, Feature action, String title, String msg) {
@@ -218,7 +218,7 @@ public class CompatibleApps extends BroadcastReceiver {
                         .putExtra("title", title)
                         .putExtra("msg", msg)
                         .putExtra("auth", BuildConfig.buildUUID),
-                PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
     public static void showChoiceDialog(Activity activity, final Intent intent) {

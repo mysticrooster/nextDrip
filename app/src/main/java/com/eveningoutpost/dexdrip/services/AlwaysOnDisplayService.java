@@ -112,7 +112,7 @@ public class AlwaysOnDisplayService extends AccessibilityService {
             intentFilter.addAction(Intent.ACTION_TIME_TICK);
             intentFilter.addAction(Intent.ACTION_SCREEN_ON);
             intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-            this.registerReceiver(this.screenReceiver, intentFilter);
+            this.registerReceiver(this.screenReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
         } catch (Exception e) {
             UserError.Log.e(TAG, "Unable to register receivers: " + e);
         }

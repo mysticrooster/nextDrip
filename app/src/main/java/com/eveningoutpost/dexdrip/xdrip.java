@@ -119,7 +119,7 @@ public class xdrip extends Application {
                 if (intent.getComponent() != null) return; // Ignore Explicit (Manifest handles it)
                 super.onReceive(context, intent);
             }
-        }, bgFilter);
+        }, bgFilter, Context.RECEIVER_EXPORTED);
 
         registerReceiver(new ExternalStatusBroadcastReceiver() {
             @Override
@@ -127,7 +127,7 @@ public class xdrip extends Application {
                 if (intent.getComponent() != null) return; // Ignore Explicit
                 super.onReceive(context, intent);
             }
-        }, new IntentFilter("com.eveningoutpost.dexdrip.ExternalStatusline"));
+        }, new IntentFilter("com.eveningoutpost.dexdrip.ExternalStatusline"), Context.RECEIVER_EXPORTED);
 
         JobManager.create(this).addJobCreator(new XDripJobCreator());
         DailyJob.schedule();

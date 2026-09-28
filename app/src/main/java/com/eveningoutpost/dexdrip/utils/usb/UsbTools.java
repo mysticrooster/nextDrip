@@ -68,9 +68,9 @@ public class UsbTools {
             Log.d(TAG, "UsbManager is null in requestPermission");
             return;
         }
-        final PendingIntent mPermissionIntent = PendingIntent.getBroadcast(xdrip.getAppContext(), 0, new Intent(ACTION_USB_PERMISSION), 0);
+        final PendingIntent mPermissionIntent = PendingIntent.getBroadcast(xdrip.getAppContext(), 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
         final IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
-        xdrip.getAppContext().registerReceiver(receiver, filter);
+        xdrip.getAppContext().registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
         usbManager.requestPermission(device, mPermissionIntent);
     }
 

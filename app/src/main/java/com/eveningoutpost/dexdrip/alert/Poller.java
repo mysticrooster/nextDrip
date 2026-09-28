@@ -52,7 +52,7 @@ public class Poller {
             } catch (Exception e) {
                 //
             }
-            xdrip.getAppContext().registerReceiver(screenReceiver, intentFilter);
+            xdrip.getAppContext().registerReceiver(screenReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
         } catch (Exception e) {
             Log.wtf(TAG, "Exception in init: " + e);
         }

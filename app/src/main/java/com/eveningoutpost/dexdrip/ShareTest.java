@@ -110,7 +110,7 @@ public class ShareTest extends BaseActivity {
         addListenerOnButton();
         addListenerOnCloseButton();
         IntentFilter intent = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-        registerReceiver(mPairReceiver, intent);
+        registerReceiver(mPairReceiver, intent, Context.RECEIVER_NOT_EXPORTED);
     }
 
     @Override
