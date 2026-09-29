@@ -2,9 +2,11 @@ package com.eveningoutpost.dexdrip.db;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.eveningoutpost.dexdrip.db.dao.ActiveBgAlertDao;
 import com.eveningoutpost.dexdrip.db.dao.ActiveBluetoothDeviceDao;
@@ -40,7 +42,7 @@ import com.eveningoutpost.dexdrip.models.TransmitterData;
 import com.eveningoutpost.dexdrip.models.UserNotification;
 import com.eveningoutpost.dexdrip.sharemodels.models.ShareGlucose;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class}, views = {Libre2Sensor.class}, version = 1, exportSchema = false)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class}, views = {Libre2Sensor.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
@@ -96,6 +98,18 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
                             .allowMainThreadQueries()
+                            // During the ActiveAndroid -> Room transition the Room DB is only ever a
+                            // copy of the legacy data, so it is safe to recreate it whenever the
+                            // schema changes. (Bump @Database version whenever an entity is added.)
+                            .fallbackToDestructiveMigration(true)
+                            .addCallback(new Callback() {
+                                @Override
+                                public void onDestructiveMigration(@NonNull SupportSQLiteDatabase db) {
+                                    // Room recreated the DB; let the legacy importer refill the
+                                    // migrated tables from ActiveAndroid's Application.db again.
+                                    LegacyDataImporter.clearImportFlags();
+                                }
+                            })
                             .build();
                 }
             }

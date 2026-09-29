@@ -140,6 +140,16 @@ com.eveningoutpost.dexdrip
 12. **Tests that clear tables.** Some tests reset state with
     `new Delete().from(<Model>.class).execute()` (ActiveAndroid). For migrated tables
     this no longer compiles — expose a `deleteAll()` façade (DAO-backed) and call that.
+13. **Bump `@Database` version whenever the entity set changes.** Room persists a schema
+    identity hash; adding/removing an entity **without** bumping the version makes Room
+    throw `IllegalStateException: Room cannot verify the data integrity… forgot to update
+    the version number` on the next open. This crashed on-device when a later build added
+    entities to an existing `xdrip-room.db`. Because the Room DB is only ever a copy of the
+    legacy data during the transition, `AppDatabase` uses
+    `fallbackToDestructiveMigration(true)` plus an `onDestructiveMigration` callback that
+    calls `LegacyDataImporter.clearImportFlags()`, so a recreated DB is re-filled from
+    `Application.db` on the next import. (The released build will define the full schema as
+    a single version, so real users never hit this.)
 
 ### Database & migration (the hard part)
 
@@ -323,6 +333,13 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     (views are derived; there is nothing to copy).
   - Dropped both `updateDB()` calls from `IdempotentMigrations`.
   - Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — Fix on-device crash from Room schema identity mismatch.**
+  - A build that added entities to an existing `xdrip-room.db` (same `version = 1`)
+    crashed with `Room cannot verify the data integrity … forgot to update the version
+    number`. Fixed by bumping `@Database` to `version = 2`, adding
+    `fallbackToDestructiveMigration(true)`, and clearing the `LegacyDataImporter` flags
+    from `onDestructiveMigration` so the recreated DB is re-imported from `Application.db`.
+  - Added a regression test (`destructiveMigrationClearsImportFlagSoDataIsReimported`).
 
 ---
 

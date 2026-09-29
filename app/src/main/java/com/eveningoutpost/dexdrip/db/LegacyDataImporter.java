@@ -280,8 +280,18 @@ public final class LegacyDataImporter {
     }
 
     /**
-     * Resets the import state (started/running latch + per-table flags) and clears the
-     * flags. Only for use from tests that need a clean slate.
+     * Clears the per-table import flags so the next {@link #importAll(Context)} re-copies every
+     * migrated table. Called when Room recreates its database (destructive migration), and by tests.
+     */
+    public static void clearImportFlags() {
+        for (final String table : MIGRATED_TABLES) {
+            PersistentStore.removeItem(IMPORTED_FLAG_PREFIX + table);
+        }
+    }
+
+    /**
+     * Resets the import state (started/running latch + per-table flags). Only for use from tests
+     * that need a clean slate.
      */
     static void resetForTesting() {
         synchronized (stateLock) {
@@ -289,8 +299,6 @@ public final class LegacyDataImporter {
             running = false;
             latch = new CountDownLatch(1);
         }
-        for (final String table : MIGRATED_TABLES) {
-            PersistentStore.removeItem(IMPORTED_FLAG_PREFIX + table);
-        }
+        clearImportFlags();
     }
 }

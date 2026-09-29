@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.eveningoutpost.dexdrip.RobolectricTestWithConfig;
 import com.eveningoutpost.dexdrip.models.CalibrationRequest;
+import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
 
 import org.junit.After;
 import org.junit.Before;
@@ -147,5 +148,31 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
 
         assertWithMessage("shared columns copied despite a legacy-only column")
                 .that(AppDatabase.getInstance(context).calibrationRequestDao().getAll()).hasSize(1);
+    }
+
+    @Test
+    public void destructiveMigrationClearsImportFlagSoDataIsReimported() {
+        // Legacy data present and already imported once.
+        try (SQLiteDatabase legacy = createLegacyDatabase()) {
+            legacy.execSQL(CALIBRATION_TABLE_SQL);
+            legacy.execSQL("INSERT INTO CalibrationRequest (requestIfAbove, requestIfBelow) VALUES (140.0, 160.0)");
+        }
+        LegacyDataImporter.importSynchronouslyForTesting(context);
+        final String flag = LegacyDataImporter.IMPORTED_FLAG_PREFIX + "CalibrationRequest";
+        assertWithMessage("flag set after import").that(PersistentStore.getBoolean(flag)).isTrue();
+
+        // Simulate an older schema version so Room recreates the DB on the next open.
+        final File roomFile = context.getDatabasePath(AppDatabase.DATABASE_NAME);
+        try (SQLiteDatabase raw = SQLiteDatabase.openDatabase(roomFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE)) {
+            raw.execSQL("PRAGMA user_version = 1");
+        }
+        AppDatabase.resetForTesting();
+
+        // Re-open: destructive migration runs and clears the import flags.
+        AppDatabase.getInstance(context).query("SELECT 1", null).close();
+
+        assertWithMessage("flag cleared by destructive migration").that(PersistentStore.getBoolean(flag)).isFalse();
+        assertWithMessage("room table was recreated empty")
+                .that(AppDatabase.getInstance(context).calibrationRequestDao().getAll()).isEmpty();
     }
 }
