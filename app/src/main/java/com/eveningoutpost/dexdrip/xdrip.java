@@ -8,7 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.os.Build;
-import androidx.preference.PreferenceManager;
+import android.preference.PreferenceManager;
 import androidx.annotation.StringRes;
 import android.util.Log;
 

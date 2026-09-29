@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
-import androidx.preference.PreferenceManager;
+import android.preference.PreferenceManager;
 import android.text.SpannableString;
 
 import com.eveningoutpost.dexdrip.models.JoH;

@@ -3,7 +3,7 @@ package com.eveningoutpost.dexdrip.services;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import androidx.preference.PreferenceManager;
+import android.preference.PreferenceManager;
 
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.models.ActiveBgAlert;

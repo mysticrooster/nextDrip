@@ -77,7 +77,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.ParcelUuid;
 import android.os.PowerManager;
-import androidx.preference.PreferenceManager;
+import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
 
