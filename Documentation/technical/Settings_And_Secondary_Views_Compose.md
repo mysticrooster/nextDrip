@@ -12,6 +12,10 @@ It follows the strategy and conventions in
 [`Tech_Debt.md`](./Tech_Debt.md). It is **review-gated**: the phases below are intended to be
 reviewed before implementation begins.
 
+The per-category **change list and the verification passes** used to prove each port is faithful
+live in
+[`Settings_Conversion_Change_And_Verification.md`](./Settings_Conversion_Change_And_Verification.md).
+
 ---
 
 ## Goal & scope

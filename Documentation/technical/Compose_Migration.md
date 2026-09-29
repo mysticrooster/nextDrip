@@ -40,7 +40,9 @@ header *rendering* was reverted to the original design pending a proper redesign
 categories (incl. a Compose color picker, ringtone/time rows and root search) and links through
 to the legacy settings activity for everything else. The theme now provides the app's data colors
 (`LocalXdripColors`) to Compose (see
-[`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)).
+[`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)). The
+remaining categories and their verification passes are tracked in
+[`Settings_Conversion_Change_And_Verification.md`](./Settings_Conversion_Change_And_Verification.md).
 
 ---
 
