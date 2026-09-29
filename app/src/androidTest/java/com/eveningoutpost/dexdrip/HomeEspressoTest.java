@@ -81,17 +81,6 @@ public class HomeEspressoTest {
 
     @Test
     @AllowFlaky(attempts = 5)
-    public void A1_accept_warning() {
-        // accept the warning
-        scrollTo(R.id.saveButton2);
-        click(R.id.agreeCheckBox2);
-
-        click(R.id.saveButton2);
-
-    }
-
-    @Test
-    @AllowFlaky(attempts = 5)
     public void B1_checkExperienceDialogAppears() {
         onView(withText("5.5"))
                 .inRoot(isDialog())

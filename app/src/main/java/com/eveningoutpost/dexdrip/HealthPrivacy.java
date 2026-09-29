@@ -1,25 +1,15 @@
 package com.eveningoutpost.dexdrip;
 
-
 import android.os.Bundle;
-import android.view.View;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.eveningoutpost.dexdrip.ui.secondary.HealthPrivacyScreen;
 
-import com.eveningoutpost.dexdrip.models.JoH;
-
-// jamorham
-
-public class HealthPrivacy extends AppCompatActivity {
+/** Health Connect privacy explanation, now rendered in Compose (Track V pass 2). */
+public class HealthPrivacy extends BaseAppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_health_privacy);
-        JoH.fixActionBar(this);
-    }
-
-    public void healthPrivacyClose(View view) {
-        finish();
+        HealthPrivacyScreen.installHealthPrivacy(this);
     }
 }

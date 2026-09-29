@@ -1981,6 +1981,9 @@
     <string name="title_sens_expiry">Sensor Expiry Notifications</string>
     <string name="title_sens_expiry_notify">Enable</string>
     <string name="close">Close</string>
+    <string name="title_activity_dream_settings">Daydream settings</string>
+    <string name="title_health_privacy">Health Connect privacy</string>
+    <string name="health_privacy_text">xDrip is very privacy focused and xDrip developers do not have any access to your data.\n\nYour data is only sent where you specifically choose for that to happen.\n\nIn the case of the Health Connect feature, if you opt to upload data, this data will be synced and Google and other Health Connect applications will be able to access it. (For example Google Fit)\n\nThat is the point of the Health Connect application.\n\nGoogle provide facilities to delete that data later if you wish.</string>
     <string name="title_advanced_settings_4_Lib2">Advanced settings for Libre 2</string>
     <string name="title_Lib2_show_raw_values">Show raw values in graph</string>
     <string name="summary_Lib2_show_raw_values">Switch on to show raw values in graph.</string>
