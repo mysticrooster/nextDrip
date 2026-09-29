@@ -104,10 +104,13 @@ New package `ui/settings/` (Kotlin), using Phase 1 `XdripTheme` + `LocalXdripCol
 
 **Colour**
 
-Every settings component reads its chrome colours from `MaterialTheme.colorScheme` (Material You /
-dynamic on Android 12+, falling back to the brand scheme) and its user-picked data colours from
-`LocalXdripColors` (backed by `ColorCache`). No component hardcodes a colour; rows accept an
-optional `valueColor` where a data colour is meaningful (e.g. high/low values).
+Every colour defaults to Material You and any user pick overrides it (see
+[`Compose_Migration.md`](./Compose_Migration.md)). Components read chrome from
+`MaterialTheme.colorScheme` (already override-resolved by `XdripTheme`) and data colours from
+`LocalXdripColors`/`xdripColor`; nothing hardcodes a colour, and rows accept an optional
+`valueColor` where a data colour is meaningful (e.g. high/low values). The **Theme editor**
+(`ui/settings/ThemeEditorScreen.kt`) lets the user override every colour or reset back to the
+Material You default.
 
 **State layer**
 

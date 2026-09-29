@@ -7,7 +7,11 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.eveningoutpost.dexdrip.utilitymodels.ColorCacheBridge
 
 /**
  * The xDrip Material 3 theme.
@@ -33,8 +37,11 @@ fun XdripTheme(
         else -> LightColors
     }
 
+    val revision by ColorCacheBridge.revision.collectAsState()
+    val resolvedScheme = remember(colorScheme, revision) { resolveXdripColorScheme(colorScheme) }
+
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = resolvedScheme,
         typography = AppTypography,
     ) {
         CompositionLocalProvider(LocalXdripColors provides currentXdripColors()) {

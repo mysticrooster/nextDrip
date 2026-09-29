@@ -103,7 +103,7 @@ public class ColorCache {
         ;
 
         @Getter
-        String internalName;
+        public String internalName;
 
         X(String name) {
             this.internalName = name;

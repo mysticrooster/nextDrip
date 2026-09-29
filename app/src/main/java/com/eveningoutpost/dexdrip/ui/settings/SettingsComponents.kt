@@ -14,6 +14,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -328,6 +329,7 @@ fun SettingsColorRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     enabled: Boolean = true,
+    onReset: (() -> Unit)? = null,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     ListItem(
@@ -353,6 +355,7 @@ fun SettingsColorRow(
             initial = color,
             onDismiss = { showDialog = false },
             onColorPicked = { onColorChanged(it); showDialog = false },
+            onReset = onReset?.let { r -> { r(); showDialog = false } },
         )
     }
 }
@@ -363,6 +366,7 @@ private fun ColorPickerDialog(
     initial: Int,
     onDismiss: () -> Unit,
     onColorPicked: (Int) -> Unit,
+    onReset: (() -> Unit)? = null,
 ) {
     val hsv = remember { FloatArray(3).also { android.graphics.Color.colorToHSV(initial, it) } }
     var hue by remember { mutableFloatStateOf(hsv[0]) }
@@ -386,7 +390,14 @@ private fun ColorPickerDialog(
             }
         },
         confirmButton = { TextButton(onClick = { onColorPicked(color) }) { Text(stringResource(android.R.string.ok)) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+        dismissButton = {
+            Row {
+                if (onReset != null) {
+                    TextButton(onClick = onReset) { Text(stringResource(R.string.theme_reset_default)) }
+                }
+                TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+            }
+        },
     )
 }
 

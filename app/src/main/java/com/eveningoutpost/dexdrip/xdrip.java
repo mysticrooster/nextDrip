@@ -23,6 +23,7 @@ import com.eveningoutpost.dexdrip.services.PlusSyncService;
 import com.eveningoutpost.dexdrip.utilitymodels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.utilitymodels.ColorCache;
+import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore;
 import com.eveningoutpost.dexdrip.utilitymodels.IdempotentMigrations;
 import com.eveningoutpost.dexdrip.utilitymodels.NotificationChannels;
 import com.eveningoutpost.dexdrip.utilitymodels.PlusAsyncExecutor;
@@ -99,6 +100,14 @@ public class xdrip extends Application {
         PreferenceManager.setDefaultValues(this, R.xml.xdrip_plus_defaults, true);
         PreferenceManager.setDefaultValues(this, R.xml.xdrip_plus_prefs, true);
         ColorCache.setDefaultsLoaded();
+
+        // Keep the Compose theme overrides in sync with legacy ColorPicker changes.
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener((sharedPreferences, key) -> {
+                    if (key != null && key.startsWith("color_")) {
+                        ThemeColorStore.mirrorLegacyPreference(key);
+                    }
+                });
 
         checkForcedEnglish(xdrip.context);
 

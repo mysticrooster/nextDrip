@@ -10,6 +10,7 @@ package com.eveningoutpost.dexdrip.ui.settings
 internal sealed interface SettingsScreen {
     data object Root : SettingsScreen
     data object Units : SettingsScreen
+    data object Theme : SettingsScreen
     data object Notifications : SettingsScreen
     data object BgAlerts : SettingsScreen
     data object SuppressAlerts : SettingsScreen
@@ -32,6 +33,7 @@ internal data class SettingsSearchEntry(
 /** Index of the migrated destinations; grows as categories move to Compose. */
 internal val SETTINGS_SEARCH_INDEX = listOf(
     SettingsSearchEntry("Glucose Units", SettingsScreen.Units, listOf("mmol", "mg/dl", "bg", "high", "low", "target")),
+    SettingsSearchEntry("Theme colours", SettingsScreen.Theme, listOf("colour", "color", "material you", "theme", "appearance")),
     SettingsSearchEntry("Alarms and Alerts", SettingsScreen.Notifications, listOf("notifications", "alerts", "sounds")),
     SettingsSearchEntry("Glucose Alerts Settings", SettingsScreen.BgAlerts, listOf("alert profile", "audio focus", "snooze")),
     SettingsSearchEntry("Suppress Alerts if Missed Readings", SettingsScreen.SuppressAlerts, listOf("stale data")),

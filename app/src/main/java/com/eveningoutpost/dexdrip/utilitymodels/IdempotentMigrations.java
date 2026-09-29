@@ -16,6 +16,7 @@ import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.SnoozeActivity;
 import com.eveningoutpost.dexdrip.stats.FirstPageFragment;
+import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore;
 import com.eveningoutpost.dexdrip.utils.Preferences;
 
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ public class IdempotentMigrations {
         FirstPageFragment.defineDefaults(); // Define the statistics page visibility defaults.
         prefSettingRangeVerification();
         inheritPrefSettingsAfterUpdate();
+        ThemeColorStore.migrateLegacyColors();
 
     }
 

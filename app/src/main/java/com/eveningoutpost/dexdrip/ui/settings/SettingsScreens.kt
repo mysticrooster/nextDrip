@@ -28,6 +28,7 @@ import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
 internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.Root -> "Settings"
     SettingsScreen.Units -> stringResource(R.string.glucose_units)
+    SettingsScreen.Theme -> stringResource(R.string.theme_colors)
     SettingsScreen.Notifications -> stringResource(R.string.alarms_and_alerts)
     SettingsScreen.BgAlerts -> stringResource(R.string.glucose_alerts_settings)
     SettingsScreen.SuppressAlerts -> stringResource(R.string.suppress_alerts_if_missed_readings)
@@ -49,6 +50,7 @@ internal fun SettingsScreenContent(
     when (screen) {
         SettingsScreen.Root -> RootScreen(onNavigate, onOpenClassic)
         SettingsScreen.Units -> UnitsScreen()
+        SettingsScreen.Theme -> ThemeEditorScreen()
         SettingsScreen.Notifications -> NotificationsScreen(onNavigate)
         SettingsScreen.BgAlerts -> BgAlertsScreen(onNavigate)
         SettingsScreen.SuppressAlerts -> SuppressAlertsScreen()
@@ -104,6 +106,12 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
             subtitle = context.getString(R.string.mmol_or_mgdl_high_and_low),
             onClick = { onNavigate(SettingsScreen.Units) },
             modifier = Modifier.testTag("setting_glucose_units"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.theme_colors),
+            subtitle = context.getString(R.string.theme_colors_summary),
+            onClick = { onNavigate(SettingsScreen.Theme) },
+            modifier = Modifier.testTag("setting_theme"),
         )
     }
     SettingsCategory(context.getString(R.string.alerts_and_notifications)) {

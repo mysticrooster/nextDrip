@@ -268,28 +268,25 @@ runtime requirements that crash on startup:
 
 Two-layer color model:
 
-- **App chrome** (drawer, surfaces, typography, controls) uses a **Material 3 dynamic
-  color scheme** derived from the device theme:
-  - `isSystemInDarkTheme()` selects light vs. dark.
-  - Android 12+ (`Build.VERSION.SDK_INT >= 31`) uses
-    `dynamicLightColorScheme`/`dynamicDarkColorScheme` (Material You).
-  - Older devices fall back to a defined brand `lightColorScheme`/`darkColorScheme`
-    (minSdk is 26, so this fallback path is required).
-- **Data colors** (glucose high/low/in-range, chart lines/backgrounds, basal, number
-  wall) continue to come from the user's in-app color picker via `ColorCache`. These
-  are exposed to Compose through a `LocalXdripColors` composition local.
-
-Decision: the dynamic scheme is **limited to chrome**; user-picked `ColorCache` data
-colors always take precedence for their elements (a user's chosen "low BG" color must
-not be overridden by wallpaper tones).
+- **Every colour has a Material You default.** The app resolves its `ColorScheme` from the
+  device theme (`isSystemInDarkTheme()`; Android 12+ dynamic / Material You, otherwise the
+  brand fallback palette), then applies any **user overrides** on top.
+- The full set of colours lives in one registry, `ui/theme/ThemeColor` — the Material 3 chrome
+  roles *and* the data/chart colours (high/low/in-range, chart lines/backgrounds, basal, number
+  wall, …). Data colours keep their legacy `ColorCache` key so legacy screens stay in sync.
+- **Overrides win over Material You.** Each `ThemeColor` has an override key; absence means
+  "follow Material You". `resolveXdripColorScheme()` applies the chrome overrides (inside
+  `XdripTheme`), and `xdripColor()` / `LocalXdripColors` resolve data colours as
+  `override ?: Material default`. The rule is implemented in `ui/theme/ThemeColor.kt`.
+- A Compose **Theme editor** (`ui/settings/ThemeEditorScreen.kt`) lists every colour with a
+  swatch, the Compose picker, a per-colour "use Material You default" and a global reset.
 
 `ColorCache` is a static cache with manual `invalidateCache()` and no observers, so it
 needs a change-notification bridge to be reactive in Compose: a Kotlin `StateFlow`-based
-bridge updates `LocalXdripColors` on invalidation so Compose recomposes when a color is
-picked.
-
-The **Compose-native color picker is deferred to Phase 4**; the existing `colorpicker`
-AAR remains in use until then (see [`Tech_Debt.md`](./Tech_Debt.md)).
+bridge (`ColorCacheBridge`) updates `LocalXdripColors` on invalidation so Compose recomposes
+when a color is picked. Legacy `ColorPicker` changes are mirrored into overrides via a
+preference-change listener, and a one-time migration copies any non-default legacy colour
+into an override so existing customisations survive the switch to Material You defaults.
 
 ---
 
@@ -315,8 +312,9 @@ Highlights:
   consumed, not extended (see `Documentation/technical/Kotlin_Policy.md`).
 - **State in `ViewModel`/`StateFlow`**, not `ObservableMap` + two-way binding.
 - **No new `hellocharts` usage**; route new charting through the Vico migration.
-- **Two-layer color:** `MaterialTheme.colorScheme` for chrome (dynamic), and
-  `LocalXdripColors` for user-picked data colors.
+- **No hardcoded colours.** Material You is the default for every colour; user overrides
+  (registered in `ui/theme/ThemeColor`, resolved by `resolveXdripColorScheme` / `xdripColor` /
+  `LocalXdripColors`) always win over those defaults.
 - **Thin, delegate-based bridges** for anything that must still touch the legacy
   binding/collection stack (as done for `PrefsView*`).
 - **Screen-by-screen feature parity** with manual + UI tests before deleting the

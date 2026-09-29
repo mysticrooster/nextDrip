@@ -8,6 +8,8 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import com.eveningoutpost.dexdrip.BuildConfig
 import com.eveningoutpost.dexdrip.TestingApplication
+import com.eveningoutpost.dexdrip.ui.theme.ThemeColor
+import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.google.common.truth.Truth.assertThat
 import org.junit.Rule
@@ -79,5 +81,30 @@ class SettingsActivityTest {
         composeRule.onNodeWithText("Calibration Alerts").performClick()
 
         composeRule.onNodeWithTag("setting_calibration_notifications").assertExists()
+    }
+
+    @Test
+    fun themeEditorSetsAndResetsOverride() {
+        ThemeColorStore.clearAll()
+
+        composeRule.onNodeWithTag("setting_theme").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_theme_PRIMARY").performScrollTo().performClick()
+        composeRule.onNodeWithText("OK").performClick()
+        assertThat(ThemeColorStore.isOverridden(ThemeColor.PRIMARY)).isTrue()
+
+        // Now that it is custom, the picker offers a reset back to Material You.
+        composeRule.onNodeWithTag("setting_theme_PRIMARY").performScrollTo().performClick()
+        composeRule.onNodeWithText("Use Material You default").performClick()
+        assertThat(ThemeColorStore.isOverridden(ThemeColor.PRIMARY)).isFalse()
+    }
+
+    @Test
+    fun themeGlobalResetClearsOverrides() {
+        ThemeColorStore.setOverride(ThemeColor.PRIMARY, 0xFF123456.toInt())
+
+        composeRule.onNodeWithTag("setting_theme").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_theme_reset_all").performClick()
+
+        assertThat(ThemeColorStore.isOverridden(ThemeColor.PRIMARY)).isFalse()
     }
 }
