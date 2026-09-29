@@ -12,7 +12,9 @@ progress (UI → Compose, ORM → Room). Medical data integrity and backwards co
 ## Build & tooling
 
 - Gradle **9.7.1**, AGP **9.4.1**, JDK **17** toolchain (the system JDK may differ; the local
-  `~/.gradle/gradle.properties` pins a JDK 17, not committed).
+  `~/.gradle/gradle.properties` pins a JDK 17, not committed). Note the wrapper itself needs
+  `JAVA_HOME` (or `java` on `PATH`) to launch — `org.gradle.java.home` only pins the daemon after
+  start. Add `JAVA_HOME=<jdk17> ./gradlew …` if `java` is not on `PATH`.
 - `compileSdk = targetSdk = 34`, `minSdk = 26`, `namespace`/`applicationId` = `com.eveningoutpost.dexdrip`.
 - Flavors `fast` (dev) and `prod`; build types `debug`/`release`; **R8 minification is enabled for
   debug and release**.
@@ -95,9 +97,10 @@ specific features.
 
 ## Current focus
 
-- **Compose Phase 4 — settings.** S0–S4 done; `Advanced → Other settings` done (S5a pass 1).
-  Next: **S5a watches** (Wear/Pebble/Amazfit/BlueJay/LeFun/MiBand), then **S5b `xdrip_plus_prefs`**,
-  then **S6** retire the legacy settings subsystem. Track V (secondary views) follows.
+- **Compose Phase 4 — settings.** S0–S5a done: the whole **Advanced** category (`pref_advanced_settings`)
+  is migrated, including **S5a watches** (Wear/Pebble/Amazfit/BlueJay/LeFun/MiBand/Smartwatch
+  sensors). Next: **S5b `xdrip_plus_prefs`**, then **S6** retire the legacy settings subsystem.
+  Track V (secondary views) follows.
 - **Phase 2 (Home)** is paused (header rendering reverted pending redesign); **Phase 3 (charts →
   Vico)** is the unblocker.
 - See `Settings_Migration.md` for the exact status board and the recipe for the next slice.
@@ -113,3 +116,8 @@ specific features.
   `getInstanceWithoutImportWait()` is the non-gating path (e.g. `UserError`).
 - **Chart:** Home pan is clamped horizontal by `ui/chart/Horizontal*LineChartView` stopgaps —
   delete when Vico replaces the chart.
+- **targetSdk 34 runtime traps:** dead AARs register receivers flag-lessly (PebbleKit,
+  amazfitcommunication) — self-register their receiver classes with
+  `ContextCompat.registerReceiver(…, RECEIVER_EXPORTED)`, or pass a `ContextWrapper` that forces the
+  flag; every foreground service must declare `android:foregroundServiceType` (`Tech_Debt.md` §7 has
+  the audit and the remaining Play Services `PendingIntent` debt).

@@ -71,6 +71,17 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.LoggingSettings -> stringResource(R.string.extra_logging)
     SettingsScreen.OtherMiscSettings -> stringResource(R.string.title_Other_misc_options)
     SettingsScreen.CollectorInForeground -> stringResource(R.string.title_collector_in_foreground)
+    SettingsScreen.SmartWatchOptions -> stringResource(R.string.smart_watch_features)
+    SettingsScreen.SmartwatchSensors -> stringResource(R.string.title_Smartwatch_Sensors)
+    SettingsScreen.WearSettings -> stringResource(R.string.android_wear_integration)
+    SettingsScreen.AmazfitSettings -> stringResource(R.string.amazfit_sync_service)
+    SettingsScreen.LeFunSettings -> stringResource(R.string.title_lefun_band)
+    SettingsScreen.LeFunFeatures -> stringResource(R.string.title_lefun_screens_features)
+    SettingsScreen.BlueJaySettings -> "BlueJay Watch"
+    SettingsScreen.BlueJayAdvanced -> "BlueJay Advanced Settings"
+    SettingsScreen.MiBandSettings -> stringResource(R.string.title_miband)
+    SettingsScreen.MiBandSubSettings -> stringResource(R.string.title_miband_screens_features)
+    SettingsScreen.PebbleSettings -> stringResource(R.string.pebble_integration)
 }
 
 @Composable
@@ -125,6 +136,17 @@ internal fun SettingsScreenContent(
         SettingsScreen.LoggingSettings -> LoggingSettingsScreen()
         SettingsScreen.OtherMiscSettings -> OtherMiscSettingsScreen(onNavigate)
         SettingsScreen.CollectorInForeground -> CollectorInForegroundScreen()
+        SettingsScreen.SmartWatchOptions -> SmartWatchOptionsScreen(onNavigate)
+        SettingsScreen.SmartwatchSensors -> SmartwatchSensorsScreen()
+        SettingsScreen.WearSettings -> WearSettingsScreen()
+        SettingsScreen.AmazfitSettings -> AmazfitSettingsScreen()
+        SettingsScreen.LeFunSettings -> LeFunSettingsScreen(onNavigate)
+        SettingsScreen.LeFunFeatures -> LeFunFeaturesScreen()
+        SettingsScreen.BlueJaySettings -> BlueJaySettingsScreen(onNavigate)
+        SettingsScreen.BlueJayAdvanced -> BlueJayAdvancedScreen()
+        SettingsScreen.MiBandSettings -> MiBandSettingsScreen(onNavigate)
+        SettingsScreen.MiBandSubSettings -> MiBandSubSettingsScreen()
+        SettingsScreen.PebbleSettings -> PebbleSettingsScreen()
     }
 }
 
@@ -200,6 +222,14 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
             subtitle = context.getString(R.string.options_for_upload),
             onClick = { onNavigate(SettingsScreen.DataSync) },
             modifier = Modifier.testTag("setting_data_sync"),
+        )
+    }
+    SettingsCategory(context.getString(R.string.smart_watch_features)) {
+        SettingsActionRow(
+            title = context.getString(R.string.smart_watch_features),
+            subtitle = context.getString(R.string.pebble_and_android_wear_options),
+            onClick = { onNavigate(SettingsScreen.SmartWatchOptions) },
+            modifier = Modifier.testTag("setting_smart_watch"),
         )
     }
     SettingsCategory(context.getString(R.string.other_settings)) {
@@ -579,6 +609,7 @@ internal fun SwitchPref(
     enabled: Boolean = true,
     tag: String? = null,
     onCheckedChange: ((Boolean) -> Unit)? = null,
+    onBeforeChange: ((Boolean) -> Boolean)? = null,
 ) {
     SettingsSwitchRow(
         title = title,
@@ -588,6 +619,7 @@ internal fun SwitchPref(
             if (onCheckedChange != null) onCheckedChange(checked) else state.setBool(key, checked)
         },
         enabled = enabled,
+        onBeforeChange = onBeforeChange,
         modifier = tag?.let { Modifier.testTag(it) } ?: Modifier,
     )
 }
@@ -604,6 +636,7 @@ internal fun EditPref(
     tag: String? = null,
     validate: ((String) -> Boolean)? = null,
     valueColor: Color = Color.Unspecified,
+    maxLength: Int? = null,
     onValueChange: ((String) -> Unit)? = null,
 ) {
     SettingsEditTextRow(
@@ -613,6 +646,7 @@ internal fun EditPref(
         numeric = numeric,
         enabled = enabled,
         valueColor = valueColor,
+        maxLength = maxLength,
         onValueChange = { newValue ->
             when {
                 onValueChange != null -> onValueChange(newValue)
@@ -634,6 +668,7 @@ internal fun ListPref(
     subtitle: String? = null,
     enabled: Boolean = true,
     tag: String? = null,
+    onSelected: ((String) -> Unit)? = null,
 ) {
     SettingsListRow(
         title = title,
@@ -641,7 +676,9 @@ internal fun ListPref(
         entries = entries,
         values = values,
         selectedValue = state.string(key, default),
-        onSelected = { state.setString(key, it) },
+        onSelected = { newValue ->
+            if (onSelected != null) onSelected(newValue) else state.setString(key, newValue)
+        },
         enabled = enabled,
         modifier = tag?.let { Modifier.testTag(it) } ?: Modifier,
     )

@@ -82,13 +82,13 @@ Low-risk/self-contained first, watches last (hardware + dynamic `removePreferenc
 | 8 | Extra status line | **Done** |
 | 9 | Speak readings (TTS) | **Done** |
 | 10 | Inter-app settings (+ Health Connect) | **Done** |
-| 11 | Smartwatch sensors | Todo |
-| 12 | Android Wear | Todo |
-| 13 | Pebble | Todo |
-| 14 | Amazfit | Todo |
-| 15 | BlueJay (+ advanced) | Todo |
-| 16 | LeFun (+ features) | Todo |
-| 17 | MiBand (+ settings/nightmode/screens) | Todo |
+| 11 | Smartwatch sensors | **Done** |
+| 12 | Android Wear | **Done** |
+| 13 | Pebble | **Done** |
+| 14 | Amazfit | **Done** |
+| 15 | BlueJay (+ advanced) | **Done** |
+| 16 | LeFun (+ features) | **Done** |
+| 17 | MiBand (+ settings/nightmode/screens) | **Done** |
 
 Sections 1–10 land in `ui/settings/AdvancedScreens.kt`; the "Other Settings" root category
 links to Speak readings / Inter-app / Less common settings (inline, as in the legacy XML).
@@ -159,3 +159,26 @@ Per section, run the passes from
   could be off-screen).
 - Tests: added advanced extra-status-line toggle + calibration-plugin presence; 953 unit tests
   green; `assembleFastDebug` green.
+- **Pass 2 (sections 11–17, watches) landed** in `ui/settings/WatchScreens.kt`:
+  - Smartwatch sensors, Android Wear, Amazfit, LeFun (+ features), BlueJay (+ advanced),
+    MiBand (+ sub-settings), Pebble. Root now has a **Smart Watch Features** category.
+  - Gating: `SettingsVisibility.pebbleSyncType(state)` (reactive Pebble type) and
+    `SettingsVisibility.mibandType()` (hardware model); engineering-gated MiBand debug section.
+  - Side effects reproduced: Wear `WatchUpdaterService.startSelf`; Amazfit service start/stop;
+    LeFun/BlueJay/MiBand call-permission prompts; MiBand enable location/read-permission and
+    `update_miband_bg`; Pebble service/watchface install via the shared
+    `utilitymodels.pebble.PebbleActions` (the legacy fragment now delegates to it too); BlueJay
+    mutual-exclusion guards via shared `BlueJayAdapter.canUsePhoneSlot`/`canRunPhoneCollector`
+    (used by both the legacy listeners and Compose). The legacy MiBand/LeFun/BlueJay
+    `OnSharedPreferenceChangeListener`s are registered for the Compose host lifetime
+    (`SettingsActivity`), since the legacy activity is not open.
+  - New component/helper support: `SettingsInfoRow` (read-only/selectable), `maxLength` on edit
+    rows, switch **veto** (`onBeforeChange`), and `onSelected` on `ListPref`.
+  - Tests: new `WatchSettingsTest` (14 tests — navigation, round-trips, Wear dependency chain,
+    Pebble type visibility, MiBand model gating, engineering debug, BlueJay veto, Amazfit).
+    Full unit suite + `assembleFastDebug` (R8) green.
+  - **Known deviations:** Pebble visibility uses a pure `syncType` mapping (initial-inflation
+    behaviour) because the legacy `removePreference` matrix differs between inflation and
+    on-change; the MiBand debug section is placed in the sub-settings screen (matching where the
+    legacy `removePreference` looked for it) and gated on engineering mode.
+- **S5a complete.** Next: S5b (`xdrip_plus_prefs.xml`).

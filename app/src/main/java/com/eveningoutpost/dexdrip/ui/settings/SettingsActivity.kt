@@ -21,12 +21,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.eveningoutpost.dexdrip.ui.theme.XdripTheme
+import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.Preferences
+import com.eveningoutpost.dexdrip.watch.lefun.LeFunEntry
+import com.eveningoutpost.dexdrip.watch.miband.MiBandEntry
+import com.eveningoutpost.dexdrip.watch.thinjam.BlueJayEntry
 
 /**
  * Compose settings host.
@@ -60,6 +65,21 @@ internal fun SettingsRoot(onOpenClassic: () -> Unit) {
     val stack = remember { mutableStateListOf<SettingsScreen>(SettingsScreen.Root) }
     val scrollState = rememberScrollState()
     BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
+
+    // The legacy settings activity registers these watch listeners for its lifetime; reproduce that
+    // here so MiBand/LeFun/BlueJay pick up changes made in the Compose host (refresh services,
+    // BlueJay collector restart). The inline Wear/Amazfit/Pebble side effects are handled by the rows.
+    DisposableEffect(Unit) {
+        val prefs = Pref.getInstance()
+        prefs.registerOnSharedPreferenceChangeListener(MiBandEntry.prefListener)
+        prefs.registerOnSharedPreferenceChangeListener(LeFunEntry.prefListener)
+        prefs.registerOnSharedPreferenceChangeListener(BlueJayEntry.prefListener)
+        onDispose {
+            prefs.unregisterOnSharedPreferenceChangeListener(MiBandEntry.prefListener)
+            prefs.unregisterOnSharedPreferenceChangeListener(LeFunEntry.prefListener)
+            prefs.unregisterOnSharedPreferenceChangeListener(BlueJayEntry.prefListener)
+        }
+    }
 
     // Reset the scroll position when navigating between screens.
     LaunchedEffect(stack.last()) { scrollState.scrollTo(0) }

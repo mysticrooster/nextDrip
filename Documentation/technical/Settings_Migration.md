@@ -110,7 +110,7 @@ cheapest/self-contained → hardware-heavy, deleting the legacy UI only after pa
 | — | Material You defaults + per-colour overrides + Theme editor | **Done** | `87d4c2239`, `2f4139cfd` |
 | **S3** | `pref_data_source` (collection-type gating, side effects) | **Done** | `c1d090169` |
 | **S4** | `pref_data_sync` | **Done** | `27a344d08` |
-| **S5a** | `pref_advanced_settings` | **In progress** — "Other settings" done, watches todo (annex) | `274fd4e6e` |
+| **S5a** | `pref_advanced_settings` | **Done** — "Other settings" and watches | `274fd4e6e`, watches pass |
 | **S5b** | `xdrip_plus_prefs` | Todo | — |
 | **S6** | Retire legacy settings | Todo | — |
 
@@ -177,10 +177,10 @@ Auto configure; Cloud upload hub (REST API + download/extra, MongoDB, InfluxDB, 
 Tidepool (test login, latency slider, cred listeners), Web Deposit (engineering-only), NightLite,
 Nocturne); Glucose meters (scan/pair, calibration dependents).
 
-### S5a — Advanced Settings (`pref_advanced_settings.xml`) — in progress
-See [`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md). "Other settings" branch done
-(TTS, inter-app + Health Connect, extra status line, calibration, Bluetooth, BlueReader/Libre2,
-logging, misc); the **watches** branch (Wear/Pebble/Amazfit/BlueJay/LeFun/MiBand) remains.
+### S5a — Advanced Settings (`pref_advanced_settings.xml`) — done
+See [`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md). "Other settings" branch (TTS, inter-app +
+Health Connect, extra status line, calibration, Bluetooth, BlueReader/Libre2, logging, misc) and the
+**watches** branch (Wear/Pebble/Amazfit/BlueJay/LeFun/MiBand/Smartwatch sensors) are migrated.
 
 ### S5b — xDrip+ Options (`xdrip_plus_prefs.xml`) — todo
 Display/graph options, number-wall preview, `ExampleChartPreferenceView`; the 34 colours are
@@ -201,9 +201,10 @@ Compose host.
 - **Custom widgets**: `ExampleChartPreferenceView` row; multi-select / tree-selector / PIN dialogs.
 - **Icons**: legacy sub-screens carry `android:icon`; add leading icons to `SettingsActionRow`.
 - **Live pref-change listeners**: the legacy activity registered service/watch/collector listeners
-  while open. The collection-method reactions were reproduced **explicitly** in S3; the wider set
-  (e.g. `xDripCloudListener`, watch listeners) is only relevant if such a pref changes while
-  settings is open — still a follow-up.
+  while open. The collection-method reactions were reproduced **explicitly** in S3; the **watch**
+  listeners (`MiBandEntry`/`LeFunEntry`/`BlueJayEntry`) are now registered for the Compose host
+  lifetime in `SettingsActivity` (S5a watches). Remaining (`xDripCloudListener`, etc.) are still a
+  follow-up for screens where a pref can change while settings is open.
 - **`summaryOn`/`summaryOff`**: switch state text is currently rendered as a computed `subtitle`.
 
 ---
@@ -249,7 +250,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | S3 Data Source | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | S4 Data Sync | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | S5a Other settings | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
-| S5a Watches | — | — | — | — | — | — | — | — | — |
+| S5a Watches | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
 | S5b xDrip+ Options | — | — | — | — | — | — | — | — | — |
 
 (H = search and J = retirement are app-wide and tracked above.)

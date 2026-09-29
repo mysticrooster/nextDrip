@@ -53,6 +53,17 @@ internal sealed interface SettingsScreen {
     data object LoggingSettings : SettingsScreen
     data object OtherMiscSettings : SettingsScreen
     data object CollectorInForeground : SettingsScreen
+    data object SmartWatchOptions : SettingsScreen
+    data object SmartwatchSensors : SettingsScreen
+    data object WearSettings : SettingsScreen
+    data object AmazfitSettings : SettingsScreen
+    data object LeFunSettings : SettingsScreen
+    data object LeFunFeatures : SettingsScreen
+    data object BlueJaySettings : SettingsScreen
+    data object BlueJayAdvanced : SettingsScreen
+    data object MiBandSettings : SettingsScreen
+    data object MiBandSubSettings : SettingsScreen
+    data object PebbleSettings : SettingsScreen
 }
 
 /** A searchable settings destination shown by the root search field. */
@@ -84,6 +95,14 @@ internal val SETTINGS_SEARCH_INDEX = listOf(
     SettingsSearchEntry("Sensor Expiry", SettingsScreen.SensorExpiry, listOf("sensor", "expiry")),
     SettingsSearchEntry("Calibration Alerts", SettingsScreen.CalibrationAlerts, listOf("calibration reminder", "snooze")),
     SettingsSearchEntry("Other Alerts", SettingsScreen.OtherAlerts, listOf("noisy readings", "falling", "rising")),
+    SettingsSearchEntry("Smart Watch Features", SettingsScreen.SmartWatchOptions, listOf("watch", "wear", "pebble", "amazfit", "bluejay", "lefun", "miband")),
+    SettingsSearchEntry("Android Wear Integration", SettingsScreen.WearSettings, listOf("wear", "wear os", "watch")),
+    SettingsSearchEntry("Pebble", SettingsScreen.PebbleSettings, listOf("pebble", "watchface")),
+    SettingsSearchEntry("Amazfit", SettingsScreen.AmazfitSettings, listOf("amazfit", "watchface", "widget")),
+    SettingsSearchEntry("BlueJay Watch", SettingsScreen.BlueJaySettings, listOf("bluejay", "thinjam")),
+    SettingsSearchEntry("LeFun Band", SettingsScreen.LeFunSettings, listOf("lefun", "band")),
+    SettingsSearchEntry("MiBand", SettingsScreen.MiBandSettings, listOf("miband", "mi band")),
+    SettingsSearchEntry("Smartwatch Sensors", SettingsScreen.SmartwatchSensors, listOf("heart rate", "step counter", "sensors")),
 )
 
 internal fun searchSettings(query: String): List<SettingsSearchEntry> {

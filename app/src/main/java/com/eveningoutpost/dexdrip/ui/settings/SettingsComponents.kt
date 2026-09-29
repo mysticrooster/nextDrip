@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -108,21 +109,25 @@ fun SettingsSwitchRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     enabled: Boolean = true,
+    onBeforeChange: ((Boolean) -> Boolean)? = null,
 ) {
+    val applyChange: (Boolean) -> Unit = { newValue ->
+        if (onBeforeChange == null || onBeforeChange(newValue)) onCheckedChange(newValue)
+    }
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
         trailingContent = {
             Switch(
                 checked = checked,
-                onCheckedChange = onCheckedChange,
+                onCheckedChange = applyChange,
                 enabled = enabled,
             )
         },
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
-            .clickable(enabled = enabled) { onCheckedChange(!checked) },
+            .clickable(enabled = enabled) { applyChange(!checked) },
     )
     HorizontalDivider()
 }
@@ -138,6 +143,7 @@ fun SettingsEditTextRow(
     numeric: Boolean = false,
     enabled: Boolean = true,
     valueColor: Color = Color.Unspecified,
+    maxLength: Int? = null,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     ListItem(
@@ -155,10 +161,39 @@ fun SettingsEditTextRow(
             title = title,
             initial = value,
             numeric = numeric,
+            maxLength = maxLength,
             onDismiss = { showDialog = false },
             onConfirm = { onValueChange(it); showDialog = false },
         )
     }
+}
+
+/**
+ * Read-only value row for legacy `EditTextPreference` rows with `android:editable="false"`
+ * (e.g. `node_wearG5`). Shows the value as selectable text; tapping does nothing.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsInfoRow(
+    title: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    enabled: Boolean = true,
+) {
+    ListItem(
+        headlineContent = { Text(title) },
+        supportingContent = subtitle?.let { { Text(it) } },
+        trailingContent = {
+            SelectionContainer {
+                Text(value, style = MaterialTheme.typography.bodyMedium)
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .alpha(if (enabled) 1f else DISABLED_ALPHA),
+    )
+    HorizontalDivider()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -449,6 +484,7 @@ private fun EditTextDialog(
     numeric: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
+    maxLength: Int? = null,
 ) {
     var text by remember { mutableStateOf(initial) }
     AlertDialog(
@@ -457,7 +493,9 @@ private fun EditTextDialog(
         text = {
             OutlinedTextField(
                 value = text,
-                onValueChange = { text = it },
+                onValueChange = { newValue ->
+                    text = if (maxLength != null && newValue.length > maxLength) newValue.take(maxLength) else newValue
+                },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = if (numeric) KeyboardType.Number else KeyboardType.Text

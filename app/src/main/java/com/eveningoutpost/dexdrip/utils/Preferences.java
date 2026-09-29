@@ -113,13 +113,10 @@ import com.eveningoutpost.dexdrip.utilitymodels.ShotStateStore;
 import com.eveningoutpost.dexdrip.utilitymodels.SpeechUtil;
 import com.eveningoutpost.dexdrip.utilitymodels.UpdateActivity;
 import com.eveningoutpost.dexdrip.utilitymodels.WholeHouse;
+import com.eveningoutpost.dexdrip.utilitymodels.pebble.PebbleActions;
 import com.eveningoutpost.dexdrip.utilitymodels.pebble.PebbleUtil;
 import com.eveningoutpost.dexdrip.utilitymodels.pebble.PebbleWatchSync;
-import com.eveningoutpost.dexdrip.utilitymodels.pebble.watchface.InstallPebbleClassicTrendWatchface;
 import com.eveningoutpost.dexdrip.utilitymodels.pebble.watchface.InstallPebbleSnoozeControlApp;
-import com.eveningoutpost.dexdrip.utilitymodels.pebble.watchface.InstallPebbleTrendClayWatchFace;
-import com.eveningoutpost.dexdrip.utilitymodels.pebble.watchface.InstallPebbleTrendWatchFace;
-import com.eveningoutpost.dexdrip.utilitymodels.pebble.watchface.InstallPebbleWatchFace;
 import com.eveningoutpost.dexdrip.utils.framework.IncomingCallsReceiver;
 import com.eveningoutpost.dexdrip.watch.lefun.LeFunEntry;
 import com.eveningoutpost.dexdrip.watch.miband.MiBand;
@@ -2304,11 +2301,8 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     final Context context = preference.getContext();
+                    final int pebbleType = PebbleUtil.getCurrentPebbleSyncType(PreferenceManager.getDefaultSharedPreferences(context).getString("broadcast_to_pebble_type", "1"));
                     if ((Boolean) newValue) {
-
-
-                        pebbleType = PebbleUtil.getCurrentPebbleSyncType(PreferenceManager.getDefaultSharedPreferences(context).getString("broadcast_to_pebble_type", "1"));
-
                         // install watchface
                         installPebbleWatchface(pebbleType, preference);
                     }
@@ -2901,41 +2895,16 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
             builder.setTitle("Pebble Install");
-
-            switch (pebbleType)
-                {
-                    case 2:
-                        builder.setMessage("Install Standard Pebble Watchface?");
-                        break;
-                    case 3:
-                        builder.setMessage("Install Pebble Trend Watchface?");
-                        break;
-                    case 4:
-                        builder.setMessage("Install Pebble Classic Trend Watchface?");
-                        break;
-                    case 5:
-                        builder.setMessage("Install Pebble Clay Trend Watchface?");
-                        break;
-                }
+            builder.setMessage(PebbleActions.INSTANCE.installMessage(pebbleType));
 
 
             builder.setPositiveButton(gs(R.string.yes), new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
 
-                    switch (pebbleType) {
-                        case 2:
-                            context.startActivity(new Intent(context, InstallPebbleWatchFace.class));
-                            break;
-                        case 3:
-                            context.startActivity(new Intent(context, InstallPebbleTrendWatchFace.class));
-                            break;
-                        case 4:
-                            context.startActivity(new Intent(context, InstallPebbleClassicTrendWatchface.class));
-                            break;
-                        case 5:
-                            context.startActivity(new Intent(context, InstallPebbleTrendClayWatchFace.class));
-                            break;
+                    final Class<?> installActivity = PebbleActions.INSTANCE.installActivity(pebbleType);
+                    if (installActivity != null) {
+                        context.startActivity(new Intent(context, installActivity));
                     }
 
                     JoH.runOnUiThreadDelayed(new Runnable() {
@@ -2974,27 +2943,9 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             alert.show();
         }
 
-        private static int pebbleType = 1;
         private void enablePebble(int newValueInt, boolean enabled, Context context) {
-            Log.d(TAG,"enablePebble called with: "+newValueInt+" "+enabled);
-            if (pebbleType == 1) {
-                if (enabled && (newValueInt != 1)) {
-                    context.stopService(new Intent(context, PebbleWatchSync.class));
-                    context.startService(new Intent(context, PebbleWatchSync.class));
-                    Log.d(TAG,"Starting pebble service type: "+newValueInt);
-                }
-            } else {
-                if (!enabled || (newValueInt == 1)) {
-                    context.stopService(new Intent(context, PebbleWatchSync.class));
-                    Log.d(TAG, "Stopping pebble service type: " + newValueInt);
-                }
-
-
-            }
-
-            pebbleType = enabled ? newValueInt : 1;
-            PebbleWatchSync.setPebbleType(pebbleType);
-
+            Log.d(TAG, "enablePebble called with: " + newValueInt + " " + enabled);
+            PebbleActions.INSTANCE.enablePebble(context, newValueInt, enabled);
         }
 
 
