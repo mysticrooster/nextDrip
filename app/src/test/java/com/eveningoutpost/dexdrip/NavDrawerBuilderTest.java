@@ -6,7 +6,7 @@ import androidx.preference.PreferenceManager;
 
 import com.eveningoutpost.dexdrip.tables.BgReadingTable;
 import com.eveningoutpost.dexdrip.tables.CalibrationDataTable;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.ui.settings.SettingsActivity;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class NavDrawerBuilderTest extends RobolectricTestWithConfig {
         List<String> targets = targetClasses(new NavDrawerBuilder(xdrip.getAppContext()));
 
         // :: Verify
-        assertThat(targets).containsExactly(Preferences.class.getName());
+        assertThat(targets).containsExactly(SettingsActivity.class.getName());
     }
 
     /**
@@ -73,7 +73,7 @@ public class NavDrawerBuilderTest extends RobolectricTestWithConfig {
 
         // :: Verify
         assertThat(targets.get(0)).isEqualTo(Home.class.getName());
-        assertThat(targets.get(targets.size() - 1)).isEqualTo(Preferences.class.getName());
+        assertThat(targets.get(targets.size() - 1)).isEqualTo(SettingsActivity.class.getName());
         assertThat(targets.size()).isGreaterThan(1);
     }
 

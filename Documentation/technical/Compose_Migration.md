@@ -34,6 +34,13 @@ verified running on the emulator (including background collection restarts).
 Phase 2 has its component library seeded and the header state extracted, but the
 header *rendering* was reverted to the original design pending a proper redesign.
 
+**Phase 4 (settings) has started:** a Compose settings host
+(`ui/settings/SettingsActivity`) with a hand-rolled row library
+(`ui/settings/SettingsComponents.kt`) renders the **General** category as the pilot;
+every other category links through to the legacy settings activity for now. The drawer's
+Settings entry opens the new host (see
+[`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)).
+
 ---
 
 ## Strategy: Incremental Hybrid

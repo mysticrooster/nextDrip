@@ -130,9 +130,11 @@ selector) — see the existing `dialog_*.xml` layouts (`dialog_text_entry`, `dia
 
 1. **S0 — foundation.** `ui/settings/` package + components + `SettingsViewModel` + nav graph
    + the Compose color picker + settings search. Host it from the existing entry point with a
-   single **pilot category** visible and the rest still legacy.
+   single **pilot category** visible and the rest still legacy. **Done (components + host,
+   hand-rolled screen stack; color picker/search still to come).**
 2. **S1 — pilot: `pref_general`** (31 lines, 2 screens) + `pref_license`. Smallest, proves the
-   pattern end-to-end (rows, summaries, sound picker, validation).
+   pattern end-to-end (rows, summaries, sound picker, validation). **Done** (`General` category:
+   units + high/low + license row; Compose tests in `SettingsActivityTest`).
 3. **S2 — `pref_notifications`** (412 lines, 12 screens) — dialogs, sounds, unitized numeric
    summaries.
 4. **S3 — `pref_data_source`** (447 lines, 7 screens) — collection-method dependent visibility.

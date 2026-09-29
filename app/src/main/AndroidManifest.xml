@@ -549,6 +549,10 @@
             android:configChanges="orientation|screenSize"
             android:label="@string/settings"
             android:theme="@style/OldAppTheme" />
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:label="@string/settings" />
 
         <receiver
             android:name=".xDripWidget"

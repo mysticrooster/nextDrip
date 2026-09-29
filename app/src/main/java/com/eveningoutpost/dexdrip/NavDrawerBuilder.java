@@ -18,7 +18,7 @@ import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.utilitymodels.Experience;
 import com.eveningoutpost.dexdrip.stats.StatsActivity;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.ui.settings.SettingsActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,7 @@ public class NavDrawerBuilder {
         boolean IUnderstand = prefs.getBoolean("I_understand", false);
         if (!IUnderstand) {
             this.nav_drawer_options.add(context.getString(R.string.settings));
-            this.nav_drawer_intents.add(new Intent(context, Preferences.class));
+            this.nav_drawer_intents.add(new Intent(context, SettingsActivity.class));
             return;
         }
 
@@ -149,6 +149,6 @@ public class NavDrawerBuilder {
         }
 
         this.nav_drawer_options.add(context.getString(R.string.settings));
-        this.nav_drawer_intents.add(new Intent(context, Preferences.class));
+        this.nav_drawer_intents.add(new Intent(context, SettingsActivity.class));
     }
 }
