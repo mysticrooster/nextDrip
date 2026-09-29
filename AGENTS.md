@@ -102,8 +102,12 @@ specific features.
   (`pref_advanced_settings`, incl. watches) and the **xDrip+ Extra Settings** tree
   (`xdrip_plus_prefs`: display/graph/number-wall/accessibility, copying, update, motion, pens,
   prediction, sync) are migrated, plus theme-editor colour-group parity with the legacy screen.
+  **Track V pass 1** (settings sub-menu quick wins) is done: `TimePickerPrefActivity`,
+  `LicenseAgreementActivity`, `SelectAudioDevice`, `InsulinProfileEditor`, `MissedReadingActivity`,
+  `NightscoutBackfillActivity`, `DepositActivity` now render Compose in-place
+  (`ui/secondary/`); remaining secondary views (alert/editor/table/admin, `Agreement`) are deferred.
   Next: **S6** retire the legacy settings subsystem (deferred until on-device testing). Track V
-  (secondary views) follows.
+  (secondary views) continues.
 - **Phase 2 (Home)** is paused (header rendering reverted pending redesign); **Phase 3 (charts →
   Vico)** is the unblocker.
 - See `Settings_Migration.md` for the exact status board and `Compose_Library_Replacements.md`

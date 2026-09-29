@@ -227,11 +227,27 @@ Compose host.
 
 ## 7. Track V — secondary views
 
-Group by shape; migrate in order of similarity: **F** info/legal (quick) → **A/B** alert & sensor
-forms (reuse settings rows) → **G** misc → **D** tables/logs (chart-wrapping) → **C** editors
-(highest complexity) → **E** admin/backup. The `PrefsView*` bridge retires once its users
-(`DoubleCalibrationActivity`, `Home`, `BackupActivity`, `DepositActivity`,
-`EmergencyAssistActivity`, `NumberWallPreview`, `XDripDreamSettingsActivity`, `DisplayQRCode`) move.
+Migrate the legacy screens launched from settings. Group by shape; preferred order **F** info/legal
+(quick) → **A/B** alert & sensor forms (reuse settings rows) → **G** misc → **D** tables/logs
+(chart-wrapping) → **C** editors (highest complexity) → **E** admin/backup.
+
+**Pass 1 — done (quick, self-contained wins).** Hosting: each legacy activity keeps its class,
+manifest entry and launch intent; only its content becomes Compose (`setContent`), with a shared
+Material 3 scaffold (`ui/secondary/SecondaryScaffold.kt`) replacing the action bar / nav drawer.
+Migrated: `TimePickerPrefActivity` (`ui.secondary.TimePickerPrefScreen`), `LicenseAgreementActivity`,
+`SelectAudioDevice`, `InsulinProfileEditor`, `MissedReadingActivity`, `NightscoutBackfillActivity`,
+`DepositActivity`. Their dedicated XML layouts were deleted; `DepositActivity`/`SelectAudioDevice`
+Data-Binding and `MissedReadingActivity`'s implicit on-destroy save were removed. New shared pieces:
+`SecondaryScreen`, `SettingsMinutesOfDayRow` / `TimeOfDayDialog`, and the testable
+`BackfillGuard`. Note `SelectAudioDevice`'s static MAC helpers and `EditAlertActivity`'s
+`shortPath`/`timeFormatString` stay (used by `HeadsetStateReceiver` / alert screens).
+
+**Remaining:** `AlertList` + `EditAlertActivity`, `ProfileEditor`, `BasalProfileEditor`,
+`NumberWallPreview`, `DisplayQRCode`, `SdcardImportExport`, `SendFeedBack`, `BTGlucoseMeterActivity`,
+`Agreement`, and the app-wide/drawer surfaces. The `PrefsView*` bridge retires once its remaining
+users (`DoubleCalibrationActivity`, `Home`, `BackupActivity`, `EmergencyAssistActivity`,
+`NumberWallPreview`, `XDripDreamSettingsActivity`, `DisplayQRCode`) move.
+
 
 ---
 
@@ -269,6 +285,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | S5a Other settings | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
 | S5a Watches | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
 | S5b xDrip+ Extra Settings | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| V1 Track V quick wins | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 (H = search and J = retirement are app-wide and tracked above.)
 

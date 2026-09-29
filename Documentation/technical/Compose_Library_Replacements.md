@@ -27,12 +27,14 @@ for app widgets. Track V (`Settings_Migration.md` §7) migrates these.
 
 | View/activity | Replacement |
 | --- | --- |
-| `ProfileEditor`, `BasalProfileEditor`, `InsulinProfileEditor` | Compose editors (charts/columns last) |
-| `SelectAudioDevice`, `NumberWallPreview`, `NumberGraphic` | Compose screens/`Canvas` |
+| `ProfileEditor`, `BasalProfileEditor` | Compose editors (charts/columns last) |
+| `NumberWallPreview`, `NumberGraphic` | Compose screens/`Canvas` |
 | `DisplayQRCode`, `SdcardImportExport` | Compose screens (or keep the QR view) |
-| `TimePickerPrefActivity` / `TimePickerFragment` | Material 3 `TimePicker` (note: stores seconds-as-String) |
-| `SendFeedBack`, `LicenseAgreementActivity` | Compose screens |
+| `SendFeedBack`, `Agreement` | Compose screens |
+| `AlertList` + `EditAlertActivity` | Compose list + editor (alert forms / chart) |
+| `BTGlucoseMeterActivity` | Compose screen (admin/backup group) |
 | `ExampleChartPreferenceView` | `AndroidView` wrapper today (theme editor); Vico later |
+| **Done — Track V pass 1** | `TimePickerPrefActivity` + `TimePickerFragment` (→ `TimeOfDayDialog`), `LicenseAgreementActivity`, `SelectAudioDevice`, `InsulinProfileEditor`, `MissedReadingActivity`, `NightscoutBackfillActivity`, `DepositActivity` — Compose content in the existing activities, dedicated layouts deleted |
 
 ## RemoteViews / Bitmap-only surfaces
 
