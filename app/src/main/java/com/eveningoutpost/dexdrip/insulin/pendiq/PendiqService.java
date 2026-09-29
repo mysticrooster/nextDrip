@@ -41,10 +41,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import lombok.RequiredArgsConstructor;
-/*
-import rx.Subscription;
-import rx.schedulers.Schedulers;
-*/
 import io.reactivex.schedulers.Schedulers;
 
 import static com.eveningoutpost.dexdrip.models.JoH.msSince;

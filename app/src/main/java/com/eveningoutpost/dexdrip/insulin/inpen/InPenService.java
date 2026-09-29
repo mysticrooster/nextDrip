@@ -50,8 +50,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-//import rx.schedulers.Schedulers;
-
 import io.reactivex.schedulers.Schedulers;
 
 

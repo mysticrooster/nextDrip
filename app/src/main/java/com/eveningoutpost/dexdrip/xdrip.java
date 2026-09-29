@@ -38,6 +38,8 @@ import com.eveningoutpost.dexdrip.services.broadcastservice.BroadcastEntry;
 import com.eveningoutpost.dexdrip.wearintegration.ExternalStatusBroadcastReceiver;
 import com.eveningoutpost.dexdrip.webservices.XdripWebService;
 
+import net.danlew.android.joda.JodaTimeAndroid;
+
 import java.util.Locale;
 
 
@@ -77,6 +79,7 @@ public class xdrip extends Application {
     public void onCreate() {
         xdrip.context = getApplicationContext();
         super.onCreate();
+        JodaTimeAndroid.init(this);
         try {
             if (PreferenceManager.getDefaultSharedPreferences(xdrip.context).getBoolean("enable_crashlytics", true)) {
                 SentryCrashReporting.start(this);

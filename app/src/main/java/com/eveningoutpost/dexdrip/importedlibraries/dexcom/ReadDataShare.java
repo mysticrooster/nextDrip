@@ -21,8 +21,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import rx.Observable;
-import rx.functions.Action1;
+import java.util.function.Consumer;
 
 // This code and this particular library are from the NightScout android uploader
 // Check them out here: https://github.com/nightscout/android-uploader
@@ -40,104 +39,104 @@ public class ReadDataShare {
         mCollectionService = collectionService;
     }
 
-    public void getRecentEGVs(final Action1<EGVRecord[]> recordListener) {
+    public void getRecentEGVs(final Consumer<EGVRecord[]> recordListener) {
         final int recordType = Dex_Constants.RECORD_TYPES.EGV_DATA.ordinal();
-        final Action1<byte[]> fullPageListener = new Action1<byte[]>() {
+        final Consumer<byte[]> fullPageListener = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
+            public void accept(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
         };
-        Action1<Integer> databasePageRangeCaller = new Action1<Integer>() {
+        Consumer<Integer> databasePageRangeCaller = new Consumer<Integer>() {
             @Override
-            public void call(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
+            public void accept(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
         };
         readDataBasePageRange(recordType, databasePageRangeCaller);
     }
 
-    public void getRecentMeterRecords(final Action1<MeterRecord[]> recordListener) {
+    public void getRecentMeterRecords(final Consumer<MeterRecord[]> recordListener) {
         final int recordType = Dex_Constants.RECORD_TYPES.METER_DATA.ordinal();
-        final Action1<byte[]> fullPageListener = new Action1<byte[]>() {
+        final Consumer<byte[]> fullPageListener = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
+            public void accept(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
         };
-        Action1<Integer> databasePageRangeCaller = new Action1<Integer>() {
+        Consumer<Integer> databasePageRangeCaller = new Consumer<Integer>() {
             @Override
-            public void call(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
+            public void accept(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
         };
         readDataBasePageRange(recordType, databasePageRangeCaller);
     }
 
-    public void getRecentCalRecords(final Action1<CalRecord[]> recordListener) {
+    public void getRecentCalRecords(final Consumer<CalRecord[]> recordListener) {
         final int recordType = Dex_Constants.RECORD_TYPES.CAL_SET.ordinal();
-        final Action1<byte[]> fullPageListener = new Action1<byte[]>() {
+        final Consumer<byte[]> fullPageListener = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
+            public void accept(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
         };
-        Action1<Integer> databasePageRangeCaller = new Action1<Integer>() {
+        Consumer<Integer> databasePageRangeCaller = new Consumer<Integer>() {
             @Override
-            public void call(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
+            public void accept(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
         };
         readDataBasePageRange(recordType, databasePageRangeCaller);
     }
 
 
-    public void getRecentSensorRecords(final Action1<SensorRecord[]> recordListener) {
+    public void getRecentSensorRecords(final Consumer<SensorRecord[]> recordListener) {
         final int recordType = Dex_Constants.RECORD_TYPES.SENSOR_DATA.ordinal();
-        final Action1<byte[]> fullPageListener = new Action1<byte[]>() {
+        final Consumer<byte[]> fullPageListener = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
+            public void accept(byte[] s) { ParsePage(read(0,s).getData(), recordType, recordListener); }
         };
-        Action1<Integer> databasePageRangeCaller = new Action1<Integer>() {
+        Consumer<Integer> databasePageRangeCaller = new Consumer<Integer>() {
             @Override
-            public void call(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
+            public void accept(Integer s) { readDataBasePage(recordType, s, fullPageListener); }
         };
         readDataBasePageRange(recordType, databasePageRangeCaller);
     }
 
-    public void getTimeSinceEGVRecord(final EGVRecord egvRecord, final Action1<Long> timeSinceEgvRecord) {
-        Action1<Long> tempSystemTimeListener = new Action1<Long>() {
+    public void getTimeSinceEGVRecord(final EGVRecord egvRecord, final Consumer<Long> timeSinceEgvRecord) {
+        Consumer<Long> tempSystemTimeListener = new Consumer<Long>() {
             @Override
-            public void call(Long s) { Observable.just(s - egvRecord.getSystemTimeSeconds()).subscribe(timeSinceEgvRecord); }
+            public void accept(Long s) { timeSinceEgvRecord.accept(s - egvRecord.getSystemTimeSeconds()); }
         };
         readSystemTime(tempSystemTimeListener);
     }
 
-    public void ping(final Action1<Boolean> pingListener) {
-        Action1<byte[]> pingReader = new Action1<byte[]>() {
+    public void ping(final Consumer<Boolean> pingListener) {
+        Consumer<byte[]> pingReader = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) { Observable.just(read(0, s).getCommand() == Dex_Constants.ACK).subscribe(pingListener); }
+            public void accept(byte[] s) { pingListener.accept(read(0, s).getCommand() == Dex_Constants.ACK); }
         };
         writeCommand(Dex_Constants.PING, pingReader);
     }
 
-    public void readBatteryLevel(final Action1<Integer> batteryLevelListener) {
-        Action1<byte[]> batteryLevelReader = new Action1<byte[]>() {
+    public void readBatteryLevel(final Consumer<Integer> batteryLevelListener) {
+        Consumer<byte[]> batteryLevelReader = new Consumer<byte[]>() {
             @Override //TODO: find out if this should be wrapped in read(s).getData();
-            public void call(byte[] s) { Observable.just(ByteBuffer.wrap(s).order(ByteOrder.LITTLE_ENDIAN).getInt()).subscribe(batteryLevelListener); }
+            public void accept(byte[] s) { batteryLevelListener.accept(ByteBuffer.wrap(s).order(ByteOrder.LITTLE_ENDIAN).getInt()); }
         };
         writeCommand(Dex_Constants.READ_BATTERY_LEVEL, batteryLevelReader);
     }
 
-    public void readSerialNumber(final Action1<String> serialNumberListener) {
-        final Action1<byte[]> manufacturingDataListener = new Action1<byte[]>() {
+    public void readSerialNumber(final Consumer<String> serialNumberListener) {
+        final Consumer<byte[]> manufacturingDataListener = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) {
+            public void accept(byte[] s) {
                 Element el = ParsePage(s, Dex_Constants.RECORD_TYPES.MANUFACTURING_DATA.ordinal());
-                Observable.just(el.getAttribute("SerialNumber")).subscribe(serialNumberListener);
+                serialNumberListener.accept(el.getAttribute("SerialNumber"));
             }
         };
         readDataBasePage(Dex_Constants.RECORD_TYPES.MANUFACTURING_DATA.ordinal(), 0, manufacturingDataListener);
     }
 
-    public void readDisplayTime(final Action1<Date> displayTimeListener) {
-        Action1<Long> tempSystemTimeListener = new Action1<Long>() {
+    public void readDisplayTime(final Consumer<Date> displayTimeListener) {
+        Consumer<Long> tempSystemTimeListener = new Consumer<Long>() {
             @Override
-            public void call(Long s) {
+            public void accept(Long s) {
                 final long systemTime = s;
-                Action1<Long> tempSystemTimeListener = new Action1<Long>() {
+                Consumer<Long> tempSystemTimeListener = new Consumer<Long>() {
                     @Override
-                    public void call(Long s) {
+                    public void accept(Long s) {
                         Date dateDisplayTime = Utils.receiverTimeToDate(systemTime + s);
-                        Observable.just(dateDisplayTime).subscribe(displayTimeListener); }
+                        displayTimeListener.accept(dateDisplayTime); }
                 };
                 readDisplayTimeOffset(tempSystemTimeListener);
             }
@@ -145,37 +144,37 @@ public class ReadDataShare {
         readSystemTime(tempSystemTimeListener);
     }
 
-    public void readSystemTime(final Action1<Long> systemTimeListener) {
-        Action1<byte[]> systemTimeReader = new Action1<byte[]>() {
+    public void readSystemTime(final Consumer<Long> systemTimeListener) {
+        Consumer<byte[]> systemTimeReader = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) {
-                Observable.just(Utils.receiverTimeToDate(ByteBuffer.wrap(read(0,s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt()).getTime()).subscribe(systemTimeListener);
+            public void accept(byte[] s) {
+                systemTimeListener.accept(Utils.receiverTimeToDate(ByteBuffer.wrap(read(0,s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt()).getTime());
             }
         };
         writeCommand(Dex_Constants.READ_SYSTEM_TIME, systemTimeReader);
     }
 
-    public void readDisplayTimeOffset(final Action1<Long> displayTimeOffsetListener) {
-        Action1<byte[]> displayTimeOffsetReader = new Action1<byte[]>() {
+    public void readDisplayTimeOffset(final Consumer<Long> displayTimeOffsetListener) {
+        Consumer<byte[]> displayTimeOffsetReader = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) { Observable.just((long) ByteBuffer.wrap(read(0,s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt()).subscribe(displayTimeOffsetListener); }
+            public void accept(byte[] s) { displayTimeOffsetListener.accept((long) ByteBuffer.wrap(read(0,s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt()); }
         };
         writeCommand(Dex_Constants.READ_DISPLAY_TIME_OFFSET, displayTimeOffsetReader);
     }
 
-    private void readDataBasePageRange(int recordType, final Action1<Integer> databasePageRangeCaller) {
+    private void readDataBasePageRange(int recordType, final Consumer<Integer> databasePageRangeCaller) {
         ArrayList<Byte> payload = new ArrayList<Byte>();
         payload.add((byte) recordType);
-        final Action1<byte[]> databasePageRangeListener = new Action1<byte[]>() {
+        final Consumer<byte[]> databasePageRangeListener = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) {
-                Observable.just(ByteBuffer.wrap(new ReadPacket(s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt(4)).subscribe(databasePageRangeCaller);
+            public void accept(byte[] s) {
+                databasePageRangeCaller.accept(ByteBuffer.wrap(new ReadPacket(s).getData()).order(ByteOrder.LITTLE_ENDIAN).getInt(4));
             }
         };
         writeCommand(Dex_Constants.READ_DATABASE_PAGE_RANGE, payload, databasePageRangeListener);
     }
 
-    private <T> T readDataBasePage(final int recordType, int page, final Action1<byte[]> fullPageListener) {
+    private <T> T readDataBasePage(final int recordType, int page, final Consumer<byte[]> fullPageListener) {
         byte numOfPages = 1;
         if (page < 0){ throw new IllegalArgumentException("Invalid page requested:" + page); }
         ArrayList<Byte> payload = new ArrayList<Byte>();
@@ -187,9 +186,9 @@ public class ReadDataShare {
         payload.add(pageInt[0]);
         payload.add(numOfPages);
         accumulatedResponse = null;
-        final Action1<byte[]> databasePageReader = new Action1<byte[]>() {
+        final Consumer<byte[]> databasePageReader = new Consumer<byte[]>() {
             @Override
-            public void call(byte[] s) {
+            public void accept(byte[] s) {
                 Log.d("ShareTest", "Database Page Reader received SIZE: " + s.length);
                 byte[] temp = s;
                 if (accumulatedResponse == null) {
@@ -203,20 +202,20 @@ public class ReadDataShare {
                         Log.d("ShareTest", "Combined Response length: " + accumulatedResponse.length);
                     } catch (Exception e) { e.printStackTrace(); }
                 }
-                if (temp.length < 20) { Observable.just(accumulatedResponse).subscribe(fullPageListener).unsubscribe(); }
+                if (temp.length < 20) { fullPageListener.accept(accumulatedResponse); }
             }
         };
         writeCommand(Dex_Constants.READ_DATABASE_PAGES, payload, databasePageReader);
         return null;
     }
 
-    private void writeCommand(int command, ArrayList<Byte> payload, Action1<byte[]> responseListener) {
+    private void writeCommand(int command, ArrayList<Byte> payload, Consumer<byte[]> responseListener) {
         List<byte[]> packets = new PacketBuilder(command, payload).composeList();
         if(mShareTest != null) { mShareTest.writeCommand(packets, 0, responseListener); }
         else if (mCollectionService != null) { mCollectionService.writeCommand(packets, 0, responseListener); }
     }
 
-    private void writeCommand(int command, Action1<byte[]> responseListener) {
+    private void writeCommand(int command, Consumer<byte[]> responseListener) {
         List<byte[]> packets = new PacketBuilder(command).composeList();
         if(mShareTest != null) { mShareTest.writeCommand(packets, 0, responseListener); }
         else if (mCollectionService != null) { mCollectionService.writeCommand(packets, 0, responseListener); }
@@ -227,7 +226,7 @@ public class ReadDataShare {
     }
 
     private <T> T ParsePage(byte[] data, int recordType) { return ParsePage(data, recordType, null); }
-    private <T> T ParsePage(byte[] data, int recordType, Action1<T> parsedPageReceiver) {
+    private <T> T ParsePage(byte[] data, int recordType, Consumer<T> parsedPageReceiver) {
         int HEADER_LEN = 28;
         PageHeader pageHeader=new PageHeader(data);
         int NUM_REC_OFFSET = 4;
@@ -238,7 +237,7 @@ public class ReadDataShare {
             case MANUFACTURING_DATA:
                 GenericXMLRecord xmlRecord = new GenericXMLRecord(Arrays.copyOfRange(data, HEADER_LEN, data.length - 1));
                 if(parsedPageReceiver != null) {
-                    Observable.just((T) xmlRecord).subscribe(parsedPageReceiver);
+                    parsedPageReceiver.accept((T) xmlRecord);
                 } else {
                     return (T) xmlRecord;
                 }
@@ -251,7 +250,7 @@ public class ReadDataShare {
                     sensorRecords[i] = new SensorRecord(Arrays.copyOfRange(data, startIdx, startIdx + rec_len - 1));
                 }
                 if(parsedPageReceiver != null) {
-                    Observable.just((T) sensorRecords).subscribe(parsedPageReceiver);
+                    parsedPageReceiver.accept((T) sensorRecords);
                 } else {
                     return (T) sensorRecords;
                 }
@@ -264,7 +263,7 @@ public class ReadDataShare {
                     egvRecords[i] = new EGVRecord(Arrays.copyOfRange(data, startIdx, startIdx + rec_len - 1));
                 }
                 if(parsedPageReceiver != null) {
-                    Observable.just((T) egvRecords).subscribe(parsedPageReceiver);
+                    parsedPageReceiver.accept((T) egvRecords);
                 } else {
                     return (T) egvRecords;
                 }
@@ -277,7 +276,7 @@ public class ReadDataShare {
                     meterRecords[i] = new MeterRecord(Arrays.copyOfRange(data, startIdx, startIdx + rec_len - 1));
                 }
                 if(parsedPageReceiver != null) {
-                    Observable.just((T) meterRecords).subscribe(parsedPageReceiver);
+                    parsedPageReceiver.accept((T) meterRecords);
                 } else {
                     return (T) meterRecords;
                 }
@@ -291,7 +290,7 @@ public class ReadDataShare {
                     calRecords[i] = new CalRecord(Arrays.copyOfRange(data, startIdx, startIdx + rec_len - 1));
                 }
                 if(parsedPageReceiver != null) {
-                    Observable.just((T) calRecords).subscribe(parsedPageReceiver);
+                    parsedPageReceiver.accept((T) calRecords);
                 } else {
                     return (T) calRecords;
                 }
@@ -299,7 +298,7 @@ public class ReadDataShare {
             default:
                 break;
         }
-        Observable.just((T) null).subscribe(parsedPageReceiver);
+        parsedPageReceiver.accept((T) null);
         return (T) null;
     }
 }
