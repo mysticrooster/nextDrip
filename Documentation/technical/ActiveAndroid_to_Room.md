@@ -31,18 +31,22 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 
 ---
 
-## Current state (survey)
+## Starting survey (pre-migration)
 
-| Aspect | Value |
+The values below record the state **before** the migration began. The migration is now
+complete (see the Sequencing and Progress log below): ActiveAndroid is gone and all 28 tables
+(plus `Libre2Sensors`) are on Room.
+
+| Aspect | Value (at survey time) |
 | --- | --- |
-| ORM | **retired** — ActiveAndroid AAR, `initialize()`, ContentProvider and `@Table`/`Model` usage all removed |
-| Table (`@Table`) classes | **29** |
-| Files using ActiveAndroid | **64** |
-| Static query sites (`Select`/`Update`/`Delete`/`Insert`/`save`) | **~478** |
-| Initialization | `com.activeandroid.content.ContentProvider` (manifest) + `ActiveAndroid.initialize()` in `JoH` |
-| Database name | ActiveAndroid default (`Application.db`) — confirm at migration time |
+| ORM | `thread-safe-active-android-3.1.1` (local AAR) — **now retired** |
+| Table (`@Table`) classes | 29 — **now 0** |
+| Files using ActiveAndroid | 64 — **now 0** |
+| Static query sites (`Select`/`Update`/`Delete`/`Insert`/`save`) | ~478 — **now 0** |
+| Initialization | `com.activeandroid.content.ContentProvider` (manifest) + `ActiveAndroid.initialize()` in `JoH` — **removed** |
+| Database name | **`DexDrip.db`** (manifest `AA_DB_NAME`), not ActiveAndroid's `Application.db` default |
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
-| Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
+| Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) — now transient objects + id columns |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
 | Migrated tables | **28 of 28** + `Libre2Sensors` as a `@DatabaseView` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
@@ -213,33 +217,27 @@ explicit threading:
 
 ---
 
-## Sequencing (suggested order)
+## Sequencing (actual order)
 
-1. ~~**Add Room** (runtime, ktx, compiler) + an empty `@Database` skeleton
-   side-by-side with ActiveAndroid.~~ **Done.**
-2. ~~**Pilot one leaf model**: establish the full entity → DAO → façade →
-   data-safe migration → parity-test pattern.~~ **Done** — `CalibrationRequest`
-   (chosen over `UploaderQueue`, whose manual raw-SQL `fixUpTable()` schema made
-   it a poor first candidate).
-3. ~~**Migrate the remaining queues**~~ **Re-ordered.** The queues have FKs into the
-   core glucose models (`SensorSendQueue→Sensor`, `CalibrationSendQueue→Calibration`,
-   `BgSendQueue→BgReading`) and `UploaderQueue` does class-based ActiveAndroid
-   reflection (`getLegacyCount(X.class, …)`), so they cannot move first.
-4. **Migrate the FK-free leaf models** (no `@Column` model reference, no external
-   `X.class` use): `ActiveBgAlert` ✔, then `AlertType`, `PenData`, `Reminder`,
-   `ShareGlucose`, `HeartRate`, `StepCounter`, `TransmitterData`, `UserError`,
-   `ActiveBluetoothDevice` (2 external direct `Select`s to fold into the façade),
-   `BloodTest`, `Treatments`, `Libre*`, `Accuracy`, `APStatus`, `DesertSync`,
-   `Prediction`, `UserNotification`, `LibreBlock`, `LibreData`.
-5. **Migrate the FK spine** `Sensor → Calibration → BgReading` — the ones Home/charts
-   consume. **Requires the one-time data-copy from `Application.db` (see above).**
-6. **Migrate the FK dependents** — `SensorSendQueue`, `CalibrationSendQueue`,
-   `BgSendQueue`, `UploaderQueue` (the latter also needs `getLegacyCount` reflection
-   removed).
-7. **Remove ActiveAndroid** (AAR, ContentProvider, `initialize()`).
+All steps are complete:
 
-Each step is independently shippable; the app keeps working throughout because
-unmigrated models still use ActiveAndroid and migrated models keep their façade.
+1. **Room foundation** — runtime/ktx/compiler + an empty `@Database` side-by-side. ✔
+2. **Pilot** — `CalibrationRequest` (chosen over `UploaderQueue`, whose manual raw-SQL
+   `fixUpTable()` schema made it a poor first candidate). ✔
+3. **FK-free leaf models** — `ActiveBgAlert`, `AlertType`, `PenData`, `Reminder`,
+   `ShareGlucose`, `HeartRate`, `StepCounter`, `TransmitterData`, `ActiveBluetoothDevice`,
+   `BloodTest`, `Treatments`, `Libre*`, `Accuracy`, `APStatus`, `DesertSync`, `Prediction`,
+   `UserNotification`, `LibreBlock`, `LibreData`. ✔
+   (The queues could not go first: they FK into the core models and `UploaderQueue` did
+   class-based ActiveAndroid reflection.)
+4. **FK spine + queues** — `Sensor → Calibration → BgReading`, then `SensorSendQueue`,
+   `CalibrationSendQueue`, `BgSendQueue`. ✔
+5. **Last two** — `UploaderQueue`, `UserError`. ✔
+6. **Retire ActiveAndroid** — AAR, ContentProvider, `initialize()`, `@Table`/`Model`. ✔
+7. **Real migrations** — `exportSchema` + `Migrations` registry; destructive fallback removed. ✔
+
+Each step shipped independently; the app kept working throughout because unmigrated models
+stayed on ActiveAndroid and migrated models kept their façade.
 
 ### Progress log
 

@@ -65,7 +65,7 @@ These are large enough to run independently of the Compose phases:
 
 | Track | Why it matters | Status |
 | --- | --- | --- |
-| ActiveAndroid → Room | Data foundation for Home/charts (`BgReading`/`Calibration`/`Treatment`). A Room + `Flow` source makes Compose slices much simpler. Recommended **before** the deep Home slices. | In scope |
+| ActiveAndroid → Room | Data foundation for Home/charts (`BgReading`/`Calibration`/`Treatment`). A Room + `Flow` source makes Compose slices much simpler. Recommended **before** the deep Home slices. | **Done** (see `Tech_Debt.md` §5) |
 | Nightscout SDK → port AndroidAPS `core/nssdk` | Replaces the unmaintained `ns-sdk-full-release.aar` with Nightscout v3 + Access Token support. | Deferred |
 | Dagger → Hilt | Modern DI for new ViewModels. | Not started |
 | Lombok reduction | Long-term, optional. | Not started |
@@ -295,9 +295,9 @@ Highlights:
 
 - `hellocharts` → Vico (Phase 3), `colorpicker` / `search-preference` → Compose
   (Phase 4).
-- ActiveAndroid ORM → Room is **in scope** as a parallel modernization track — the
-  largest single win, and it makes the Home/chart Compose work much simpler (see
-  `Tech_Debt.md` §5).
+- ActiveAndroid ORM → Room is **done** (all 28 tables + `Libre2Sensors` on Room; ActiveAndroid
+  retired). The data layer is now a good foundation for the Home/chart Compose work; a future
+  `Flow` pass over the DAOs will make Compose screens reactive (see `Tech_Debt.md` §5).
 
 ---
 
@@ -333,7 +333,8 @@ Highlights:
   `dalvik.annotation.MethodParameters` (the `accessFlags` element) and
   ActiveAndroid's `@Column` (`name`). A `-keep` / `-keepattributes` workaround
   does **not** help. **Fix:** upgraded to AGP 9.4.1 (newer R8) and re-enabled
-  minification for `debug` and `release`. This also required migrating several
+  minification for `debug` and `release`. (ActiveAndroid has since been removed,
+  so its `@Column` contributor no longer applies.) This also required migrating several
   deprecated AGP APIs (`applicationVariants` → `androidComponents`,
   `kotlin-android` → built-in Kotlin, `compileSdk =`, non-final `R.id`, and
   `resValues`/`wearApp` changes) — see the `AGP 9` notes.

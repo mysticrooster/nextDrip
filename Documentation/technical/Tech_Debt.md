@@ -83,10 +83,11 @@ its dependency stack modernized before it compiles.
 
 ---
 
-## 5. ActiveAndroid → Room (in scope)
+## 5. ActiveAndroid → Room (done)
 
-The largest single modernization item. ActiveAndroid is an abandoned ORM and is the
-data backbone of the app (29 `@Table` classes, 64 files, ~478 query sites).
+The largest single modernization item. ActiveAndroid was an abandoned ORM and the data
+backbone of the app (29 `@Table` classes, 64 files, ~478 query sites). It is now fully
+replaced by Room.
 
 **Detailed plan:** [`ActiveAndroid_to_Room.md`](./ActiveAndroid_to_Room.md).
 
@@ -109,6 +110,10 @@ data backbone of the app (29 `@Table` classes, 64 files, ~478 query sites).
   (existing `*Test` classes are the baseline) before switching any model's storage.
 - **Track:** framework modernization, parallel to the Compose phases. Own its own
   backlog; recommended *before* the deep Home slices.
+- **Follow-ups (deferred, tracked in `ActiveAndroid_to_Room.md`):** drop
+  `allowMainThreadQueries` (expose `Flow`/`suspend` DAOs + run writes off the main thread);
+  optionally introduce real Room `@ForeignKey`/`@Relation` (currently transient objects + id
+  columns). Neither blocks the Compose work.
 
 ---
 
