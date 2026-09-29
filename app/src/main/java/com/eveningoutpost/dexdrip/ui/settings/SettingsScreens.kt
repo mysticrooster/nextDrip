@@ -82,6 +82,28 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.MiBandSettings -> stringResource(R.string.title_miband)
     SettingsScreen.MiBandSubSettings -> stringResource(R.string.title_miband_screens_features)
     SettingsScreen.PebbleSettings -> stringResource(R.string.pebble_integration)
+    SettingsScreen.XdripPlusDisplay -> stringResource(R.string.xdrip_plus_display_settings)
+    SettingsScreen.XdripPlusFont -> stringResource(R.string.title_font_settings)
+    SettingsScreen.XdripPlusLanguage -> stringResource(R.string.title_language)
+    SettingsScreen.XdripPlusGraphDisplay -> stringResource(R.string.title_xdrip_plus_graph_display_settings)
+    SettingsScreen.XdripPlusGraphSmoothing -> stringResource(R.string.graph_smoothing)
+    SettingsScreen.XdripPlusYAxis -> stringResource(R.string.title_yRange)
+    SettingsScreen.XdripPlusAccessibility -> stringResource(R.string.title_xdrip_plus_accessibility)
+    SettingsScreen.XdripPlusNumberWall -> stringResource(R.string.title_xdrip_plus_number_wall)
+    SettingsScreen.XdripPlusNumberIcon -> stringResource(R.string.title_xdrip_plus_number_icon)
+    SettingsScreen.XdripPlusCopying -> stringResource(R.string.copying_settings)
+    SettingsScreen.XdripPlusUpdate -> stringResource(R.string.xdrip_plus_update_settings)
+    SettingsScreen.XdripPlusMotion -> stringResource(R.string.xdrip_motion_tracking)
+    SettingsScreen.XdripPlusPens -> stringResource(R.string.insulin_pens)
+    SettingsScreen.XdripPlusNovopen -> stringResource(R.string.title_novopen_insulin_pen)
+    SettingsScreen.XdripPlusInpen -> stringResource(R.string.title_inpen_screen)
+    SettingsScreen.XdripPlusPendiq -> stringResource(R.string.title_pendiq_screen)
+    SettingsScreen.XdripPlusPrediction -> stringResource(R.string.xdrip_plus_prediction_settings)
+    SettingsScreen.XdripPlusMultipleInsulin -> stringResource(R.string.title_multiple_insulin_types_settings)
+    SettingsScreen.XdripPlusAdvPredict -> stringResource(R.string.low_prediction_values)
+    SettingsScreen.XdripPlusSync -> stringResource(R.string.xdrip_plus_sync_settings)
+    SettingsScreen.XdripPlusRemoteSnooze -> stringResource(R.string.remote_snoozing)
+    SettingsScreen.XdripPlusDesertSync -> stringResource(R.string.title_xdrip_plus_desert_sync_settings)
 }
 
 @Composable
@@ -147,12 +169,35 @@ internal fun SettingsScreenContent(
         SettingsScreen.MiBandSettings -> MiBandSettingsScreen(onNavigate)
         SettingsScreen.MiBandSubSettings -> MiBandSubSettingsScreen()
         SettingsScreen.PebbleSettings -> PebbleSettingsScreen()
+        SettingsScreen.XdripPlusDisplay -> XdripPlusDisplayScreen(onNavigate)
+        SettingsScreen.XdripPlusFont -> FontSettingsScreen()
+        SettingsScreen.XdripPlusLanguage -> LanguageSettingsScreen()
+        SettingsScreen.XdripPlusGraphDisplay -> GraphDisplayScreen(onNavigate)
+        SettingsScreen.XdripPlusGraphSmoothing -> GraphSmoothingScreen()
+        SettingsScreen.XdripPlusYAxis -> YAxisScreen()
+        SettingsScreen.XdripPlusAccessibility -> AccessibilityScreen()
+        SettingsScreen.XdripPlusNumberWall -> NumberWallScreen()
+        SettingsScreen.XdripPlusNumberIcon -> NumberIconScreen()
+        SettingsScreen.XdripPlusCopying -> CopyingSettingsScreen()
+        SettingsScreen.XdripPlusUpdate -> UpdateSettingsScreen()
+        SettingsScreen.XdripPlusMotion -> MotionSettingsScreen()
+        SettingsScreen.XdripPlusPens -> PensScreen(onNavigate)
+        SettingsScreen.XdripPlusNovopen -> NovopenScreen()
+        SettingsScreen.XdripPlusInpen -> InpenScreen()
+        SettingsScreen.XdripPlusPendiq -> PendiqScreen()
+        SettingsScreen.XdripPlusPrediction -> PredictionSettingsScreen(onNavigate)
+        SettingsScreen.XdripPlusMultipleInsulin -> MultipleInsulinScreen()
+        SettingsScreen.XdripPlusAdvPredict -> AdvPredictScreen()
+        SettingsScreen.XdripPlusSync -> SyncSettingsScreen(onNavigate)
+        SettingsScreen.XdripPlusRemoteSnooze -> RemoteSnoozeScreen()
+        SettingsScreen.XdripPlusDesertSync -> DesertSyncScreen()
     }
 }
 
 @Composable
 private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -> Unit) {
     val context = LocalContext.current
+    val state = rememberSettingsState()
     var query by remember { mutableStateOf("") }
 
     OutlinedTextField(
@@ -230,6 +275,50 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
             subtitle = context.getString(R.string.pebble_and_android_wear_options),
             onClick = { onNavigate(SettingsScreen.SmartWatchOptions) },
             modifier = Modifier.testTag("setting_smart_watch"),
+        )
+    }
+    SettingsCategory(context.getString(R.string.xdrip_plus_extra_settings)) {
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_plus_display_settings),
+            subtitle = context.getString(R.string.display_customisations),
+            onClick = { onNavigate(SettingsScreen.XdripPlusDisplay) },
+            modifier = Modifier.testTag("setting_xdrip_display"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_plus_prediction_settings),
+            subtitle = context.getString(R.string.insulin_carb_ratios_etc_for_models),
+            enabled = state.bool("I_understand", false),
+            onClick = { onNavigate(SettingsScreen.XdripPlusPrediction) },
+            modifier = Modifier.testTag("setting_xdrip_prediction"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_plus_sync_settings),
+            subtitle = context.getString(R.string.settings_for_syncing),
+            enabled = state.bool("I_understand", false),
+            onClick = { onNavigate(SettingsScreen.XdripPlusSync) },
+            modifier = Modifier.testTag("setting_xdrip_sync"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_motion_tracking),
+            subtitle = context.getString(R.string.movement_detection_and_vehicle_mode),
+            onClick = { onNavigate(SettingsScreen.XdripPlusMotion) },
+            modifier = Modifier.testTag("setting_xdrip_motion"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_plus_update_settings),
+            subtitle = context.getString(R.string.automatic_updates_crash_reports_and_feedback),
+            onClick = { onNavigate(SettingsScreen.XdripPlusUpdate) },
+            modifier = Modifier.testTag("setting_xdrip_update"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.copying_settings),
+            onClick = { onNavigate(SettingsScreen.XdripPlusCopying) },
+            modifier = Modifier.testTag("setting_xdrip_copying"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.insulin_pens),
+            onClick = { onNavigate(SettingsScreen.XdripPlusPens) },
+            modifier = Modifier.testTag("setting_xdrip_pens"),
         )
     }
     SettingsCategory(context.getString(R.string.other_settings)) {
@@ -632,6 +721,8 @@ internal fun EditPref(
     default: String,
     subtitle: String? = null,
     numeric: Boolean = false,
+    decimal: Boolean = false,
+    masked: Boolean = false,
     enabled: Boolean = true,
     tag: String? = null,
     validate: ((String) -> Boolean)? = null,
@@ -644,6 +735,8 @@ internal fun EditPref(
         subtitle = subtitle,
         value = state.string(key, default),
         numeric = numeric,
+        decimal = decimal,
+        masked = masked,
         enabled = enabled,
         valueColor = valueColor,
         maxLength = maxLength,

@@ -64,6 +64,28 @@ internal sealed interface SettingsScreen {
     data object MiBandSettings : SettingsScreen
     data object MiBandSubSettings : SettingsScreen
     data object PebbleSettings : SettingsScreen
+    data object XdripPlusDisplay : SettingsScreen
+    data object XdripPlusFont : SettingsScreen
+    data object XdripPlusLanguage : SettingsScreen
+    data object XdripPlusGraphDisplay : SettingsScreen
+    data object XdripPlusGraphSmoothing : SettingsScreen
+    data object XdripPlusYAxis : SettingsScreen
+    data object XdripPlusAccessibility : SettingsScreen
+    data object XdripPlusNumberWall : SettingsScreen
+    data object XdripPlusNumberIcon : SettingsScreen
+    data object XdripPlusCopying : SettingsScreen
+    data object XdripPlusUpdate : SettingsScreen
+    data object XdripPlusMotion : SettingsScreen
+    data object XdripPlusPens : SettingsScreen
+    data object XdripPlusNovopen : SettingsScreen
+    data object XdripPlusInpen : SettingsScreen
+    data object XdripPlusPendiq : SettingsScreen
+    data object XdripPlusPrediction : SettingsScreen
+    data object XdripPlusMultipleInsulin : SettingsScreen
+    data object XdripPlusAdvPredict : SettingsScreen
+    data object XdripPlusSync : SettingsScreen
+    data object XdripPlusRemoteSnooze : SettingsScreen
+    data object XdripPlusDesertSync : SettingsScreen
 }
 
 /** A searchable settings destination shown by the root search field. */
@@ -103,6 +125,29 @@ internal val SETTINGS_SEARCH_INDEX = listOf(
     SettingsSearchEntry("LeFun Band", SettingsScreen.LeFunSettings, listOf("lefun", "band")),
     SettingsSearchEntry("MiBand", SettingsScreen.MiBandSettings, listOf("miband", "mi band")),
     SettingsSearchEntry("Smartwatch Sensors", SettingsScreen.SmartwatchSensors, listOf("heart rate", "step counter", "sensors")),
+    SettingsSearchEntry("xDrip+ Extra Settings", SettingsScreen.XdripPlusDisplay, listOf("extra", "xdrip plus", "display", "graph", "number wall", "accessibility")),
+    SettingsSearchEntry("Display Settings", SettingsScreen.XdripPlusDisplay, listOf("display", "font", "language", "graph", "number wall", "accessibility", "y axis", "smoothing")),
+    SettingsSearchEntry("Font Settings", SettingsScreen.XdripPlusFont, listOf("font", "enlarge", "large screens")),
+    SettingsSearchEntry("Language Settings", SettingsScreen.XdripPlusLanguage, listOf("language", "locale", "force english")),
+    SettingsSearchEntry("Graph Display Settings", SettingsScreen.XdripPlusGraphDisplay, listOf("graph", "grid", "average", "target", "basal", "smb", "raw")),
+    SettingsSearchEntry("Graph Smoothing", SettingsScreen.XdripPlusGraphSmoothing, listOf("smoothing", "unsmoothed")),
+    SettingsSearchEntry("Y Axis Range", SettingsScreen.XdripPlusYAxis, listOf("y axis", "y range", "ymax", "ymin", "autopan")),
+    SettingsSearchEntry("Accessibility", SettingsScreen.XdripPlusAccessibility, listOf("accessibility", "aod", "always on display")),
+    SettingsSearchEntry("Number Wall", SettingsScreen.XdripPlusNumberWall, listOf("number wall", "lockscreen", "wallpaper", "time range")),
+    SettingsSearchEntry("Number Icon", SettingsScreen.XdripPlusNumberIcon, listOf("number icon", "icon test")),
+    SettingsSearchEntry("Copying Settings", SettingsScreen.XdripPlusCopying, listOf("copy", "qr", "export", "import", "sdcard")),
+    SettingsSearchEntry("Update Settings", SettingsScreen.XdripPlusUpdate, listOf("update", "channel", "beta", "alpha", "crashlytics", "telemetry", "feedback")),
+    SettingsSearchEntry("Motion Tracking", SettingsScreen.XdripPlusMotion, listOf("motion", "vehicle", "activity", "car audio")),
+    SettingsSearchEntry("Insulin Pens", SettingsScreen.XdripPlusPens, listOf("pen", "novopen", "inpen", "pendiq")),
+    SettingsSearchEntry("Novopen", SettingsScreen.XdripPlusNovopen, listOf("novopen", "opennov", "pen")),
+    SettingsSearchEntry("InPen", SettingsScreen.XdripPlusInpen, listOf("inpen", "pen")),
+    SettingsSearchEntry("Pendiq", SettingsScreen.XdripPlusPendiq, listOf("pendiq", "pen", "pin")),
+    SettingsSearchEntry("Prediction Settings", SettingsScreen.XdripPlusPrediction, listOf("prediction", "profile", "carb ratio", "insulin sensitivity", "simulations")),
+    SettingsSearchEntry("Multiple Insulin Types", SettingsScreen.XdripPlusMultipleInsulin, listOf("insulin types", "insulin profiles")),
+    SettingsSearchEntry("Low Prediction Values", SettingsScreen.XdripPlusAdvPredict, listOf("low prediction", "target range", "liver sensitivity", "dia")),
+    SettingsSearchEntry("Sync Settings", SettingsScreen.XdripPlusSync, listOf("sync", "cloud", "follow", "master", "sync key")),
+    SettingsSearchEntry("Remote Snoozing", SettingsScreen.XdripPlusRemoteSnooze, listOf("remote snooze", "broadcast snooze")),
+    SettingsSearchEntry("Desert Sync", SettingsScreen.XdripPlusDesertSync, listOf("desert sync", "master ip", "https")),
 )
 
 internal fun searchSettings(query: String): List<SettingsSearchEntry> {

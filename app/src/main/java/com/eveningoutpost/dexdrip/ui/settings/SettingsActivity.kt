@@ -1,6 +1,7 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -26,7 +27,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.eveningoutpost.dexdrip.cloud.jamcm.Pusher
+import com.eveningoutpost.dexdrip.services.ActivityRecognizedService
+import com.eveningoutpost.dexdrip.ui.LockScreenWallPaper
 import com.eveningoutpost.dexdrip.ui.theme.XdripTheme
+import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.Preferences
 import com.eveningoutpost.dexdrip.watch.lefun.LeFunEntry
@@ -66,18 +71,33 @@ internal fun SettingsRoot(onOpenClassic: () -> Unit) {
     val scrollState = rememberScrollState()
     BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
 
-    // The legacy settings activity registers these watch listeners for its lifetime; reproduce that
-    // here so MiBand/LeFun/BlueJay pick up changes made in the Compose host (refresh services,
-    // BlueJay collector restart). The inline Wear/Amazfit/Pebble side effects are handled by the rows.
+    // The legacy settings activity registers these listeners for its lifetime; reproduce that here
+    // so changes made in the Compose host reach the services. Watch listeners refresh services /
+    // restart the collector; the number-wall listener refreshes the lockscreen wallpaper; the motion
+    // listener enforces the remote/master mutual exclusion and (re)starts the recogniser; the cloud
+    // listener reconnects the pusher.
     DisposableEffect(Unit) {
         val prefs = Pref.getInstance()
+        val numberWallListener = LockScreenWallPaper.PrefListener().prefListener
+        val cloudListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "use_xdrip_cloud_sync") {
+                Pusher.requestReconnect()
+                CollectionServiceStarter.restartCollectionServiceBackground()
+            }
+        }
         prefs.registerOnSharedPreferenceChangeListener(MiBandEntry.prefListener)
         prefs.registerOnSharedPreferenceChangeListener(LeFunEntry.prefListener)
         prefs.registerOnSharedPreferenceChangeListener(BlueJayEntry.prefListener)
+        prefs.registerOnSharedPreferenceChangeListener(ActivityRecognizedService.prefListener)
+        prefs.registerOnSharedPreferenceChangeListener(numberWallListener)
+        prefs.registerOnSharedPreferenceChangeListener(cloudListener)
         onDispose {
             prefs.unregisterOnSharedPreferenceChangeListener(MiBandEntry.prefListener)
             prefs.unregisterOnSharedPreferenceChangeListener(LeFunEntry.prefListener)
             prefs.unregisterOnSharedPreferenceChangeListener(BlueJayEntry.prefListener)
+            prefs.unregisterOnSharedPreferenceChangeListener(ActivityRecognizedService.prefListener)
+            prefs.unregisterOnSharedPreferenceChangeListener(numberWallListener)
+            prefs.unregisterOnSharedPreferenceChangeListener(cloudListener)
         }
     }
 
