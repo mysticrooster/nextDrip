@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **19** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest`, `Treatments`, `LibreBlock` (+ `Libre2Sensors` as a `@DatabaseView`) |
+| Migrated tables | **20** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest`, `Treatments`, `LibreBlock`, `DesertSync` (+ `Libre2Sensors` as a `@DatabaseView`) |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -369,6 +369,13 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     still used). Kept instance `save()`; dropped `updateDB`/`getFromCursor`.
   - Bumped `@Database` to `version = 5`.
   - Added `LibreBlockTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `DesertSync` (20/29).**
+  - `DesertSync`: Room @Entity + DAO. Its `@Builder` private constructor hid the
+    Lombok no-arg constructor from Room, so an explicit public no-arg constructor was
+    added; the `processed` column had to become `public` (Room's generated DAO is in a
+    different package). Kept instance `save()`; dropped `updateDB`.
+  - Bumped `@Database` to `version = 6`.
+  - Added `DesertSyncTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 

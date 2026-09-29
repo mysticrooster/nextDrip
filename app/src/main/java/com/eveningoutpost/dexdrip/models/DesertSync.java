@@ -1,15 +1,17 @@
 package com.eveningoutpost.dexdrip.models;
 
 import android.os.Bundle;
-import android.provider.BaseColumns;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.GcmListenerSvc;
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.DesertSyncDao;
 import com.eveningoutpost.dexdrip.JamListenerSvc;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
@@ -36,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 import lombok.Builder;
-import lombok.NoArgsConstructor;
 
 import static com.eveningoutpost.dexdrip.GoogleDriveInterface.getDriveIdentityString;
 import static com.eveningoutpost.dexdrip.models.JoH.emptyString;
@@ -48,11 +49,15 @@ import static com.eveningoutpost.dexdrip.utilitymodels.desertsync.RouteTools.ip;
 // not to be confused with dessert sync, yum!
 
 
-@NoArgsConstructor
-@Table(name = "DesertSync", id = BaseColumns._ID)
-public class DesertSync extends PlusModel {
+@Entity(tableName = "DesertSync",
+        indices = {
+                @Index(value = "timestamp", unique = true),
+                @Index("payload"),
+                @Index("processed"),
+                @Index("topic")
+        })
+public class DesertSync {
 
-    private static boolean patched = false;
     private static final String TAG = DesertSync.class.getSimpleName();
     public static final String NO_DATA_MARKER = "NO DATA";
     private static final String PREF_SENDER_UUID = "DesertSync-sender-uuid";
@@ -70,41 +75,36 @@ public class DesertSync extends PlusModel {
 
     private static volatile long highestPullTimeStamp = -1;
 
-    private static final String[] schema = {
-            "CREATE TABLE DesertSync (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-            "ALTER TABLE DesertSync ADD COLUMN timestamp INTEGER;",
-            "ALTER TABLE DesertSync ADD COLUMN topic TEXT;",
-            "ALTER TABLE DesertSync ADD COLUMN sender TEXT;",
-            "ALTER TABLE DesertSync ADD COLUMN payload TEXT;",
-            "ALTER TABLE DesertSync ADD COLUMN processed TEXT;",
-            "CREATE UNIQUE INDEX index_DesertSync_timestamp on DesertSync(timestamp);",
-            "CREATE INDEX index_DesertSync_payload on DesertSync(payload);",
-            "CREATE INDEX index_DesertSync_processed on DesertSync(processed);",
-            "CREATE INDEX index_DesertSync_topic on DesertSync(topic);"};
-
     private static final int MAX_ITEMS = 50;
 
     public static final String PREF_WEBSERVICE_SECRET = "xdrip_webservice_secret";
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "timestamp", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "topic")
+    @ColumnInfo(name = "topic")
     public String topic;
 
     @Expose
-    @Column(name = "sender")
+    @ColumnInfo(name = "sender")
     public String sender;
 
     @Expose
-    @Column(name = "payload")
+    @ColumnInfo(name = "payload")
     public String payload;
 
-    @Column(name = "processed")
-    private String processed;
+    @ColumnInfo(name = "processed")
+    public String processed;
 
+    public DesertSync() {
+        // Room requires a public no-arg constructor
+    }
 
     @Builder
     private DesertSync(final long timestamp, final String topic, final String sender, final String payload, final boolean processedFlag) {
@@ -119,38 +119,15 @@ public class DesertSync extends PlusModel {
     }
 
     public static List<DesertSync> since(final long position, final String topic) {
-        if (topic == null) {
-            return new Select()
-                    .from(DesertSync.class)
-                    .where("timestamp > ?", position)
-                    .orderBy("timestamp asc")
-                    .limit(MAX_ITEMS)
-                    .execute();
-        } else {
-            return new Select()
-                    .from(DesertSync.class)
-                    .where("topic = ?", topic)
-                    .where("timestamp > ?", position)
-                    .orderBy("timestamp asc")
-                    .limit(MAX_ITEMS)
-                    .execute();
-        }
+        return topic == null ? dao().sinceAll(position, MAX_ITEMS) : dao().sinceTopic(topic, position, MAX_ITEMS);
     }
 
     private boolean alreadyInDatabase(final boolean processedFlag) {
-        return new Select()
-                .from(DesertSync.class)
-                .where("topic = ?", topic)
-                .where("processed = ?", processedFlag ? processed : processData())
-                .executeSingle() != null;
+        return dao().alreadyInDatabase(topic, processedFlag ? processed : processData()) != null;
     }
 
     private static DesertSync last() {
-        return new Select()
-                .from(DesertSync.class)
-                .where("topic = ?", getTopic())
-                .orderBy("timestamp desc")
-                .executeSingle();
+        return dao().last(getTopic());
     }
 
 
@@ -536,26 +513,16 @@ public class DesertSync extends PlusModel {
 
     // maintenance
 
-    // create the table ourselves without worrying about model versioning and downgrading
-    public static void updateDB() {
-        patched = fixUpTable(schema, patched);
-    }
-
     public static void cleanup() {
         try {
-            new Delete()
-                    .from(DesertSync.class)
-                    .where("timestamp < ?", JoH.tsl() - 86400000L)
-                    .execute();
+            dao().cleanup(JoH.tsl() - 86400000L);
         } catch (Exception e) {
             UserError.Log.d(TAG, "Exception cleaning uploader queue: " + e);
         }
     }
 
     public static void deleteAll() {
-        new Delete()
-                .from(DesertSync.class)
-                .execute();
+        dao().deleteAll();
     }
 
     // megastatus
@@ -569,6 +536,25 @@ public class DesertSync extends PlusModel {
             }
         }
         return l;
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    private static DesertSyncDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).desertSyncDao();
     }
 
 }
