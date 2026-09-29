@@ -13,6 +13,7 @@ import com.eveningoutpost.dexdrip.db.dao.CalibrationRequestDao;
 import com.eveningoutpost.dexdrip.db.dao.HeartRateDao;
 import com.eveningoutpost.dexdrip.db.dao.MetaDao;
 import com.eveningoutpost.dexdrip.db.dao.PenDataDao;
+import com.eveningoutpost.dexdrip.db.dao.ReminderDao;
 import com.eveningoutpost.dexdrip.db.dao.StepCounterDao;
 import com.eveningoutpost.dexdrip.db.dao.TransmitterDataDao;
 import com.eveningoutpost.dexdrip.models.ActiveBgAlert;
@@ -21,10 +22,11 @@ import com.eveningoutpost.dexdrip.models.AlertType;
 import com.eveningoutpost.dexdrip.models.CalibrationRequest;
 import com.eveningoutpost.dexdrip.models.HeartRate;
 import com.eveningoutpost.dexdrip.models.PenData;
+import com.eveningoutpost.dexdrip.models.Reminder;
 import com.eveningoutpost.dexdrip.models.StepCounter;
 import com.eveningoutpost.dexdrip.models.TransmitterData;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class}, version = 1, exportSchema = false)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
@@ -46,6 +48,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract TransmitterDataDao transmitterDataDao();
 
     public abstract ActiveBluetoothDeviceDao activeBluetoothDeviceDao();
+
+    public abstract ReminderDao reminderDao();
 
     public abstract MetaDao metaDao();
 

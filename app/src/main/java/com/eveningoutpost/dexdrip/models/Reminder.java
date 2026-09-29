@@ -1,17 +1,19 @@
 package com.eveningoutpost.dexdrip.models;
 
 import android.content.Context;
-import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
-import com.activeandroid.util.SQLiteUtils;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
 import com.eveningoutpost.dexdrip.Reminders;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.ReminderDao;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utils.HomeWifi;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.annotations.Expose;
 
 import java.util.Calendar;
@@ -22,138 +24,118 @@ import java.util.List;
  * Created by jamorham on 01/02/2017.
  */
 
-@Table(name = "Reminder", id = BaseColumns._ID)
-public class Reminder extends Model {
+@Entity(tableName = "Reminder",
+        indices = {
+                @Index("next_due"),
+                @Index("enabled"),
+                @Index("weekdays"),
+                @Index("weekends"),
+                @Index("homeonly"),
+                @Index("priority"),
+                @Index("snoozed_till"),
+                @Index("last_fired")
+        })
+public class Reminder {
 
 
     private static final String TAG = "Reminder";
-    private static boolean patched = false;
     public static final String REMINDERS_ALL_DISABLED = "reminders-all-disabled";
     public static final String REMINDERS_NIGHT_DISABLED = "reminders-at-night-disabled";
     public static final String REMINDERS_RESTART_TOMORROW = "reminders-restart-tomorrow";
     public static final String REMINDERS_ADVANCED_MODE = "reminders-advanced-mode";
     public static final String REMINDERS_CANCEL_DEFAULT = "reminders-cancel-default";
     public static final String REMINDERS_GRAPH_ICONS = "reminders-graph-icons";
-    private static final String[] schema = {
-            "CREATE TABLE Reminder (_id INTEGER PRIMARY KEY AUTOINCREMENT)",
-            "ALTER TABLE Reminder ADD COLUMN next_due INTEGER",
-            "ALTER TABLE Reminder ADD COLUMN period INTEGER",
-            "ALTER TABLE Reminder ADD COLUMN snoozed_till INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN last_snoozed_for INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN last_fired INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN fired_times INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN alerted_times INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN title TEXT",
-            "ALTER TABLE Reminder ADD COLUMN alt_title TEXT",
-            "ALTER TABLE Reminder ADD COLUMN sound_uri TEXT",
-            "ALTER TABLE Reminder ADD COLUMN ideal_time TEXT",
-            "ALTER TABLE Reminder ADD COLUMN priority INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN enabled INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN weekdays INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN weekends INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN repeating INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN alternating INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN alternate INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN chime INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN homeonly INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN speak INTEGER DEFAULT 0",
-            "ALTER TABLE Reminder ADD COLUMN graphicon INTEGER DEFAULT 0",
-            "CREATE INDEX index_Reminder_next_due on Reminder(next_due)",
-            "CREATE INDEX index_Reminder_enabled on Reminder(enabled)",
-            "CREATE INDEX index_Reminder_weekdays on Reminder(weekdays)",
-            "CREATE INDEX index_Reminder_homeonly on Reminder(homeonly)",
-            "CREATE INDEX index_Reminder_weekends on Reminder(weekends)",
-            "CREATE INDEX index_Reminder_priority on Reminder(priority)",
-            "CREATE INDEX index_Reminder_timestamp on Reminder(timestamp)",
-            "CREATE INDEX index_Reminder_snoozed_till on Reminder(snoozed_till)"
-    };
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
     @Expose
-    @Column(name = "title")
+    @ColumnInfo(name = "title")
     public String title;
 
     @Expose
-    @Column(name = "alt_title")
+    @ColumnInfo(name = "alt_title")
     public String alternate_title;
 
     @Expose
-    @Column(name = "next_due", index = true)
+    @ColumnInfo(name = "next_due")
     public long next_due;
 
     @Expose
-    @Column(name = "period")
+    @ColumnInfo(name = "period")
     public long period;
 
     @Expose
-    @Column(name = "sound_uri")
+    @ColumnInfo(name = "sound_uri")
     public String sound_uri;
 
     @Expose
-    @Column(name = "enabled", index = true)
+    @ColumnInfo(name = "enabled")
     public boolean enabled;
 
     @Expose
-    @Column(name = "weekdays", index = true)
+    @ColumnInfo(name = "weekdays")
     public boolean weekdays;
 
     @Expose
-    @Column(name = "weekends", index = true)
+    @ColumnInfo(name = "weekends")
     public boolean weekends;
 
     @Expose
-    @Column(name = "homeonly", index = true)
+    @ColumnInfo(name = "homeonly")
     public boolean homeonly;
 
     @Expose
-    @Column(name = "speak")
+    @ColumnInfo(name = "speak")
     public boolean speak;
 
     @Expose
-    @Column(name = "graphicon")
+    @ColumnInfo(name = "graphicon")
     public boolean graphicon;
 
     @Expose
-    @Column(name = "repeating")
+    @ColumnInfo(name = "repeating")
     public boolean repeating;
 
     @Expose
-    @Column(name = "chime")
+    @ColumnInfo(name = "chime")
     public boolean chime_only;
 
     @Expose
-    @Column(name = "alternating")
+    @ColumnInfo(name = "alternating")
     public boolean alternating;
 
     @Expose
-    @Column(name = "alternate")
+    @ColumnInfo(name = "alternate")
     public boolean alternate;
 
     @Expose
-    @Column(name = "snoozed_till", index = true)
+    @ColumnInfo(name = "snoozed_till")
     public long snoozed_till;
 
     @Expose
-    @Column(name = "last_fired", index = true)
+    @ColumnInfo(name = "last_fired")
     public long last_fired;
 
     @Expose
-    @Column(name = "last_snoozed_for")
+    @ColumnInfo(name = "last_snoozed_for")
     public long last_snoozed_for;
 
     @Expose
-    @Column(name = "fired_times")
+    @ColumnInfo(name = "fired_times")
     public long fired_times;
 
     @Expose
-    @Column(name = "alerted_times")
+    @ColumnInfo(name = "alerted_times")
     public long alerted_times;
 
     @Expose
-    @Column(name = "priority")
+    @ColumnInfo(name = "priority")
     public long priority;
 
     @Expose
-    @Column(name = "ideal_time")
+    @ColumnInfo(name = "ideal_time")
     public String ideal_time;
 
 
@@ -266,20 +248,7 @@ public class Reminder extends Model {
         schedule_next(getPotentialNextSchedule());
     }
 
-    protected synchronized static void fixUpTable(String[] schema) {
-        if (patched) return;
-        for (String patch : schema) {
-            try {
-                SQLiteUtils.execSql(patch);
-            } catch (Exception e) {
-                //
-            }
-        }
-        patched = true;
-    }
-
     public static Reminder create(String title, long period) {
-        fixUpTable(schema);
         Reminder reminder = new Reminder();
         reminder.title = title;
         reminder.alternate_title = title + " alternate";
@@ -302,16 +271,7 @@ public class Reminder extends Model {
     }
 
     public static List<Reminder> getActiveReminders() {
-        fixUpTable(schema);
-        final long now = JoH.tsl();
-        final List<Reminder> reminders = new Select()
-                .from(Reminder.class)
-                .where("enabled = ?", true)
-                .where("next_due < ?", now)
-                .where("snoozed_till < ?", now)
-                .orderBy("enabled desc, next_due asc")
-                .execute();
-        return reminders;
+        return dao().activeReminders(JoH.tsl());
     }
 
     private static boolean isNight() {
@@ -345,33 +305,16 @@ public class Reminder extends Model {
     }
 
     public static Reminder getNextActiveReminder() {
-        fixUpTable(schema);
         final boolean onHomeWifi = !HomeWifi.isSet() || HomeWifi.isConnected();
         final long now = JoH.tsl();
-        final Reminder reminder = new Select()
-                .from(Reminder.class)
-                .where("enabled = ?", true)
-                .where("next_due < ?", now)
-                .where("snoozed_till < ?", now)
-                .where("last_fired < (? - (600000 * alerted_times))", now)
-                // if on home wifi or not set then anything otherwise only home only = false
-                .where(onHomeWifi ? "homeonly > -1 " : "homeonly = 0")
-                .orderBy("enabled desc, priority desc, next_due asc")
-                .executeSingle();
-        return reminder;
+        return onHomeWifi ? dao().nextActiveReminderAny(now) : dao().nextActiveReminderNotHomeOnly(now);
     }
 
     public static List<Reminder> getAllReminders() {
-        fixUpTable(schema);
-        final List<Reminder> reminders = new Select()
-                .from(Reminder.class)
-                .orderBy("enabled desc, priority desc, next_due asc")
-                .execute();
-        return reminders;
+        return dao().allReminders();
     }
 
     public synchronized static void firstInit(Context context) {
-        fixUpTable(schema);
       /*  Inevitable.task("reminders-first-init", 2000, new Runnable() {
             @Override
             public void run() {
@@ -395,26 +338,34 @@ public class Reminder extends Model {
     }
 
     public static Reminder byid(long id) {
-        return new Select()
-                .from(Reminder.class)
-                .where("_ID = ?", id)
-                .executeSingle();
+        return dao().byid(id);
     }
 
-
-    /*static Reminder getForPreciseTimestamp(double timestamp, double precision, String plugin) {
-        fixUpTable(schema);
-        final Reminder Reminder = new Select()
-                .from(Reminder.class)
-                .where("timestamp <= ?", (timestamp + precision))
-                .where("timestamp >= ?", (timestamp - precision))
-                .where("plugin = ?", plugin)
-                .orderBy("abs(timestamp - " + timestamp + ") asc")
-                .executeSingle();
-        if (Reminder != null && Math.abs(Reminder.timestamp - timestamp) < precision) {
-            return Reminder;
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
         }
-        return null;
+        return _id;
     }
-*/
+
+    /** Mirrors the ActiveAndroid Model.getId() used by callers. */
+    public Long getId() {
+        return _id;
+    }
+
+    public void delete() {
+        dao().delete(this);
+    }
+
+    private static ReminderDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).reminderDao();
+    }
 }

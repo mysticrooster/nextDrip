@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **8** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice` |
+| Migrated tables | **9** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -283,6 +283,12 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     callers (`BluetoothScan`, `ShareTest`) now use the façade.
   - Added `ActiveBluetoothDevice.deleteAll()` for `BlueReaderTest`'s reset.
   - Added `ActiveBluetoothDeviceTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `Reminder` (9/29).**
+  - Migrated `Reminder` (persistent user data; dropped the manual `fixUpTable`
+    schema). Kept instance `save()`/`delete()`/`getId()` because `Reminders` uses
+    them. Split the `getNextActiveReminder` home-wifi `homeonly` branch into two DAO
+    queries.
+  - Added `ReminderTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 
