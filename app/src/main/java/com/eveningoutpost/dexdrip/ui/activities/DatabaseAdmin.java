@@ -10,7 +10,7 @@ import com.eveningoutpost.dexdrip.xdrip;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
-import com.eveningoutpost.dexdrip.databinding.ActivityDatabaseAdminBinding;
+import com.eveningoutpost.dexdrip.ui.secondary.DatabaseAdminScreen;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,7 +33,6 @@ public class DatabaseAdmin extends BaseAppCompatActivity {
     private static final String TAG = "DatabaseAdmin";
     private static final boolean D = false;
 
-    private ActivityDatabaseAdminBinding binding;
     private final DbAdminProcessor consoleProcessor = new ConsoleResults();
     private final DbAdminProcessor databaseSize = new DatabaseSize();
     // view model
@@ -42,15 +41,9 @@ public class DatabaseAdmin extends BaseAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        binding = ActivityDatabaseAdminBinding.inflate(getLayoutInflater());
-        binding.setVm(this);
-        setContentView(binding.getRoot());
-        JoH.fixActionBar(this);
-
         console.set("Ready\n");
+        DatabaseAdminScreen.installDatabaseAdmin(this);
         getDbSize();
-
     }
 
     public void getDbSize() {
