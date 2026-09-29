@@ -148,8 +148,11 @@ com.eveningoutpost.dexdrip
     legacy data during the transition, `AppDatabase` uses
     `fallbackToDestructiveMigration(true)` plus an `onDestructiveMigration` callback that
     calls `LegacyDataImporter.clearImportFlags()`, so a recreated DB is re-filled from
-    `Application.db` on the next import. (The released build will define the full schema as
-    a single version, so real users never hit this.)
+    `Application.db` on the next import. As a belt-and-braces measure `AppDatabase.open()`
+    also force-opens on first use and, if Room still refuses (same-version hash mismatch),
+    deletes and rebuilds the file — so a schema change can never crash the app. (The
+    released build will define the full schema as a single version, so real users never hit
+    this.)
 
 ### Database & migration (the hard part)
 
@@ -340,6 +343,9 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     `fallbackToDestructiveMigration(true)`, and clearing the `LegacyDataImporter` flags
     from `onDestructiveMigration` so the recreated DB is re-imported from `Application.db`.
   - Added a regression test (`destructiveMigrationClearsImportFlagSoDataIsReimported`).
+  - Made `AppDatabase.open()` self-healing: it force-opens on first use and, if Room still
+    refuses (same-version identity-hash mismatch), deletes and rebuilds the file. Added
+    `sameVersionSchemaMismatchSelfHeals` covering it.
 
 ---
 

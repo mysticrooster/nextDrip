@@ -175,4 +175,23 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
         assertWithMessage("room table was recreated empty")
                 .that(AppDatabase.getInstance(context).calibrationRequestDao().getAll()).isEmpty();
     }
+
+    @Test
+    public void sameVersionSchemaMismatchSelfHeals() {
+        // Create the Room DB, then corrupt the stored schema identity hash so Room refuses to open.
+        AppDatabase.getInstance(context).query("SELECT 1", null).close();
+        final File roomFile = context.getDatabasePath(AppDatabase.DATABASE_NAME);
+        try (SQLiteDatabase raw = SQLiteDatabase.openDatabase(roomFile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE)) {
+            raw.execSQL("UPDATE room_master_table SET identity_hash = 'deadbeef'");
+        }
+        AppDatabase.resetForTesting();
+
+        final String flag = LegacyDataImporter.IMPORTED_FLAG_PREFIX + "CalibrationRequest";
+        PersistentStore.setBoolean(flag, true);
+
+        // Re-open must self-heal (no crash) and clear the import flags.
+        AppDatabase.getInstance(context).query("SELECT 1", null).close();
+
+        assertWithMessage("flag cleared after self-heal").that(PersistentStore.getBoolean(flag)).isFalse();
+    }
 }
