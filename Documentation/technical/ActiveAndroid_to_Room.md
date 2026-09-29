@@ -382,7 +382,9 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     `calibration`/`bgReading`) are now `@Ignore` transients; the persisted id lives in a
     `*_id` field mapped to the original column name. `save()` syncs the id from the object,
     so existing write sites are unchanged. `BgReading`/`Calibration` gained `getId()`/`delete()`
-    shims. `BgReading.calibration` reads go through the transient field populated on demand.
+    shims. `BgReading.calibration` is transient, so `BgReading.getCalibration()` lazily loads
+    it from `calibration_id` and the handful of read sites (`BgReading`, `BloodTest`,
+    `WatchUpdaterService`) use it.
   - Re-pointed raw-SQL readers of migrated tables: `StatsResult` and `DBSearchUtil` (bgreadings
     stats) now use `BgReadingDao`; `UploaderQueue`'s `getLegacyCount` for the queue classes was
     replaced with DAO counts.

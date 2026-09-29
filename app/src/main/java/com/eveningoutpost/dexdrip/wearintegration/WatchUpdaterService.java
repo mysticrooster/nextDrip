@@ -2142,8 +2142,8 @@ public class WatchUpdaterService extends WearableListenerService implements
                     latest = list;
                 else if (startTime != 0)
                     latest = Calibration.latestForGraphSensor(count, startTime, Long.MAX_VALUE);
-                else if (lastBgReading != null && lastBgReading.calibration != null && lastBgReading.calibration_flag == true) {
-                    Log.d(TAG, "sendWearCalibrationData lastBgReading.calibration_flag=" + lastBgReading.calibration_flag + " lastBgReading.timestamp: " + lastBgReading.timestamp + " lastBgReading.calibration.timestamp: " + lastBgReading.calibration.timestamp);
+                else if (lastBgReading != null && lastBgReading.getCalibration() != null && lastBgReading.calibration_flag == true) {
+                    Log.d(TAG, "sendWearCalibrationData lastBgReading.calibration_flag=" + lastBgReading.calibration_flag + " lastBgReading.timestamp: " + lastBgReading.timestamp + " lastBgReading.calibration.timestamp: " + lastBgReading.getCalibration().timestamp);
                     latest = Calibration.allForSensor();
                 } else {
                     latest = Calibration.latest(count);
@@ -2256,10 +2256,10 @@ public class WatchUpdaterService extends WearableListenerService implements
         DataMap dataMap = new DataMap();
         //KS Fix for calibration_uuid not being set in Calibration.create which updates bgReading to new calibration ln 497
         //if (bg.calibration_flag == true) {
-        //    bg.calibration_uuid = bg.calibration.uuid;
+        //    bg.calibration_uuid = bg.getCalibration().uuid;
         //}
         try {
-            dataMap.putString("calibrationUuid", bg.calibration.uuid);
+            dataMap.putString("calibrationUuid", bg.getCalibration().uuid);
         } catch (NullPointerException e) {
             Log.d(TAG, "Calibration uuid is not set in dataMap(BgReading)");
         }

@@ -342,7 +342,7 @@ public class BgReading implements ShareUploadableBg {
         if (bgReading != null) {
             bgReading.calculated_value = egvRecord.getBGValue();
             if (egvRecord.getBGValue() <= 13) {
-                Calibration calibration = bgReading.calibration;
+                Calibration calibration = bgReading.getCalibration();
                 double firstAdjSlope = calibration.first_slope + (calibration.first_decay * (Math.ceil(new Date().getTime() - calibration.timestamp) / (1000 * 60 * 10)));
                 double calSlope = (calibration.first_scale / firstAdjSlope) * 1000;
                 double calIntercept = ((calibration.first_scale * calibration.first_intercept) / firstAdjSlope) * -1;
@@ -538,12 +538,12 @@ public class BgReading implements ShareUploadableBg {
 
         } else {
             BgReading lastBgReading = BgReading.last();
-            if (lastBgReading != null && lastBgReading.calibration != null) {
+            if (lastBgReading != null && lastBgReading.getCalibration() != null) {
                 Log.d(TAG, "Create calibration.uuid=" + calibration.uuid + " bgReading.uuid: " + bgReading.uuid + " lastBgReading.calibration_uuid: " + lastBgReading.calibration_uuid + " lastBgReading.calibration.uuid: " + lastBgReading.calibration.uuid);
                 Log.d(TAG, "Create lastBgReading.calibration_flag=" + lastBgReading.calibration_flag + " bgReading.timestamp: " + bgReading.timestamp + " lastBgReading.timestamp: " + lastBgReading.timestamp + " lastBgReading.calibration.timestamp: " + lastBgReading.calibration.timestamp);
                 Log.d(TAG, "Create lastBgReading.calibration_flag=" + lastBgReading.calibration_flag + " bgReading.timestamp: " + JoH.dateTimeText(bgReading.timestamp) + " lastBgReading.timestamp: " + JoH.dateTimeText(lastBgReading.timestamp) + " lastBgReading.calibration.timestamp: " + JoH.dateTimeText(lastBgReading.calibration.timestamp));
                 if (lastBgReading.calibration_flag == true && ((lastBgReading.timestamp + (60000 * 20)) > bgReading.timestamp) && ((lastBgReading.calibration.timestamp + (60000 * 20)) > bgReading.timestamp)) {
-                    lastBgReading.calibration.rawValueOverride(BgReading.weightedAverageRaw(lastBgReading.timestamp, bgReading.timestamp, lastBgReading.calibration.timestamp, lastBgReading.age_adjusted_raw_value, bgReading.age_adjusted_raw_value), xdrip.getAppContext());
+                    lastBgReading.getCalibration().rawValueOverride(BgReading.weightedAverageRaw(lastBgReading.timestamp, bgReading.timestamp, lastBgReading.getCalibration().timestamp, lastBgReading.age_adjusted_raw_value, bgReading.age_adjusted_raw_value), xdrip.getAppContext());
                     newCloseSensorData();
                 }
             }
@@ -2228,6 +2228,17 @@ public class BgReading implements ShareUploadableBg {
     /** Mirrors the ActiveAndroid Model.getId() used by callers. */
     public Long getId() {
         return _id;
+    }
+
+    /**
+     * Lazily loads the calibration this reading belongs to (the object field is transient and only
+     * the id is persisted). Returns null when there is no associated calibration.
+     */
+    public Calibration getCalibration() {
+        if (calibration == null && calibration_id != 0) {
+            calibration = AppDatabase.getInstance(xdrip.getAppContext()).calibrationDao().byid(calibration_id);
+        }
+        return calibration;
     }
 
     public void delete() {

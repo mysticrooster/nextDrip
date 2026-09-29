@@ -450,7 +450,7 @@ public class BloodTest {
             final BgReading bgReading = BgReading.getForPreciseTimestamp(bt.timestamp + (AddCalibration.estimatedInterstitialLagSeconds * 1000), BgGraphBuilder.DEXCOM_PERIOD);
 
             if (bgReading != null) {
-                final Calibration calibration = bgReading.calibration;
+                final Calibration calibration = bgReading.getCalibration();
                 if (calibration == null) {
                     Log.d(TAG, "Calibration for bgReading is null! @ " + JoH.dateTimeText(bgReading.timestamp));
                     continue;
