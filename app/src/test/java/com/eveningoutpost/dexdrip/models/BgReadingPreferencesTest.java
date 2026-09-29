@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
 
-import com.activeandroid.query.Delete;
 import com.eveningoutpost.dexdrip.RobolectricTestWithConfig;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.xdrip;
@@ -46,7 +45,7 @@ public class BgReadingPreferencesTest extends RobolectricTestWithConfig {
         super.setUp();
         xdrip.setContextAlways(RuntimeEnvironment.application); // force re-bind to current Robolectric app
         prefs().edit().clear().commit();                        // the preference file leaks between test methods
-        new Delete().from(UserNotification.class).execute();    // so do the rows
+        UserNotification.deleteAll();                           // so do the rows
     }
 
     // ===== Rising alert ==========================================================================

@@ -66,7 +66,9 @@ public final class LegacyDataImporter {
                     "PebbleMovement",
                     "TransmitterData",
                     "ActiveBluetoothDevice",
-                    "Reminder")));
+                    "Reminder",
+                    "ShareGlucose",
+                    "Notifications")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

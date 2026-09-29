@@ -4,38 +4,46 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
-import android.provider.BaseColumns;
-import com.eveningoutpost.dexdrip.models.UserError.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
+import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.google.gson.annotations.Expose;
 
 /**
  * Created by Emma Black on 3/16/15.
  */
-@Table(name = "ShareGlucose", id = BaseColumns._ID)
-public class ShareGlucose extends Model {
+@Entity(tableName = "ShareGlucose")
+public class ShareGlucose {
+
+    @Ignore
     public Context mContext;
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "DT")
+    @ColumnInfo(name = "DT")
     public String DT;
 
     @Expose
-    @Column(name = "ST")
+    @ColumnInfo(name = "ST")
     public String ST;
 
     @Expose
-    @Column(name = "Trend")
+    @ColumnInfo(name = "Trend")
     public double Trend;
 
     @Expose
-    @Column(name = "Value")
+    @ColumnInfo(name = "Value")
     public double Value;
 
     @Expose
-    @Column(name = "WT")
+    @ColumnInfo(name = "WT")
     public String WT;
 
     public void processShareData(Context context) {

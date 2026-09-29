@@ -1,6 +1,5 @@
 package com.eveningoutpost.dexdrip.models;
 
-import com.activeandroid.query.Delete;
 import com.eveningoutpost.dexdrip.RobolectricTestWithConfig;
 import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
 
@@ -24,9 +23,7 @@ public class UserNotificationTest extends RobolectricTestWithConfig {
     @After
     public void cleanup() {
         // Clean up to avoid interference between tests
-        new Delete()
-                .from(UserNotification.class)
-                .execute();
+        UserNotification.deleteAll();
         UserNotification.DeleteNotificationByType("testAlert");
     }
 

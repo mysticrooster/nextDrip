@@ -1,13 +1,16 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.UserNotificationDao;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.eveningoutpost.dexdrip.utilitymodels.AlertPlayer;
 import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -18,39 +21,44 @@ import java.util.Locale;
  * Created by Emma Black on 11/29/14.
  */
 
-@Table(name = "Notifications", id = BaseColumns._ID)
-public class UserNotification extends PlusModel {
+@Entity(tableName = "Notifications",
+        indices = {@Index("timestamp")})
+public class UserNotification {
 
     // For 'other alerts' this will be the time that the alert should be raised again.
     // For calibration alerts this is the time that the alert was played.
-    @Column(name = "timestamp", index = true)
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
+    @ColumnInfo(name = "timestamp")
     public double timestamp;
 
-    @Column(name = "message")
+    @ColumnInfo(name = "message")
     public String message;
 
-    @Column(name = "bg_alert")
+    @ColumnInfo(name = "bg_alert")
     public boolean bg_alert;
 
-    @Column(name = "calibration_alert")
+    @ColumnInfo(name = "calibration_alert")
     public boolean calibration_alert;
 
-    @Column(name = "double_calibration_alert")
+    @ColumnInfo(name = "double_calibration_alert")
     public boolean double_calibration_alert;
 
-    @Column(name = "extra_calibration_alert")
+    @ColumnInfo(name = "extra_calibration_alert")
     public boolean extra_calibration_alert;
 
-    @Column(name = "bg_unclear_readings_alert")
+    @ColumnInfo(name = "bg_unclear_readings_alert")
     public boolean bg_unclear_readings_alert;
 
-    @Column(name = "bg_missed_alerts")
+    @ColumnInfo(name = "bg_missed_alerts")
     public boolean bg_missed_alerts;
 
-    @Column(name = "bg_rise_alert")
+    @ColumnInfo(name = "bg_rise_alert")
     public boolean bg_rise_alert;
 
-    @Column(name = "bg_fall_alert")
+    @ColumnInfo(name = "bg_fall_alert")
     public boolean bg_fall_alert;
 
     private final static List<String> legacy_types = Arrays.asList(
@@ -59,35 +67,20 @@ public class UserNotification extends PlusModel {
             "bg_missed_alerts", "bg_rise_alert", "bg_fall_alert");
     private final static String TAG = AlertPlayer.class.getSimpleName();
 
-    private static boolean patched = false;
-
     public static UserNotification lastBgAlert() {
-        return new Select()
-                .from(UserNotification.class)
-                .where("bg_alert = ?", true)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().lastBgAlert();
     }
+
     public static UserNotification lastCalibrationAlert() {
-        return new Select()
-                .from(UserNotification.class)
-                .where("calibration_alert = ?", true)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().lastCalibrationAlert();
     }
+
     public static UserNotification lastDoubleCalibrationAlert() {
-        return new Select()
-                .from(UserNotification.class)
-                .where("double_calibration_alert = ?", true)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().lastDoubleCalibrationAlert();
     }
+
     public static UserNotification lastExtraCalibrationAlert() {
-        return new Select()
-                .from(UserNotification.class)
-                .where("extra_calibration_alert = ?", true)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().lastExtraCalibrationAlert();
     }
 
     // the UserNotifcation model is difficult to extend without adding more
@@ -98,12 +91,26 @@ public class UserNotification extends PlusModel {
 
     public static UserNotification GetNotificationByType(String type) {
         if (legacy_types.contains(type)) {
-            type = type + " = ?";
-            return new Select()
-                    .from(UserNotification.class)
-                    .where(type, true)
-                    .orderBy("_ID desc")
-                    .executeSingle();
+            switch (type) {
+                case "bg_alert":
+                    return dao().lastBgAlert();
+                case "calibration_alert":
+                    return dao().lastCalibrationAlert();
+                case "double_calibration_alert":
+                    return dao().lastDoubleCalibrationAlert();
+                case "extra_calibration_alert":
+                    return dao().lastExtraCalibrationAlert();
+                case "bg_unclear_readings_alert":
+                    return dao().lastBgUnclearReadingsAlert();
+                case "bg_missed_alerts":
+                    return dao().lastBgMissedAlerts();
+                case "bg_rise_alert":
+                    return dao().lastBgRiseAlert();
+                case "bg_fall_alert":
+                    return dao().lastBgFallAlert();
+                default:
+                    return null;
+            }
         } else {
             final String timestamp = PersistentStore.getString("UserNotification:timestamp:" + type);
             if (timestamp.equals("")) return null;
@@ -128,7 +135,7 @@ public class UserNotification extends PlusModel {
             PersistentStore.setString("UserNotification:timestamp:" + type, "");
         }
     }
-    
+
     public static void snoozeAlert(String type, long snoozeMinutes) {
         UserNotification userNotification = GetNotificationByType(type);
         if(userNotification == null) {
@@ -137,9 +144,9 @@ public class UserNotification extends PlusModel {
         }
         userNotification.timestamp = new Date().getTime() + snoozeMinutes * 60000;
         userNotification.save();
-        
+
     }
-    
+
     public static UserNotification create(String message, String type, long timestamp) {
         UserNotification userNotification = new UserNotification();
         userNotification.timestamp = timestamp;
@@ -180,15 +187,30 @@ public class UserNotification extends PlusModel {
 
     }
 
-    // create the table ourselves without worrying about model versioning and downgrading
-    public static void updateDB() {
-        patched = fixUpTable(schema, patched);
+    public static void deleteAll() {
+        dao().deleteAll();
     }
 
-    private static final String[] schema = {
-            "ALTER TABLE Notifications ADD COLUMN bg_unclear_readings_alert INTEGER;",
-            "ALTER TABLE Notifications ADD COLUMN bg_missed_alerts INTEGER;",
-            "ALTER TABLE Notifications ADD COLUMN bg_rise_alert INTEGER;",
-            "ALTER TABLE Notifications ADD COLUMN bg_fall_alert INTEGER;",
-    };
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    public void delete() {
+        dao().delete(this);
+    }
+
+    private static UserNotificationDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).userNotificationDao();
+    }
 }

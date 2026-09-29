@@ -21,7 +21,6 @@ import com.eveningoutpost.dexdrip.models.Libre2Sensor;
 import com.eveningoutpost.dexdrip.models.LibreBlock;
 import com.eveningoutpost.dexdrip.models.LibreData;
 import com.eveningoutpost.dexdrip.models.Prediction;
-import com.eveningoutpost.dexdrip.models.UserNotification;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.SnoozeActivity;
 import com.eveningoutpost.dexdrip.stats.FirstPageFragment;
@@ -59,7 +58,6 @@ public class IdempotentMigrations {
         Libre2RawValue.updateDB();
         Libre2Sensor.updateDB();
 //        BgReadingArchive.updateDB();
-        UserNotification.updateDB();
         JoH.clearCache();
         legacySettingsFix();
         IncompatibleApps.notifyAboutIncompatibleApps();

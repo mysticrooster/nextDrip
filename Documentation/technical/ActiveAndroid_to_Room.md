@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **9** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder` |
+| Migrated tables | **11** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -289,6 +289,16 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     them. Split the `getNextActiveReminder` home-wifi `homeonly` branch into two DAO
     queries.
   - Added `ReminderTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `ShareGlucose`, `UserNotification` (11/29).**
+  - `ShareGlucose`: Room @Entity (no DAO; the class has no external callers — the
+    share-follow path uses a separate `ShareGlucoseRecord`). Excluded the transient
+    `Context` field with `@Ignore`.
+  - `UserNotification`: Room @Entity + DAO; table is `Notifications`. Kept instance
+    `save()`/`delete()`; `GetNotificationByType` now switches over a fixed DAO set
+    (Room cannot bind column names). Dropped the manual `updateDB` schema and its
+    `IdempotentMigrations` call, and updated `UserNotificationTest` /
+    `BgReadingPreferencesTest` resets to `deleteAll()`.
+  - Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 
