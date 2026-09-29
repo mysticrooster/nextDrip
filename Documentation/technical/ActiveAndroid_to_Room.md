@@ -43,8 +43,30 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Database name | ActiveAndroid default (`Application.db`) — confirm at migration time |
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
-| Room dependency | **Not present yet** |
+| Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
+| Migrated tables | **2** — `CalibrationRequest`, `ActiveBgAlert` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
+
+### Package structure
+
+Entities stay in `com.eveningoutpost.dexdrip.models` (they *are* the domain objects:
+515 files import `models.*` and 915 direct public-field reads mean moving them would
+force a mass rename plus a mapping layer — defeating façade-first). The new Room
+plumbing lives in a separate `db` package:
+
+```
+com.eveningoutpost.dexdrip
+├── models/                # unchanged package — entities + static façades
+│   ├── CalibrationRequest.java   @Entity + façade   (migrated)
+│   ├── ActiveBgAlert.java        @Entity + façade   (migrated)
+│   └── …                         each migrates ActiveAndroid → Room in place
+└── db/                    # new Room layer (permanent)
+    ├── AppDatabase.java   @Database + singleton
+    ├── LegacyDataImporter.java  one-time copy from Application.db
+    ├── dao/               one DAO per migrated entity
+    ├── Converters.java    @TypeConverter (as needed)
+    └── Migrations.java    Migration objects (as needed)
+```
 
 ### Model inventory
 
@@ -91,18 +113,60 @@ planned, sequenced, and tracked independently of the Compose UI phases.
    over the wire.
 6. **Parity test** — assert the Room result matches the ActiveAndroid result for
    the same inputs before switching.
+7. **Retire legacy schema shims.** Many models carry a manual `fixUpTable()` /
+   `updateDB()` (raw `CREATE TABLE`/`ALTER TABLE` strings via `PlusModel.fixUpTable`
+   or `SQLiteUtils.execSql`), invoked from `IdempotentMigrations.performAll()`. Room
+   owns the schema now, so when a model moves: delete its `fixUpTable()`/`schema`
+   array and remove its line from `IdempotentMigrations`. (`CalibrationRequest` had
+   none, `ActiveBgAlert`'s was self-contained; `PenData`, `APStatus`, `Prediction`,
+   `DesertSync`, `Libre*`, `AlertType`, `UserNotification` are wired into
+   `IdempotentMigrations`.)
+8. **Foreign keys block dependents.** Models with a `@Column` field typed as another
+   model hold a real FK. The spine is `Sensor ← Calibration ← BgReading`, with
+   `SensorSendQueue→Sensor`, `CalibrationSendQueue→Calibration`, `BgSendQueue→BgReading`.
+   A dependent cannot move before its target (or must temporarily store the FK as a
+   raw id column and load the object through the target's façade).
 
 ### Database & migration (the hard part)
 
-- Create a `@Database` listing the migrated entities.
-- Initialize via `Room.databaseBuilder(context, …)` with the **same database
-  file** ActiveAndroid used.
-- Because Room and ActiveAndroid use the same table/column names, the schema can
-  match **exactly**, allowing a no-op migration (same `version`) or a careful
-  `Migration` for the switch-over. This must be validated against a real user DB
-  before release.
+- A `@Database` (`com.eveningoutpost.dexdrip.db.AppDatabase`) lists the migrated
+  entities and is exposed as a process-wide singleton via
+  `AppDatabase.getInstance(context)`; DAOs live in `com.eveningoutpost.dexdrip.db.dao`.
+- **Transition strategy:** during the side-by-side period Room opens its **own**
+  database file (`xdrip-room.db`), *not* ActiveAndroid's `Application.db`. This
+  avoids Room trying to manage a file whose migrated tables already exist (created
+  by ActiveAndroid) and whose other tables Room does not know about — opening the
+  shared file would fail schema validation.
+- **Data preservation (`LegacyDataImporter`).** Because Room starts empty, a
+  one-time importer copies the legacy rows across the first time the app runs after
+  a table has moved. It is kicked off from `IdempotentMigrations.performAll()`.
+  - Mechanism: `ATTACH DATABASE <Application.db> AS legacy`, then one
+    `INSERT OR IGNORE INTO main.T (<shared cols>) SELECT <shared cols> FROM legacy.T`
+    per table, over the **intersection** of the two tables' columns. This is immune
+    to column-order differences and to legacy-only/room-only columns, and is atomic
+    per table (one statement). No per-row Java.
+  - **Threading:** `importAll()` runs the copy on a dedicated background thread
+    (`legacy-data-import`) so it never blocks app startup. `AppDatabase.getInstance()`
+    first calls `LegacyDataImporter.awaitImportComplete()`, so any migrated façade is
+    gated behind the copy and can never read — then race — a table mid-import. The
+    await is bounded (30s) so a stuck copy cannot hang the app forever. The importer
+    itself uses the non-gating `AppDatabase.buildInstance()` so it never waits on its
+    own import.
+  - Guards: copies only when the Room table is empty *and* the legacy table has rows;
+    marks a per-table `PersistentStore` flag (`room_legacy_import_done_<table>`) so
+    later deletions never re-import; `INSERT OR IGNORE` avoids PK clashes.
+  - Adding an entity is a two-step chore: register it in `@Database` **and** add its
+    table name to `LegacyDataImporter.MIGRATED_TABLES`. A unit test
+    (`AppDatabaseImportListTest`) fails if the two drift apart.
+  - After the last table has moved and ActiveAndroid is removed, the importer and its
+    flags can be deleted (the copy has already happened on every device).
+- Table/column names still match ActiveAndroid exactly (`@Entity(tableName = …)`,
+  `@ColumnInfo(name = …)`), so the two schemas stay aligned and an eventual
+  switch-over/copy is mechanical.
 - Remove the ActiveAndroid `ContentProvider` and `initialize()` call only once
   the last table has moved.
+- `@Database(exportSchema = false)` for now; schema export should be enabled when
+  the first real `Migration` is needed.
 
 ### Threading
 
@@ -118,19 +182,67 @@ explicit threading:
 
 ## Sequencing (suggested order)
 
-1. **Add Room** (runtime, ktx, compiler) + an empty `@Database` skeleton
-   side-by-side with ActiveAndroid.
-2. **Pilot one leaf model** — `UploaderQueue` (or `BgSendQueue`): no foreign
-   keys, few dependents. Establish the full entity → DAO → façade → data-safe
-   migration → parity-test pattern.
-3. **Migrate the remaining queues** (the other `*SendQueue`/`*Request` classes).
-4. **Migrate core glucose data** (`BgReading`, `Calibration`, `Sensor`,
-   `Treatments`, `BloodTest`) — the ones Home/charts consume.
-5. **Migrate the rest** (health/activity, alerts, devices, reminders).
-6. **Remove ActiveAndroid** (AAR, ContentProvider, `initialize()`).
+1. ~~**Add Room** (runtime, ktx, compiler) + an empty `@Database` skeleton
+   side-by-side with ActiveAndroid.~~ **Done.**
+2. ~~**Pilot one leaf model**: establish the full entity → DAO → façade →
+   data-safe migration → parity-test pattern.~~ **Done** — `CalibrationRequest`
+   (chosen over `UploaderQueue`, whose manual raw-SQL `fixUpTable()` schema made
+   it a poor first candidate).
+3. ~~**Migrate the remaining queues**~~ **Re-ordered.** The queues have FKs into the
+   core glucose models (`SensorSendQueue→Sensor`, `CalibrationSendQueue→Calibration`,
+   `BgSendQueue→BgReading`) and `UploaderQueue` does class-based ActiveAndroid
+   reflection (`getLegacyCount(X.class, …)`), so they cannot move first.
+4. **Migrate the FK-free leaf models** (no `@Column` model reference, no external
+   `X.class` use): `ActiveBgAlert` ✔, then `AlertType`, `PenData`, `Reminder`,
+   `ShareGlucose`, `HeartRate`, `StepCounter`, `TransmitterData`, `UserError`,
+   `ActiveBluetoothDevice` (2 external direct `Select`s to fold into the façade),
+   `BloodTest`, `Treatments`, `Libre*`, `Accuracy`, `APStatus`, `DesertSync`,
+   `Prediction`, `UserNotification`, `LibreBlock`, `LibreData`.
+5. **Migrate the FK spine** `Sensor → Calibration → BgReading` — the ones Home/charts
+   consume. **Requires the one-time data-copy from `Application.db` (see above).**
+6. **Migrate the FK dependents** — `SensorSendQueue`, `CalibrationSendQueue`,
+   `BgSendQueue`, `UploaderQueue` (the latter also needs `getLegacyCount` reflection
+   removed).
+7. **Remove ActiveAndroid** (AAR, ContentProvider, `initialize()`).
 
 Each step is independently shippable; the app keeps working throughout because
 unmigrated models still use ActiveAndroid and migrated models keep their façade.
+
+### Progress log
+
+- **2026-09-28 — Room foundation + `CalibrationRequest` pilot.**
+  - Added `androidx.room:room-runtime/room-ktx/room-compiler:2.8.5` to
+    `app/build.gradle` (Java `annotationProcessor`, not KSP/kapt).
+  - Added `com.eveningoutpost.dexdrip.db.AppDatabase` (owns `xdrip-room.db`,
+    `allowMainThreadQueries()` for the synchronous-façade transition) and
+    `CalibrationRequestDao`.
+  - Converted `CalibrationRequest` from `extends Model` (`@Table`/`@Column`) to a
+    Room `@Entity`, re-pointing `createRange`/`createOffset`/`clearAll`/
+    `shouldRequestCalibration` at the DAO. All external callers use those static
+    methods, so no caller changes were needed.
+  - Added `CalibrationRequestTest` (in-memory Room DB, 5 cases) — all green, and
+    the full `testFastDebugUnitTest` suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — Structure settled; `ActiveBgAlert` migrated (2/29).**
+  - Moved the plumbing `data/` → `db/` with DAOs under `db/dao/`; entities stay in
+    `models/`. Added a `setInstanceForTesting()` hook to `AppDatabase`.
+  - Converted `ActiveBgAlert` to a Room `@Entity` + `ActiveBgAlertDao` (`@Upsert`
+    mirrors ActiveAndroid `save()`; `@Delete`). Dropped its private `fixUpTable()`
+    (Room owns the schema). Added `ActiveBgAlertTest` (5 cases), all green.
+  - Audit findings recorded above: the queue models are FK-blocked (sequencing
+    re-ordered in step 3–6), and the legacy `fixUpTable()`/`updateDB()` shims wired
+    into `IdempotentMigrations` must be removed per model.
+- **2026-09-28 — Data preservation (`LegacyDataImporter`).**
+  - Added `db/LegacyDataImporter`: one-time `ATTACH` + `INSERT ... SELECT` copy of
+    migrated tables from `Application.db` into `xdrip-room.db`, guarded per table by
+    a `PersistentStore` flag; invoked from `IdempotentMigrations.performAll()`.
+  - Runs on a background thread; `AppDatabase.getInstance()` gates on
+    `awaitImportComplete()` (bounded) so façades cannot race the copy.
+  - Added `db/dao/MetaDao` + `AppDatabaseImportListTest` so a newly registered
+    entity cannot be forgotten in `MIGRATED_TABLES`.
+  - Added `LegacyDataImporterTest` (real SQLite via `@SQLiteMode(NATIVE)`: import,
+    background+await, idempotency, no-overwrite, missing-legacy-db,
+    legacy-only-column) — all green.
+  - Full `testFastDebugUnitTest` + `assembleFastDebug` (R8) pass.
 
 ---
 
@@ -153,6 +265,7 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
   delivered as small per-model commits.
 - **Track:** framework modernization, parallel to (and a prerequisite for the
   deep parts of) the Compose Home phase.
-- **Metrics for planning:** 29 entities · 64 files · ~478 query sites; the queue
-  models (~5) are Low-effort pilots, the core models (~5) are High-effort, the
-  remaining ~19 are Low/Medium.
+- **Metrics for planning:** 29 entities · 64 files · ~478 query sites. FK-free leaf
+  models (~20) are Low/Medium effort; the FK spine (`Sensor`/`Calibration`/`BgReading`)
+  is High-effort (data copy + FK + `@Expose`); the queue models are dependent on the
+  spine, not the easy pilots originally assumed.

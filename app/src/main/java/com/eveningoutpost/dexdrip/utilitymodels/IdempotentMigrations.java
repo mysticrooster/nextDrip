@@ -10,6 +10,7 @@ import android.net.Uri;
 import androidx.preference.PreferenceManager;
 import android.util.Log;
 
+import com.eveningoutpost.dexdrip.db.LegacyDataImporter;
 import com.eveningoutpost.dexdrip.models.APStatus;
 import com.eveningoutpost.dexdrip.models.AlertType;
 import com.eveningoutpost.dexdrip.models.BgReading;
@@ -47,6 +48,7 @@ public class IdempotentMigrations {
     }
 
     public void performAll() {
+        LegacyDataImporter.importAll(mContext);
         migrateBGAlerts();
         migrateToNewStyleRestUris();
         BgReading.updateDB();

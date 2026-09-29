@@ -217,6 +217,11 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    def roomVersion = "2.8.5"
+    implementation "androidx.room:room-runtime:$roomVersion"
+    annotationProcessor "androidx.room:room-compiler:$roomVersion"
+    implementation "androidx.room:room-ktx:$roomVersion"
     // wearApp project(':wear') // removed in AGP 9; Wear OS apps are distributed standalone
     implementation('com.github.nightscout:android-uploader:CORE_FOR_XDRIP') {
         transitive = false

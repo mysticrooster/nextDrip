@@ -1,66 +1,58 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.Home;
-
-import java.util.List;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.CalibrationRequestDao;
+import com.eveningoutpost.dexdrip.xdrip;
 
 /**
  * Created by Emma Black on 12/9/14.
  */
 
-@Table(name = "CalibrationRequest", id = BaseColumns._ID)
-public class CalibrationRequest extends Model {
+@Entity(tableName = "CalibrationRequest")
+public class CalibrationRequest {
     private static final int max = 250;
     private static final int min = 70;
     private static final String TAG = CalibrationRequest.class.getSimpleName();
 
-    @Column(name = "requestIfAbove")
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
+    @ColumnInfo(name = "requestIfAbove")
     public double requestIfAbove;
 
-   @Column(name = "requestIfBelow")
+    @ColumnInfo(name = "requestIfBelow")
     public double requestIfBelow;
 
     public static void createRange(double low, double high) {
         CalibrationRequest calibrationRequest = new CalibrationRequest();
         calibrationRequest.requestIfAbove = low;
         calibrationRequest.requestIfBelow = high;
-        calibrationRequest.save();
+        dao().insert(calibrationRequest);
     }
     static void createOffset(double center, double distance) {
         CalibrationRequest calibrationRequest = new CalibrationRequest();
         calibrationRequest.requestIfAbove = center + distance;
         calibrationRequest.requestIfBelow = max;
-        calibrationRequest.save();
+        dao().insert(calibrationRequest);
 
         calibrationRequest = new CalibrationRequest();
         calibrationRequest.requestIfAbove = min;
         calibrationRequest.requestIfBelow = center - distance;
-        calibrationRequest.save();
+        dao().insert(calibrationRequest);
     }
 
     static void clearAll(){
-        List<CalibrationRequest> calibrationRequests =  new Select()
-                                                            .from(CalibrationRequest.class)
-                                                            .execute();
-        if (calibrationRequests.size() >=1) {
-            for (CalibrationRequest calibrationRequest : calibrationRequests) {
-                calibrationRequest.delete();
-            }
-        }
+        dao().deleteAll();
     }
 
     public static boolean shouldRequestCalibration(BgReading bgReading) {
-        CalibrationRequest calibrationRequest = new Select()
-                .from(CalibrationRequest.class)
-                .where("requestIfAbove < ?", bgReading.calculated_value)
-                .where("requestIfBelow > ?", bgReading.calculated_value)
-                .executeSingle();
+        CalibrationRequest calibrationRequest = dao().findMatching(bgReading.calculated_value);
         return (calibrationRequest != null && isSlopeFlatEnough(bgReading, 1));
     }
 
@@ -83,5 +75,9 @@ public class CalibrationRequest extends Model {
         if (bgReading == null) return false;
         // TODO use BestGlucose
         return Math.abs(bgReading.calculated_value_slope * 60000) < limit;
+    }
+
+    private static CalibrationRequestDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).calibrationRequestDao();
     }
 }
