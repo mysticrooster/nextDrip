@@ -60,7 +60,7 @@ Modernization that is not Compose-specific but is part of the overall cleanup.
 | `com.evernote:android-job` | 3 files | → WorkManager (already present) | Low | **Done** |
 | Dagger `2.25.4` | DI | → Hilt (or modern Dagger) | Medium | Not started |
 | Lombok | pervasive | → Kotlin data classes (long-term, optional) | **High** | Not started |
-| `android.preference.PreferenceManager` | `ColorCache` defaults | → `androidx.preference` | Low | **Done** |
+| `android.preference.PreferenceManager` | `ColorCache` defaults | → `androidx.preference` | Low | **Reverted** (full `android.preference` → `androidx.preference` is a larger effort, tied to the Phase 4 settings screens) |
 
 ---
 
