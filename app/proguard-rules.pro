@@ -24,6 +24,14 @@
 -keepattributes InnerClasses
 -keepattributes *Annotation*
 
+# Keep methods referenced by name from XML via android:onClick / android:onLongClick
+# (layout handlers take a View, menu handlers take a MenuItem). R8 would otherwise
+# remove them during shrinking, causing InflateException / NoSuchMethodException.
+-keepclassmembers class * {
+    public void *(android.view.View);
+    public void *(android.view.MenuItem);
+}
+
 -dontobfuscate
 
 -dontwarn com.nightscout.**
