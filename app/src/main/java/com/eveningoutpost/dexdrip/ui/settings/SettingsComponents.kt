@@ -36,6 +36,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -49,7 +51,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.eveningoutpost.dexdrip.EditAlertActivity
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.models.AlertType
 import java.util.Calendar
 import kotlin.math.roundToInt
 
@@ -388,6 +392,77 @@ fun SettingsTimeRow(
             },
     )
     HorizontalDivider()
+}
+
+/**
+ * Material 3 time-of-day picker dialog. [onConfirm] receives the selection as minutes since
+ * midnight (0..1439), matching the legacy `AlertType.toTime` representation.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimeOfDayDialog(
+    initialMinutes: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit,
+) {
+    val context = LocalContext.current
+    val state = rememberTimePickerState(
+        initialHour = initialMinutes / 60,
+        initialMinute = initialMinutes % 60,
+        is24Hour = DateFormat.is24HourFormat(context),
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = { TimePicker(state = state) },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(state.hour * 60 + state.minute) }) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
+        },
+    )
+}
+
+/**
+ * Time-of-day row bound to an **int minutes since midnight** preference (the legacy
+ * `AlertType.toTime` format used by the missed-reading alert). Unlike [SettingsTimeRow] (millis).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsMinutesOfDayRow(
+    title: String,
+    minutes: Int,
+    onTimeChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    enabled: Boolean = true,
+) {
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+    ListItem(
+        headlineContent = { Text(title) },
+        supportingContent = subtitle?.let { { Text(it) } },
+        trailingContent = {
+            Text(
+                text = EditAlertActivity.timeFormatString(context, minutes / 60, minutes % 60),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            .clickable(enabled = enabled) { showDialog = true },
+    )
+    HorizontalDivider()
+    if (showDialog) {
+        TimeOfDayDialog(
+            initialMinutes = minutes,
+            onDismiss = { showDialog = false },
+            onConfirm = { onTimeChanged(it); showDialog = false },
+        )
+    }
 }
 
 /**
