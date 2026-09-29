@@ -108,13 +108,15 @@ A `SettingsViewModel` (or a small `Pref`-backed helper) exposing each preference
 `StateFlow` and writing via `Pref`/`PreferenceManager`. This replaces the `ObservableMap` +
 `@={...}` two-way Data Binding used by `PrefsView*` and the `bindPreferenceSummary*` helpers.
 Conditional visibility (hardware/collection-type dependent screens) becomes ordinary Compose
-`if`/state.
+`if`/state. Pilot note: the General category reads/writes `Pref` directly with `remember`
+state; a shared `SettingsViewModel` is introduced only when a screen needs cross-row state.
 
 **Navigation**
 
-Reuse `navigation-compose`. Settings is a graph: root categories → sub-screens. The drawer's
-"Settings" entry points at the graph's start destination. Deep links (`jumpTo`) currently used
-by `AllPrefsFragment` are expressed as graph routes/arguments.
+Decision: use a **lightweight in-Compose screen stack** (a sealed screen state + `BackHandler`)
+for the initial migration — the simplest thing that works — and swap to `navigation-compose`
+(a dependency already present) once the graph grows to the full set of sub-screens. The drawer's
+"Settings" entry opens the host; deep links (`jumpTo`) are represented as screen state.
 
 **Dialogs**
 
@@ -230,6 +232,7 @@ The `PrefsView*` binding bridge can be retired once the screens still using it
 | **Scope** (85 sub-screens, ~50 activities) | Strict screen-by-screen with the legacy screen deleted only after parity; pilot first. |
 | **`colorpicker`/`search-preference` AAR removal** while other screens still use them | Remove only after the last user migrates; track in `Tech_Debt.md`. |
 | **Data Binding interop** during the hybrid period | Follow the established `AndroidView`/delegate bridge pattern. |
+| **Live pref-change listeners**: legacy `Preferences` registers service/watch/collector listeners while open (`DexCollectionService`, `ActivityRecognizedService`, `Registry`, cloud-sync, …) in `onResume`/`onPause` | The Compose host must register the same listeners before migrating the collection/sync categories (S3/S4); pilot keys are read-at-render and don't need them. |
 
 ---
 
