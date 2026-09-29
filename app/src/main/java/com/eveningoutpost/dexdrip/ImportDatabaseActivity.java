@@ -209,16 +209,8 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
     }
 
     public int getDBVersion() {
-
-        int version = -1;
-        try {
-            ApplicationInfo ai = getPackageManager().getApplicationInfo(this.getPackageName(), PackageManager.GET_META_DATA);
-            Bundle bundle = ai.metaData;
-            version = bundle.getInt("AA_DB_VERSION");
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return version;
+        // The final legacy ActiveAndroid database version (was AA_DB_VERSION in the manifest).
+        return 41;
     }
 
 

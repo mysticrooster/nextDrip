@@ -1,16 +1,10 @@
 package com.eveningoutpost.dexdrip.db;
 
 import android.content.Context;
-import android.database.Cursor;
-import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-import androidx.sqlite.db.SupportSQLiteDatabase;
-
-import java.io.File;
 
 import com.eveningoutpost.dexdrip.db.dao.ActiveBgAlertDao;
 import com.eveningoutpost.dexdrip.db.dao.ActiveBluetoothDeviceDao;
@@ -70,12 +64,10 @@ import com.eveningoutpost.dexdrip.utilitymodels.CalibrationSendQueue;
 import com.eveningoutpost.dexdrip.utilitymodels.SensorSendQueue;
 import com.eveningoutpost.dexdrip.utilitymodels.UploaderQueue;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class, Sensor.class, Calibration.class, BgReading.class, SensorSendQueue.class, CalibrationSendQueue.class, BgSendQueue.class, UploaderQueue.class, UserError.class}, views = {Libre2Sensor.class}, version = 9, exportSchema = false)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class, Sensor.class, Calibration.class, BgReading.class, SensorSendQueue.class, CalibrationSendQueue.class, BgSendQueue.class, UploaderQueue.class, UserError.class}, views = {Libre2Sensor.class}, version = 9, exportSchema = true)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
-    private static final String TAG = "AppDatabase";
-
     private static volatile AppDatabase INSTANCE;
 
     public abstract CalibrationRequestDao calibrationRequestDao();
@@ -157,58 +149,16 @@ public abstract class AppDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = open(context);
+                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
+                            .allowMainThreadQueries()
+                            // Real, tested migrations — never destroy user data. Every schema change
+                            // must bump @Database version AND add a Migration to Migrations.ALL.
+                            .addMigrations(Migrations.ALL)
+                            .build();
                 }
             }
         }
         return INSTANCE;
-    }
-
-    private static AppDatabase open(Context context) {
-        try {
-            return openOnce(context);
-        } catch (IllegalStateException e) {
-            // Room refused to open because the schema identity hash changed. During the
-            // ActiveAndroid transition the Room DB only mirrors the legacy data, so wipe and
-            // rebuild it, then let the legacy importer refill it. This makes dev builds with a
-            // changed entity set self-heal instead of crashing (see the version-bump rule too).
-            Log.w(TAG, "Recreating Room database after schema mismatch: " + e.getMessage());
-            deleteDatabaseFiles(context);
-            LegacyDataImporter.clearImportState();
-            return openOnce(context);
-        }
-    }
-
-    private static AppDatabase openOnce(Context context) {
-        final AppDatabase db = Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
-                .allowMainThreadQueries()
-                // During the ActiveAndroid -> Room transition the Room DB is only ever a
-                // copy of the legacy data, so it is safe to recreate it whenever the
-                // schema changes. (Bump @Database version whenever an entity is added.)
-                .fallbackToDestructiveMigration(true)
-                .addCallback(new Callback() {
-                    @Override
-                    public void onDestructiveMigration(@NonNull SupportSQLiteDatabase db) {
-                        // Room recreated the DB; let the legacy importer refill the
-                        // migrated tables from ActiveAndroid's Application.db again.
-                        LegacyDataImporter.clearImportState();
-                    }
-                })
-                .build();
-        // Force the open so schema/identity errors surface here, where we can recover.
-        try (Cursor ignored = db.query("SELECT 1", null)) {
-            return db;
-        } catch (RuntimeException e) {
-            db.close();
-            throw e;
-        }
-    }
-
-    private static void deleteDatabaseFiles(Context context) {
-        context.deleteDatabase(DATABASE_NAME);
-        final String base = context.getDatabasePath(DATABASE_NAME).getPath();
-        new File(base + "-wal").delete();
-        new File(base + "-shm").delete();
     }
 
     public static void setInstanceForTesting(AppDatabase database) {

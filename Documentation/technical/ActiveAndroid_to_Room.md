@@ -196,8 +196,10 @@ com.eveningoutpost.dexdrip
      (the copy has already happened on every device).
 - Table/column names still match ActiveAndroid exactly (`@Entity(tableName = …)`,
   `@ColumnInfo(name = …)`), so the two schemas stay aligned and any later copy is mechanical.
-- `@Database(exportSchema = false)` for now; schema export should be enabled when
-  the first real `Migration` is needed.
+- `@Database(exportSchema = true)`: the schema is exported to `app/schemas/` (via the
+  `room.schemaLocation` annotation-processor argument). Every schema change bumps the version and
+  adds a `Migration` to `db/Migrations.ALL`; Room validates the migrated schema against the export.
+  The dev-only `fallbackToDestructiveMigration` + self-heal were removed so upgrades never wipe data.
 
 ### Threading
 
@@ -422,6 +424,18 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
 > table had already moved (e.g. BgReadings collected while running the spine build) are not in the
 > legacy DB and are not recovered by this path. A production release should ship a single
 > `@Database` version + a real `Migration` so no wipe is needed.
+- **2026-09-28 — second pass: real migration infrastructure + cleanup.**
+  - `exportSchema = true` with `room.schemaLocation`; baseline schema exported to
+    `app/schemas/…/9.json`. Added `db/Migrations.ALL` (empty registry; the pattern documented).
+  - Removed `fallbackToDestructiveMigration` and the identity-mismatch self-heal: upgrades now
+    require a real `Migration` and never wipe user data. Removed the corresponding tests.
+  - `DatabaseUtil.saveSql` now zips **both** `DexDrip.db` and `xdrip-room.db`; `loadSql` detects
+    the target DB (via `room_master_table`) and, when a legacy DB is imported, clears the import
+    generation so Room is re-filled on the next launch. `getDataBaseSizeInBytes` sums both.
+  - Fixed `ImportDatabaseActivity.getDBVersion()` (it read the now-removed `AA_DB_VERSION`).
+  - Tidied stale ActiveAndroid comments/PowerMock ignores.
+  - Still deferred (documented): `allowMainThreadQueries` → `Flow`/executors, and real
+    `@ForeignKey`/`@Relation` (the transient-object + `getCalibration()` pattern stays for now).
 
 ---
 

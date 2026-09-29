@@ -21,7 +21,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 /**
  * Abstract config and setup for tests.
  *
- * Starts ActiveAndroid and initiates xdrip with appContext.
+ * Initiates xdrip with the Robolectric appContext and PowerMock log redirection.
  *
  * @author jamorham on 01/10/2017 - added powermock on 2018.07
  * @author Asbjørn Aarrestad, asbjorn@aarrestad.com - 2018.03
@@ -32,7 +32,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
         //packageName = "com.eveningoutpost.dexdrip",
         application = TestingApplication.class)
 
-// In order to be in the same universe as activeandroid, any classes using it must be ignored. This means power mock instrumentation
+// Keep PowerMock from instrumenting framework and model classes.
 // will not run in those ignored classes. So to intercept static methods the class arrangement and test inheritance classes may
 // need to be customized for each test using powermock. This is a right pain and leads to all sorts of confusing issues that normally
 // should result in simple active android exceptions, but you better watch out for edge cases!
@@ -40,7 +40,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 // We also intercept UserError so we can redirect logs from there but then mock the instantiation to avoid it trying to use
 // active android.
 
-@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*", "com.activeandroid.*", "com.eveningoutpost.dexdrip.models.*"})
+@PowerMockIgnore({"org.mockito.*", "org.robolectric.*", "android.*", "com.eveningoutpost.dexdrip.models.*"})
 @PrepareForTest({android.util.Log.class, com.eveningoutpost.dexdrip.models.UserError.class})
 
 //@PowerMockRunnerDelegate(RobolectricTestRunner.class)

@@ -14,7 +14,7 @@ import org.robolectric.shadows.ShadowLog;
 /**
  * Abstract config and setup for tests.
  * <p>
- * Starts ActiveAndroid and initiates xdrip with appContext.
+ * Initiates xdrip with the Robolectric appContext.
  *
  * @author jamorham on 01/10/2017
  * @author Asbjørn Aarrestad, asbjorn@aarrestad.com - 2018.03

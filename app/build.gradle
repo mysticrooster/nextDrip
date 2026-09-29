@@ -77,6 +77,12 @@ android {
         manifestPlaceholders = ['appAuthRedirectScheme': 'xdrip',
                                 appId: applicationId
         ]
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
 
     // The defaultConfig values above are fixed, so your incremental builds don't

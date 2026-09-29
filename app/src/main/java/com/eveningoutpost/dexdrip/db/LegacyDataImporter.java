@@ -17,7 +17,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * One-time import of rows from the legacy ActiveAndroid database ("Application.db")
+ * One-time import of rows from the legacy ActiveAndroid database ("DexDrip.db")
  * into the Room database ("xdrip-room.db").
  *
  * The Room migration uses a separate database file, so each migrated table starts

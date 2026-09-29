@@ -51,9 +51,9 @@ public class DatabaseUtil {
 
     public static long getDataBaseSizeInBytes() {
         try {
-            final String databaseName = LegacyDataImporter.LEGACY_DB_NAME;
-            final File currentDB = xdrip.getAppContext().getDatabasePath(databaseName);
-            return currentDB.length();
+            final File legacyDB = xdrip.getAppContext().getDatabasePath(LegacyDataImporter.LEGACY_DB_NAME);
+            final File roomDB = xdrip.getAppContext().getDatabasePath(AppDatabase.DATABASE_NAME);
+            return legacyDB.length() + roomDB.length();
         } catch (Exception e) {
             return -1;
         }
@@ -67,17 +67,11 @@ public class DatabaseUtil {
     public static String saveSql(Context context, String prefix) {
         // TecMunky 6/23/17 modify function with added prefix string variable
 
-        FileInputStream srcStream = null;
-        BufferedInputStream biStream = null;
         FileOutputStream foStream = null;
         ZipOutputStream zipOutputStream = null;
         String zipFilename = null;
 
-
         try {
-
-            final String databaseName = LegacyDataImporter.LEGACY_DB_NAME;
-
             final String dir = getExternalDir();
             makeSureDirectoryExists(dir);
 
@@ -87,31 +81,26 @@ public class DatabaseUtil {
             // TecMunky 6/23/17 replace "/export" with "/" and prefix
             sb.append("/");
             sb.append(prefix);
-            sb.append(DateFormat.format("yyyyMMdd-kkmmss", System.currentTimeMillis()));
+            final String stamp = DateFormat.format("yyyyMMdd-kkmmss", System.currentTimeMillis()).toString();
+            sb.append(stamp);
             sb.append(".zip");
             zipFilename = sb.toString();
             final File sd = Environment.getExternalStorageDirectory();
             if (sd.canWrite()) {
-                final File currentDB = context.getDatabasePath(databaseName);
                 final File zipOutputFile = new File(zipFilename);
-                if (currentDB.exists()) {
-                    srcStream = new FileInputStream(currentDB);
-                    biStream = new BufferedInputStream(srcStream, BUFFER_SIZE);
+                foStream = new FileOutputStream(zipOutputFile);
+                zipOutputStream = new ZipOutputStream(new BufferedOutputStream(foStream));
 
-                    foStream = new FileOutputStream(zipOutputFile);
-                    zipOutputStream = new ZipOutputStream(new BufferedOutputStream(foStream));
-                    zipOutputStream.putNextEntry(new ZipEntry(prefix + DateFormat.format("yyyyMMdd-kkmmss", System.currentTimeMillis()) + ".sqlite"));
+                // Include both databases so a restore brings back everything.
+                boolean wroteAny = false;
+                wroteAny |= zipDatabaseFile(context, LegacyDataImporter.LEGACY_DB_NAME, zipOutputStream, prefix + stamp + ".sqlite");
+                wroteAny |= zipDatabaseFile(context, AppDatabase.DATABASE_NAME, zipOutputStream, prefix + stamp + "-room.sqlite");
 
-                    byte buffer[] = new byte[BUFFER_SIZE];
-                    int count;
-                    while ((count = biStream.read(buffer, 0, BUFFER_SIZE)) != -1) {
-                        zipOutputStream.write(buffer, 0, count);
-                    }
-                    if (!zipFilename.contains("b4import"))
-                        Pref.setString("last-saved-database-zip", zipFilename);
-                } else {
+                if (!wroteAny) {
                     toastText(context, "Problem: No current DB found!");
                     Log.d(TAG, "Problem: No current DB found");
+                } else if (!zipFilename.contains("b4import")) {
+                    Pref.setString("last-saved-database-zip", zipFilename);
                 }
             } else {
                 toastText(context, "SD card not writable!");
@@ -124,11 +113,6 @@ public class DatabaseUtil {
             Log.e(TAG, "Exception while writing DB", e);
             zipFilename = null;
         } finally {
-            if (biStream != null) try {
-                biStream.close();
-            } catch (IOException e1) {
-                Log.e(TAG, "Something went wrong closing: ", e1);
-            }
             if (zipOutputStream != null) try {
                 zipOutputStream.close();
             } catch (IOException e1) {
@@ -137,6 +121,24 @@ public class DatabaseUtil {
         }
         JoH.clearCache();
         return zipFilename;
+    }
+
+    private static boolean zipDatabaseFile(final Context context, final String databaseName,
+                                           final ZipOutputStream zipOutputStream, final String entryName) throws IOException {
+        final File dbFile = context.getDatabasePath(databaseName);
+        if (!dbFile.exists()) {
+            return false;
+        }
+        zipOutputStream.putNextEntry(new ZipEntry(entryName));
+        try (FileInputStream in = new FileInputStream(dbFile)) {
+            final byte[] buffer = new byte[BUFFER_SIZE];
+            int count;
+            while ((count = in.read(buffer, 0, BUFFER_SIZE)) != -1) {
+                zipOutputStream.write(buffer, 0, count);
+            }
+        }
+        zipOutputStream.closeEntry();
+        return true;
     }
 
     public static String saveSqlUnzipped(Context context) {
@@ -341,7 +343,12 @@ public class DatabaseUtil {
         String returnString = "";
 
         try {
-            String databaseName = LegacyDataImporter.LEGACY_DB_NAME;
+            final File replacement = new File(path);
+            if (!replacement.exists()) {
+                Log.d(TAG, "File does not exist: " + path);
+                return "File does not exist: " + path;
+            }
+            final String databaseName = isRoomDatabase(path) ? AppDatabase.DATABASE_NAME : LegacyDataImporter.LEGACY_DB_NAME;
             File currentDB = context.getDatabasePath(databaseName);
             File currentDBold = context.getDatabasePath(databaseName + ".old");
             File currentDBtmp = context.getDatabasePath(databaseName + ".tmp");
@@ -356,11 +363,6 @@ public class DatabaseUtil {
             } catch (Exception e) {
                 //
             }
-            File replacement = new File(path);
-            if (!replacement.exists()) {
-                Log.d(TAG, "File does not exist: " + path);
-                return "File does not exist: " + path;
-            }
             if (currentDB.canWrite()) {
                 srcStream = new FileInputStream(replacement);
                 src = srcStream.getChannel();
@@ -372,6 +374,10 @@ public class DatabaseUtil {
                 currentDBtmp.renameTo(currentDB);
                 currentDBold.delete();
                 returnString = "Successfully imported database";
+                if (LegacyDataImporter.LEGACY_DB_NAME.equals(databaseName)) {
+                    // A legacy DB was imported; re-run the Room copy on the next launch.
+                    LegacyDataImporter.clearImportState();
+                }
             } else {
                 Log.v(TAG, "loadSql: No Write access");
                 returnString = "loadSql: No Write access";
@@ -405,6 +411,21 @@ public class DatabaseUtil {
             }
             JoH.fullDatabaseReset();
             return returnString;
+        }
+    }
+
+    /**
+     * A database file produced by Room contains the {@code room_master_table}; anything else is a
+     * legacy ActiveAndroid database.
+     */
+    private static boolean isRoomDatabase(final String path) {
+        try (android.database.sqlite.SQLiteDatabase db = android.database.sqlite.SQLiteDatabase
+                .openDatabase(path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY);
+             android.database.Cursor cursor = db.rawQuery(
+                     "SELECT name FROM sqlite_master WHERE type='table' AND name='room_master_table'", null)) {
+            return cursor.moveToFirst();
+        } catch (Exception e) {
+            return false;
         }
     }
 }
