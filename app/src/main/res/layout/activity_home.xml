@@ -62,7 +62,7 @@
                 android:paddingTop="0dp">
 
 
-                <lecho.lib.hellocharts.view.LineChartView
+                <com.eveningoutpost.dexdrip.ui.chart.HorizontalLineChartView
                     android:id="@+id/chart"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -639,7 +639,7 @@
 
             </LinearLayout>
 
-            <lecho.lib.hellocharts.view.PreviewLineChartView
+            <com.eveningoutpost.dexdrip.ui.chart.HorizontalPreviewLineChartView
                 android:id="@+id/chart_preview"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
