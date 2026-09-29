@@ -242,11 +242,31 @@ Data-Binding and `MissedReadingActivity`'s implicit on-destroy save were removed
 `BackfillGuard`. Note `SelectAudioDevice`'s static MAC helpers and `EditAlertActivity`'s
 `shortPath`/`timeFormatString` stay (used by `HeadsetStateReceiver` / alert screens).
 
-**Remaining:** `AlertList` + `EditAlertActivity`, `ProfileEditor`, `BasalProfileEditor`,
-`NumberWallPreview`, `DisplayQRCode`, `SdcardImportExport`, `SendFeedBack`, `BTGlucoseMeterActivity`,
-`Agreement`, and the app-wide/drawer surfaces. The `PrefsView*` bridge retires once its remaining
-users (`DoubleCalibrationActivity`, `Home`, `BackupActivity`, `EmergencyAssistActivity`,
-`NumberWallPreview`, `XDripDreamSettingsActivity`, `DisplayQRCode`) move.
+**Pass 2 — done (trivial standalone screens).** Same in-place hosting. Migrated: `Agreement`
+(first-run warning gate), `CalibrationCheckInActivity`, `CalibrationOverride`,
+`DoubleCalibrationActivity`, `XDripDreamSettingsActivity`, `HealthPrivacy`, `FakeNumbers`. Layouts
+deleted; `DoubleCalibrationActivity`/`XDripDreamSettingsActivity` Data Binding and
+`Agreement`'s view code removed. `Agreement.prefmarker` kept public for parity.
+
+**Pass 3 — done (Medium: small Data-Binding screens).** `MtpConfigureActivity` (keeps the
+`NanoStatus` polling semantics, now Compose-driven), `DatabaseAdmin` (console + SQL actions; the
+activity keeps its processors and its `console` `ObservableField`), `GluProActivity` (device list;
+the shared `ViewModel` is retained and its observable list/boolean bridged into Compose). Layouts
+deleted; `ViewModel`/adapter fields left in place for the service.
+
+**Pass 3 remaining (rich Medium — next batch):** `EmergencyAssistActivity` (contact picker + SMS
+permissions + slider prefs) and `BackupActivity` (`BackupBaseActivity` + Google Drive sign-in + SAF
+file picking) were reclassified as rich, not "small Data-Binding", and deferred.
+
+**Remaining:** `ErrorsActivity`, `NewSensorLocation`, `StopSensor`, `StartNewSensor`,
+`AddCalibration`, `SnoozeActivity`, `FollowerManagementActivity`, `AlertList` + `EditAlertActivity`,
+`ProfileEditor`, `BasalProfileEditor`, `NumberWallPreview`, `DisplayQRCode`, `SdcardImportExport`,
+`SendFeedBack`, `BTGlucoseMeterActivity`, plus the app-wide/drawer surfaces and the Data-Binding /
+`NanoStatus` group (`EventLogActivity`, `NoteSearch`, `PhoneKeypadInputActivity`, `MegaStatus`,
+`MtpConfigureActivity`, `DatabaseAdmin`, `GluProActivity`, `ThinJamActivity`,
+`EmergencyAssistActivity`, `BackupActivity`). The `PrefsView*` bridge retires once its remaining
+users (`Home`, `BackupActivity`, `EmergencyAssistActivity`, `NumberWallPreview`, `DisplayQRCode`,
+`MtpConfigureActivity`) move.
 
 
 ---
@@ -286,6 +306,8 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | S5a Watches | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
 | S5b xDrip+ Extra Settings | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V1 Track V quick wins | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| V2 Track V trivial screens | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| V3 Track V medium (DB screens) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 (H = search and J = retirement are app-wide and tracked above.)
 
