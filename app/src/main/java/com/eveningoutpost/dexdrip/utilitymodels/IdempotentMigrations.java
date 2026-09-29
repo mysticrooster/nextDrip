@@ -11,7 +11,6 @@ import androidx.preference.PreferenceManager;
 import android.util.Log;
 
 import com.eveningoutpost.dexdrip.db.LegacyDataImporter;
-import com.eveningoutpost.dexdrip.models.APStatus;
 import com.eveningoutpost.dexdrip.models.AlertType;
 import com.eveningoutpost.dexdrip.models.BgReading;
 import com.eveningoutpost.dexdrip.models.DesertSync;
@@ -20,7 +19,6 @@ import com.eveningoutpost.dexdrip.models.Libre2RawValue;
 import com.eveningoutpost.dexdrip.models.Libre2Sensor;
 import com.eveningoutpost.dexdrip.models.LibreBlock;
 import com.eveningoutpost.dexdrip.models.LibreData;
-import com.eveningoutpost.dexdrip.models.Prediction;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.SnoozeActivity;
 import com.eveningoutpost.dexdrip.stats.FirstPageFragment;
@@ -52,8 +50,6 @@ public class IdempotentMigrations {
         BgReading.updateDB();
         LibreBlock.updateDB();
         LibreData.updateDB();
-        APStatus.updateDB();
-        Prediction.updateDB();
         DesertSync.updateDB();
         Libre2RawValue.updateDB();
         Libre2Sensor.updateDB();

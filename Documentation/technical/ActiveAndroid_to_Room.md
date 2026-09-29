@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **11** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications` |
+| Migrated tables | **13** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -299,6 +299,15 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     `IdempotentMigrations` call, and updated `UserNotificationTest` /
     `BgReadingPreferencesTest` resets to `deleteAll()`.
   - Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `Prediction`, `APStatus` (13/29).**
+  - `Prediction`: Room @Entity + DAO (`create(...).save()` is chained, so the entity
+    keeps an instance `save()`).
+  - `APStatus`: Room @Entity + DAO; added an explicit 3-arg constructor because
+    `@AllArgsConstructor` now includes `_id` and callers use
+    `new APStatus(ts, percent, absolute)`.
+  - Dropped the manual `updateDB` schemas and their `IdempotentMigrations` calls;
+    removed `APStatus.updateDB()` from `UploadChunkTest`.
+  - Added `PredictionTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 

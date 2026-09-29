@@ -1,11 +1,13 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.PredictionDao;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.annotations.Expose;
 
 import java.util.ArrayList;
@@ -22,37 +24,34 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "Prediction", id = BaseColumns._ID)
-public class Prediction extends PlusModel {
+@Entity(tableName = "Prediction",
+        indices = {
+                @Index("source"),
+                @Index(value = "timestamp", unique = true)
+        })
+public class Prediction {
 
-    private static boolean patched = false;
     private final static String TAG = Prediction.class.getSimpleName();
     private final static boolean d = false;
 
-    private static final String[] schema = {
-            "CREATE TABLE Prediction (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-            "ALTER TABLE Prediction ADD COLUMN timestamp INTEGER;",
-            "ALTER TABLE Prediction ADD COLUMN glucose REAL;",
-            "ALTER TABLE Prediction ADD COLUMN source TEXT;",
-            "ALTER TABLE Prediction ADD COLUMN note TEXT;",
-            "CREATE INDEX index_Prediction_source on Prediction(source);",
-            "CREATE UNIQUE INDEX index_Prediction_timestamp on Prediction(timestamp);"};
-
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
     @Expose
-    @Column(name = "timestamp", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "glucose")
+    @ColumnInfo(name = "glucose")
     public double glucose;
 
     @Expose
-    @Column(name = "source")
+    @ColumnInfo(name = "source")
     public String source;
 
     @Expose
-    @Column(name = "note")
+    @ColumnInfo(name = "note")
     public String note;
 
 
@@ -77,15 +76,7 @@ public class Prediction extends PlusModel {
     // static methods
 
     public static Prediction last() {
-        try {
-            return new Select()
-                    .from(Prediction.class)
-                    .orderBy("timestamp desc")
-                    .executeSingle();
-        } catch (android.database.sqlite.SQLiteException e) {
-            updateDB();
-            return null;
-        }
+        return dao().last();
     }
 
     public static List<Prediction> latestForGraph(int number, double startTime) {
@@ -97,36 +88,32 @@ public class Prediction extends PlusModel {
     }
 
     public static List<Prediction> latestForGraph(int number, long startTime, long endTime) {
-        try {
-            final List<Prediction> results = new Select()
-                    .from(Prediction.class)
-                    .where("timestamp >= " + Math.max(startTime, 0))
-                    .where("timestamp <= " + endTime)
-                    .orderBy("timestamp asc") // warn asc!
-                    .limit(number)
-                    .execute();
-
-            return results;
-        } catch (android.database.sqlite.SQLiteException e) {
-            updateDB();
-            return new ArrayList<>();
-        }
+        return dao().latestForGraph(Math.max(startTime, 0), endTime, number);
     }
 
 
     public static List<Prediction> cleanup(int retention_days) {
-        return new Delete()
-                .from(Prediction.class)
-                .where("timestamp < ?", JoH.tsl() - (retention_days * 86400000L))
-                .execute();
+        final int deleted = dao().cleanup(JoH.tsl() - (retention_days * 86400000L));
+        UserError.Log.d(TAG, "Prediction cleanup removed " + deleted + " record(s)");
+        return new ArrayList<>();
     }
 
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
 
-    // create the table ourselves without worrying about model versioning and downgrading
-    public static void updateDB() {
-        patched = fixUpTable(schema, patched);
+    private static PredictionDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).predictionDao();
     }
 }
-
-
-

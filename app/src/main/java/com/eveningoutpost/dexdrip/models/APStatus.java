@@ -1,13 +1,15 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.APStatusDao;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.wearintegration.ExternalStatusService;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.annotations.Expose;
 
 import java.util.ArrayList;
@@ -25,33 +27,36 @@ import lombok.val;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "APStatus", id = BaseColumns._ID)
-public class APStatus extends PlusModel {
+@Entity(tableName = "APStatus",
+        indices = {
+                @Index(value = "timestamp", unique = true)
+        })
+public class APStatus {
 
-    private static boolean patched = false;
     private final static String TAG = APStatus.class.getSimpleName();
     private final static boolean d = false;
 
-    private static final String[] schema = {
-            "CREATE TABLE APStatus (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-            "ALTER TABLE APStatus ADD COLUMN timestamp INTEGER;",
-            "ALTER TABLE APStatus ADD COLUMN basal_percent INTEGER;",
-            "ALTER TABLE APStatus ADD COLUMN basal_absolute REAL default -1;",
-            "CREATE UNIQUE INDEX index_APStatus_timestamp on APStatus(timestamp);"};
-
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
     @Expose
-    @Column(name = "timestamp", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "basal_percent")
+    @ColumnInfo(name = "basal_percent")
     public int basal_percent;
 
     @Expose
-    @Column(name = "basal_absolute")
+    @ColumnInfo(name = "basal_absolute")
     public double basal_absolute;
 
+    public APStatus(long timestamp, int basal_percent, double basal_absolute) {
+        this.timestamp = timestamp;
+        this.basal_percent = basal_percent;
+        this.basal_absolute = basal_absolute;
+    }
 
     public String toS() {
         return JoH.defaultGsonInstance().toJson(this);
@@ -96,15 +101,7 @@ public class APStatus extends PlusModel {
 
     // TODO use persistent store?
     public static APStatus last() {
-        try {
-            return new Select()
-                    .from(APStatus.class)
-                    .orderBy("timestamp desc")
-                    .executeSingle();
-        } catch (android.database.sqlite.SQLiteException e) {
-            updateDB();
-            return null;
-        }
+        return dao().last();
     }
 
     public static List<APStatus> latestForGraph(int number, double startTime) {
@@ -120,66 +117,64 @@ public class APStatus extends PlusModel {
     }
 
     public static List<APStatus> latestForGraph(int number, long startTime, long endTime, boolean extensionRecord) {
-        try {
-            final List<APStatus> results = new Select()
-                    .from(APStatus.class)
-                    .where("timestamp >= " + Math.max(startTime, 0))
-                    .where("timestamp <= " + endTime)
-                    .orderBy("timestamp asc") // warn asc!
-                    .limit(number)
-                    .execute();
+        final List<APStatus> results = dao().latestForGraph(Math.max(startTime, 0), endTime, number);
 
-            if (extensionRecord) {
-                // extend line to now if we have current data but it is continuation of last record
-                // so not generating a new efficient record.
-                if (results != null && (results.size() > 0)) {
-                    final APStatus last = results.get(results.size() - 1);
-                    final long last_raw_record_timestamp = ExternalStatusService.getLastStatusLineTime();
-                    // check are not already using the latest.
-                    if (last_raw_record_timestamp > last.timestamp) {
-                        Double last_recorded_absolute = ExternalStatusService.getAbsoluteBRDouble();
-                        final Integer last_recorded_tbr;
-                        if (last_recorded_absolute == null) {
-                            last_recorded_tbr = ExternalStatusService.getTBRInt();
-                        } else {
-                            last_recorded_tbr = Profile.getBasalRatePercentFromAbsolute(last_raw_record_timestamp, last_recorded_absolute);
-                        }
+        if (extensionRecord) {
+            // extend line to now if we have current data but it is continuation of last record
+            // so not generating a new efficient record.
+            if (results != null && (results.size() > 0)) {
+                final APStatus last = results.get(results.size() - 1);
+                final long last_raw_record_timestamp = ExternalStatusService.getLastStatusLineTime();
+                // check are not already using the latest.
+                if (last_raw_record_timestamp > last.timestamp) {
+                    Double last_recorded_absolute = ExternalStatusService.getAbsoluteBRDouble();
+                    final Integer last_recorded_tbr;
+                    if (last_recorded_absolute == null) {
+                        last_recorded_tbr = ExternalStatusService.getTBRInt();
+                    } else {
+                        last_recorded_tbr = Profile.getBasalRatePercentFromAbsolute(last_raw_record_timestamp, last_recorded_absolute);
+                    }
 
-                        if (last_recorded_tbr != null) {
-                            if ((last.basal_percent == last_recorded_tbr)
-                                    && (JoH.msSince(last.timestamp) < Constants.HOUR_IN_MS * 3)
-                                    && (JoH.msSince(ExternalStatusService.getLastStatusLineTime()) < Constants.MINUTE_IN_MS * 20)) {
-                                if (last_recorded_absolute == null) {
-                                    last_recorded_absolute = Profile.getBasalRateAbsoluteFromPercent(last_raw_record_timestamp, last_recorded_tbr);
-                                }
-                                results.add(new APStatus(JoH.tsl(), last_recorded_tbr, last_recorded_absolute));
-                                UserError.Log.d(TAG, "Adding extension record");
+                    if (last_recorded_tbr != null) {
+                        if ((last.basal_percent == last_recorded_tbr)
+                                && (JoH.msSince(last.timestamp) < Constants.HOUR_IN_MS * 3)
+                                && (JoH.msSince(ExternalStatusService.getLastStatusLineTime()) < Constants.MINUTE_IN_MS * 20)) {
+                            if (last_recorded_absolute == null) {
+                                last_recorded_absolute = Profile.getBasalRateAbsoluteFromPercent(last_raw_record_timestamp, last_recorded_tbr);
                             }
+                            results.add(new APStatus(JoH.tsl(), last_recorded_tbr, last_recorded_absolute));
+                            UserError.Log.d(TAG, "Adding extension record");
                         }
                     }
                 }
             }
-            return results;
-        } catch (android.database.sqlite.SQLiteException e) {
-            updateDB();
-            return new ArrayList<>();
         }
+        return results;
     }
 
 
     public static List<APStatus> cleanup(int retention_days) {
-        return new Delete()
-                .from(APStatus.class)
-                .where("timestamp < ?", JoH.tsl() - (retention_days * 86400000L))
-                .execute();
+        final int deleted = dao().cleanup(JoH.tsl() - (retention_days * 86400000L));
+        UserError.Log.d(TAG, "APStatus cleanup removed " + deleted + " record(s)");
+        return new ArrayList<>();
     }
 
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
 
-    // create the table ourselves without worrying about model versioning and downgrading
-    public static void updateDB() {
-        patched = fixUpTable(schema, patched);
+    private static APStatusDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).apStatusDao();
     }
 }
-
-
-

@@ -68,7 +68,9 @@ public final class LegacyDataImporter {
                     "ActiveBluetoothDevice",
                     "Reminder",
                     "ShareGlucose",
-                    "Notifications")));
+                    "Notifications",
+                    "Prediction",
+                    "APStatus")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

@@ -233,7 +233,6 @@ public class UploadChunkTest extends RobolectricTestWithConfig {
         val values = testData.split("\n");
         BasalRepository.clearRates();
         assertWithMessage("db test data state okay").that(values.length).isEqualTo(200);
-        APStatus.updateDB();
         APStatus.cleanup(0);
         for (val record : values) {
             val fields = record.split("\\|");
