@@ -59,7 +59,7 @@ public class BlueReaderTest extends RobolectricTestWithConfig {
         blueReader.decodeblueReaderPacket("0".getBytes(), 1);
         BgReading.deleteALL();
         new Delete().from(ActiveBluetoothDevice.class).execute();
-        new Delete().from(TransmitterData.class).execute();
+        TransmitterData.deleteAll();
         new Delete().from(Calibration.class).execute();
 
         PersistentStore.setLong("blueReader_Full_Battery", 0);

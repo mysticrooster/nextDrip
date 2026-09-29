@@ -17,7 +17,6 @@ import com.eveningoutpost.dexdrip.models.BloodTest;
 import com.eveningoutpost.dexdrip.models.Calibration;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.LibreBlock;
-import com.eveningoutpost.dexdrip.models.TransmitterData;
 import com.eveningoutpost.dexdrip.models.Treatments;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.tidepool.TidepoolEntry;
@@ -169,8 +168,6 @@ public class UploaderQueue extends Model {
             result.reference_uuid = obj instanceof Calibration ? ((Calibration) obj).uuid : null;
         if (result.reference_uuid == null)
             result.reference_uuid = obj instanceof BloodTest ? ((BloodTest) obj).uuid : null;
-        if (result.reference_uuid == null)
-            result.reference_uuid = obj instanceof TransmitterData ? ((TransmitterData) obj).uuid : null;
         if (result.reference_uuid == null)
             result.reference_uuid = obj instanceof LibreBlock ? ((LibreBlock) obj).uuid : null;
 

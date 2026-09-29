@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **6** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement` |
+| Migrated tables | **7** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -132,6 +132,14 @@ com.eveningoutpost.dexdrip
    when the table moves to Room and must be re-pointed at a DAO query.
 10. **Table name ≠ class name.** Use the `@Table(name=…)` value, not the class name,
     in `MIGRATED_TABLES` (e.g. `StepCounter` → `PebbleMovement`).
+11. **`instanceof Model` / `getId()` assumptions.** `UploaderQueue.newEntry(…, Model)`
+    does `obj instanceof <ModelType>` and `obj.getId()` for several models. A migrated
+    model is no longer a `Model`, so its `instanceof` branch must be removed (or the
+    helper refactored to take `Object`). Callers that pass a migrated model as `Model`
+    must be re-pointed too.
+12. **Tests that clear tables.** Some tests reset state with
+    `new Delete().from(<Model>.class).execute()` (ActiveAndroid). For migrated tables
+    this no longer compiles — expose a `deleteAll()` façade (DAO-backed) and call that.
 
 ### Database & migration (the hard part)
 
@@ -260,6 +268,15 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     (`StatsResult.getTotal_steps`) at a new `StepCounterDao.totalStepsBetween`.
   - Added tests `PenDataTest`, `AlertTypeTest`, `HeartRateTest`, `StepCounterTest`;
     full suite (888 tests) + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `TransmitterData` (7/29) + verified on-device.**
+  - Migrated `TransmitterData` (indexed `timestamp`/`uuid`; kept an instance `save()`
+    because `WatchUpdaterService` Gson-loads then saves it).
+  - Removed the dead `instanceof TransmitterData` branch from
+    `UploaderQueue.newEntry` (a migrated model is no longer a `Model`).
+  - Added `TransmitterData.deleteAll()` and updated `BlueReaderTest`'s reset (it
+    previously cleared the table with an ActiveAndroid `Delete`).
+  - Added `TransmitterDataTest`. Full suite + `assembleFastDebug` (R8) pass, and the
+    app has been run on a device with no crashes (migrated façades logging normally).
 
 ---
 

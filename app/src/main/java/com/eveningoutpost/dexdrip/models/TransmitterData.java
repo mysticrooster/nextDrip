@@ -1,19 +1,21 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.TransmitterDataDao;
 import com.eveningoutpost.dexdrip.importedlibraries.usbserial.util.HexDump;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utils.CheckBridgeBattery;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.annotations.Expose;
 
 import java.nio.ByteBuffer;
@@ -26,30 +28,51 @@ import java.util.UUID;
  * Created by Emma Black on 11/6/14.
  */
 
-@Table(name = "TransmitterData", id = BaseColumns._ID)
-public class TransmitterData extends Model {
+@Entity(tableName = "TransmitterData",
+        indices = {@Index("timestamp"), @Index("uuid")})
+public class TransmitterData {
     private final static String TAG = TransmitterData.class.getSimpleName();
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "timestamp", index = true)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     // TODO these should be int or long surely
     @Expose
-    @Column(name = "raw_data")
+    @ColumnInfo(name = "raw_data")
     public double raw_data;
 
     @Expose
-    @Column(name = "filtered_data")
+    @ColumnInfo(name = "filtered_data")
     public double filtered_data;
 
     @Expose
-    @Column(name = "sensor_battery_level")
+    @ColumnInfo(name = "sensor_battery_level")
     public int sensor_battery_level;
 
     @Expose
-    @Column(name = "uuid", index = true)
+    @ColumnInfo(name = "uuid")
     public String uuid;
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() that callers used before
+     * the Room migration (e.g. WatchUpdaterService after Gson deserialisation).
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
 
     public static synchronized TransmitterData create(byte[] buffer, int len, Long timestamp) {
         if (len < 6) {
@@ -172,43 +195,29 @@ public class TransmitterData extends Model {
     }
 
     public static TransmitterData last() {
-        return new Select()
-                .from(TransmitterData.class)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().last();
     }
 
     public static List<TransmitterData> last(int count) {
-        return new Select()
-                .from(TransmitterData.class)
-                .orderBy("_ID desc")
-                .limit(count)
-                .execute();
+        return dao().lastN(count);
     }
 
     public static TransmitterData lastByTimestamp() {
-        return new Select()
-                .from(TransmitterData.class)
-                .orderBy("timestamp desc")
-                .executeSingle();
+        return dao().lastByTimestamp();
     }
 
     public static TransmitterData getForTimestamp(double timestamp) {//KS
         try {
             Sensor sensor = Sensor.currentSensor();
             if (sensor != null) {
-                TransmitterData bgReading = new Select()
-                        .from(TransmitterData.class)
-                        .where("timestamp <= ?", (timestamp + (60 * 1000))) // 1 minute padding (should never be that far off, but why not)
-                        .orderBy("timestamp desc")
-                        .executeSingle();
+                TransmitterData bgReading = dao().getForTimestamp(timestamp + (60 * 1000)); // 1 minute padding
                 if (bgReading != null && Math.abs(bgReading.timestamp - timestamp) < (3 * 60 * 1000)) { //cool, so was it actually within 4 minutes of that bg reading?
                     Log.i(TAG, "getForTimestamp: Found a BG timestamp match");
                     return bgReading;
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG,"getForTimestamp() Got exception on Select : "+e.toString());
+            Log.e(TAG, "getForTimestamp() Got exception on Select : " + e.toString());
             return null;
         }
         Log.d(TAG, "getForTimestamp: No luck finding a BG timestamp match");
@@ -217,21 +226,19 @@ public class TransmitterData extends Model {
 
     public static TransmitterData findByUuid(String uuid) {//KS
         try {
-            return new Select()
-                .from(TransmitterData.class)
-                .where("uuid = ?", uuid)
-                .executeSingle();
+            return dao().findByUuid(uuid);
         } catch (Exception e) {
-            Log.e(TAG,"findByUuid() Got exception on Select : "+e.toString());
+            Log.e(TAG, "findByUuid() Got exception on Select : " + e.toString());
             return null;
         }
     }
-    
+
     public static TransmitterData byid(long id) {
-        return new Select()
-                .from(TransmitterData.class)
-                .where("_ID = ?", id)
-                .executeSingle();
+        return dao().byid(id);
+    }
+
+    public static void deleteAll() {
+        dao().deleteAll();
     }
 
     public static void updateTransmitterBatteryFromSync(final int battery_level) {
@@ -247,7 +254,7 @@ public class TransmitterData extends Model {
                 td.sensor_battery_level = battery_level;
                 td.timestamp = (long)JoH.ts(); // freshen timestamp on this bogus record for system status
                 Log.d(TAG,"Saving synced sensor battery, new level: "+battery_level);
-                td.save();
+                dao().update(td);
             } else {
                 Log.d(TAG,"Synced sensor battery level same as existing: "+battery_level);
             }
@@ -272,6 +279,10 @@ public class TransmitterData extends Model {
                     && roundFiltered(items.get(0)) == roundFiltered(items.get(2)));
         }
         return false;
+    }
+
+    private static TransmitterDataDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).transmitterDataDao();
     }
 
 }

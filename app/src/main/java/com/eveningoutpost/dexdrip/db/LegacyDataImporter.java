@@ -63,7 +63,8 @@ public final class LegacyDataImporter {
                     "PenData",
                     "AlertType",
                     "HeartRate",
-                    "PebbleMovement")));
+                    "PebbleMovement",
+                    "TransmitterData")));
 
     private static final Object stateLock = new Object();
     private static boolean started;
