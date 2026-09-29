@@ -1,28 +1,29 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
 import android.util.Log;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
-import com.activeandroid.util.SQLiteUtils;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
 import com.eveningoutpost.dexdrip.AddCalibration;
-import com.eveningoutpost.dexdrip.glucosemeter.GlucoseReadingRx;
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.calibrations.CalibrationAbstract;
+import com.eveningoutpost.dexdrip.calibrations.NativeCalibrationPipe;
+import com.eveningoutpost.dexdrip.calibrations.PluggableCalibration;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.BloodTestDao;
+import com.eveningoutpost.dexdrip.glucosemeter.GlucoseReadingRx;
+import com.eveningoutpost.dexdrip.messages.BloodTestMessage;
+import com.eveningoutpost.dexdrip.messages.BloodTestMultiMessage;
 import com.eveningoutpost.dexdrip.services.SyncService;
 import com.eveningoutpost.dexdrip.utilitymodels.BgGraphBuilder;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utilitymodels.UploaderQueue;
-import com.eveningoutpost.dexdrip.calibrations.CalibrationAbstract;
-import com.eveningoutpost.dexdrip.calibrations.NativeCalibrationPipe;
-import com.eveningoutpost.dexdrip.calibrations.PluggableCalibration;
-import com.eveningoutpost.dexdrip.messages.BloodTestMessage;
-import com.eveningoutpost.dexdrip.messages.BloodTestMultiMessage;
 import com.eveningoutpost.dexdrip.xdrip;
 import com.google.common.math.DoubleMath;
 import com.google.gson.Gson;
@@ -40,8 +41,14 @@ import java.util.UUID;
  * Created by jamorham on 11/12/2016.
  */
 
-@Table(name = "BloodTest", id = BaseColumns._ID)
-public class BloodTest extends Model {
+@Entity(tableName = "BloodTest",
+        indices = {
+                @Index(value = "uuid", unique = true),
+                @Index(value = "timestamp", unique = true),
+                @Index("created_timestamp"),
+                @Index("state")
+        })
+public class BloodTest {
 
     public static final long STATE_VALID = 1 << 0;
     public static final long STATE_CALIBRATION = 1 << 1;
@@ -50,41 +57,44 @@ public class BloodTest extends Model {
     public static final long STATE_OVERWRITTEN = 1 << 4;
 
     private static long highest_timestamp = 0;
-    private static boolean patched = false;
     private final static String TAG = "BloodTest";
     private final static String LAST_BT_AUTO_CALIB_UUID = "last-bt-auto-calib-uuid";
     private final static boolean d = false;
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "timestamp", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "mgdl")
+    @ColumnInfo(name = "mgdl")
     public double mgdl;
 
     @Expose
-    @Column(name = "created_timestamp")
+    @ColumnInfo(name = "created_timestamp")
     public long created_timestamp;
 
     @Expose
-    @Column(name = "state")
+    @ColumnInfo(name = "state")
     public long state; // bitfield
 
     @Expose
-    @Column(name = "source")
+    @ColumnInfo(name = "source")
     public String source;
 
     @Expose
-    @Column(name = "uuid", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "uuid")
     public String uuid;
 
 
+    @Ignore
     public GlucoseReadingRx glucoseReadingRx;
 
     // patches and saves
     public Long saveit() {
-        fixUpTable();
         return save();
     }
 
@@ -219,30 +229,11 @@ public class BloodTest extends Model {
     }
 
     public static List<BloodTest> last(int num) {
-        try {
-            return new Select()
-                    .from(BloodTest.class)
-                    .orderBy("timestamp desc")
-                    .limit(num)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().lastN(num);
     }
 
     public static List<BloodTest> lastMatching(int num, String match) {
-        try {
-            return new Select()
-                    .from(BloodTest.class)
-                    .where("source like ?", match)
-                    .orderBy("timestamp desc")
-                    .limit(num)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().lastMatching(num, match);
     }
 
     public static BloodTest lastValid() {
@@ -255,43 +246,17 @@ public class BloodTest extends Model {
     }
 
     public static List<BloodTest> lastValid(int num) {
-        try {
-            return new Select()
-                    .from(BloodTest.class)
-                    .where("state & ? != 0", BloodTest.STATE_VALID)
-                    .orderBy("timestamp desc")
-                    .limit(num)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().lastValidN(num, STATE_VALID);
     }
 
 
     public static BloodTest byUUID(String uuid) {
         if (uuid == null) return null;
-        try {
-            return new Select()
-                    .from(BloodTest.class)
-                    .where("uuid = ?", uuid)
-                    .executeSingle();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().byUUID(uuid);
     }
 
     public static BloodTest byid(long id) {
-        try {
-            return new Select()
-                    .from(BloodTest.class)
-                    .where("_ID = ?", id)
-                    .executeSingle();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().byid(id);
     }
 
     public static byte[] toMultiMessage(List<BloodTest> btl) {
@@ -369,12 +334,7 @@ public class BloodTest extends Model {
     }
 
     public static BloodTest getForPreciseTimestamp(long timestamp, long precision) {
-        BloodTest bloodTest = new Select()
-                .from(BloodTest.class)
-                .where("timestamp <= ?", (timestamp + precision))
-                .where("timestamp >= ?", (timestamp - precision))
-                .orderBy("abs(timestamp - " + timestamp + ") asc")
-                .executeSingle();
+        final BloodTest bloodTest = dao().getForPreciseTimestamp(timestamp - precision, timestamp + precision, timestamp);
         if ((bloodTest != null) && (Math.abs(bloodTest.timestamp - timestamp) < precision)) {
             return bloodTest;
         }
@@ -390,19 +350,7 @@ public class BloodTest extends Model {
     }
 
     public static List<BloodTest> latestForGraph(int number, long startTime, long endTime) {
-        try {
-            return new Select()
-                    .from(BloodTest.class)
-                    .where("state & ? != 0", BloodTest.STATE_VALID)
-                    .where("timestamp >= " + Math.max(startTime, 0))
-                    .where("timestamp <= " + endTime)
-                    .orderBy("timestamp asc") // warn asc!
-                    .limit(number)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return new ArrayList<>();
-        }
+        return dao().latestForGraph(Math.max(startTime, 0), endTime, number, STATE_VALID);
     }
 
     synchronized static void opportunisticCalibration() {
@@ -541,37 +489,26 @@ public class BloodTest extends Model {
     }
 
     public static List<BloodTest> cleanup(int retention_days) {
-        return new Delete()
-                .from(BloodTest.class)
-                .where("timestamp < ?", JoH.tsl() - (retention_days * Constants.DAY_IN_MS))
-                .execute();
+        dao().cleanup(JoH.tsl() - (retention_days * Constants.DAY_IN_MS));
+        return new ArrayList<>();
     }
 
-    // create the table ourselves without worrying about model versioning and downgrading
-    private static void fixUpTable() {
-        if (patched) return;
-        final String[] patchup = {
-                "CREATE TABLE BloodTest (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-                "ALTER TABLE BloodTest ADD COLUMN timestamp INTEGER;",
-                "ALTER TABLE BloodTest ADD COLUMN created_timestamp INTEGER;",
-                "ALTER TABLE BloodTest ADD COLUMN state INTEGER;",
-                "ALTER TABLE BloodTest ADD COLUMN mgdl REAL;",
-                "ALTER TABLE BloodTest ADD COLUMN source TEXT;",
-                "ALTER TABLE BloodTest ADD COLUMN uuid TEXT;",
-                "CREATE UNIQUE INDEX index_Bloodtest_uuid on BloodTest(uuid);",
-                "CREATE UNIQUE INDEX index_Bloodtest_timestamp on BloodTest(timestamp);",
-                "CREATE INDEX index_Bloodtest_created_timestamp on BloodTest(created_timestamp);",
-                "CREATE INDEX index_Bloodtest_state on BloodTest(state);"};
-
-        for (String patch : patchup) {
-            try {
-                SQLiteUtils.execSql(patch);
-                //  UserError.Log.e(TAG, "Processed patch should not have succeeded!!: " + patch);
-            } catch (Exception e) {
-                //  UserError.Log.d(TAG, "Patch: " + patch + " generated exception as it should: " + e.toString());
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
             }
         }
-        patched = true;
+        return _id;
+    }
+
+    private static BloodTestDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).bloodTestDao();
     }
 }
-

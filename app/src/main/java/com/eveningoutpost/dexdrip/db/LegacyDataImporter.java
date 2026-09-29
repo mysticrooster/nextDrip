@@ -73,7 +73,8 @@ public final class LegacyDataImporter {
                     "APStatus",
                     "Accuracy",
                     "LibreData",
-                    "Libre2RawValue2")));
+                    "Libre2RawValue2",
+                    "BloodTest")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

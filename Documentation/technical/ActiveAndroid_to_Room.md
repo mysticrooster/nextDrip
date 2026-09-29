@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **16** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2` (+ `Libre2Sensors` as a `@DatabaseView`) |
+| Migrated tables | **17** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest` (+ `Libre2Sensors` as a `@DatabaseView`) |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -346,6 +346,15 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
   - Made `AppDatabase.open()` self-healing: it force-opens on first use and, if Room still
     refuses (same-version identity-hash mismatch), deletes and rebuilds the file. Added
     `sameVersionSchemaMismatchSelfHeals` covering it.
+- **2026-09-28 — `BloodTest` (17/29).**
+  - `BloodTest`: Room @Entity + DAO (unique `uuid`/`timestamp`, state bitfield queries,
+    precise-timestamp lookup). Kept instance `save()`/`saveit()` (`NightscoutTreatments`
+    calls `saveit()`); `@Ignore` on the transient `glucoseReadingRx`.
+  - Generalised `UploaderQueue.newEntry`/`newEntryForWatch` to take `Object` and added
+    `referenceId(Object)` (ActiveAndroid `getId()`, else the public Room `_id` field) —
+    `BloodTest` (and later `Treatments`) are no longer `Model`s.
+  - Bumped `@Database` to `version = 3`.
+  - Added `BloodTestTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 

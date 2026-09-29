@@ -17,6 +17,7 @@ import com.eveningoutpost.dexdrip.db.dao.ActiveBluetoothDeviceDao;
 import com.eveningoutpost.dexdrip.db.dao.AlertTypeDao;
 import com.eveningoutpost.dexdrip.db.dao.APStatusDao;
 import com.eveningoutpost.dexdrip.db.dao.AccuracyDao;
+import com.eveningoutpost.dexdrip.db.dao.BloodTestDao;
 import com.eveningoutpost.dexdrip.db.dao.CalibrationRequestDao;
 import com.eveningoutpost.dexdrip.db.dao.HeartRateDao;
 import com.eveningoutpost.dexdrip.db.dao.Libre2RawValueDao;
@@ -33,6 +34,7 @@ import com.eveningoutpost.dexdrip.models.Accuracy;
 import com.eveningoutpost.dexdrip.models.ActiveBgAlert;
 import com.eveningoutpost.dexdrip.models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.models.AlertType;
+import com.eveningoutpost.dexdrip.models.BloodTest;
 import com.eveningoutpost.dexdrip.models.CalibrationRequest;
 import com.eveningoutpost.dexdrip.models.HeartRate;
 import com.eveningoutpost.dexdrip.models.Libre2RawValue;
@@ -46,7 +48,7 @@ import com.eveningoutpost.dexdrip.models.TransmitterData;
 import com.eveningoutpost.dexdrip.models.UserNotification;
 import com.eveningoutpost.dexdrip.sharemodels.models.ShareGlucose;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class}, views = {Libre2Sensor.class}, version = 2, exportSchema = false)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class}, views = {Libre2Sensor.class}, version = 3, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
@@ -79,6 +81,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract APStatusDao apStatusDao();
 
     public abstract AccuracyDao accuracyDao();
+
+    public abstract BloodTestDao bloodTestDao();
 
     public abstract Libre2RawValueDao libre2RawValueDao();
 

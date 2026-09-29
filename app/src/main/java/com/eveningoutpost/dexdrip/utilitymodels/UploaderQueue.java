@@ -147,7 +147,7 @@ public class UploaderQueue extends Model {
 
     //////////////////////////////////////////
 
-    public static UploaderQueue newEntry(String action, Model obj) {
+    public static UploaderQueue newEntry(String action, Object obj) {
         UserError.Log.d(TAG, "new entry called");
         final UploaderQueue result = new UploaderQueue();
         result.bitfield_wanted = DEFAULT_UPLOAD_CIRCUITS
@@ -158,7 +158,7 @@ public class UploaderQueue extends Model {
                 | (Pref.getBooleanDefaultFalse("nocturne_upload_enable") ? NOCTURNE_RESTAPI : 0);
         if (result.bitfield_wanted == 0) return null; // no queue required
         result.timestamp = JoH.tsl();
-        result.reference_id = obj.getId();
+        result.reference_id = referenceId(obj);
         // TODO this probably could be neater
         if (result.reference_uuid == null)
             result.reference_uuid = obj instanceof BgReading ? ((BgReading) obj).uuid : null;
@@ -191,7 +191,7 @@ public class UploaderQueue extends Model {
         return result;
     }
 
-    public static void newTransmitterDataEntry(String action, Model obj) {
+    public static void newTransmitterDataEntry(String action, Object obj) {
     	if(!Pref.getBooleanDefaultFalse("mongo_load_transmitter_data")) {
     		return;
     	}
@@ -202,14 +202,14 @@ public class UploaderQueue extends Model {
     }
     
     // TODO remove duplicated functionality, replace with generic multi-purpose method
-    public static UploaderQueue newEntryForWatch(String action, Model obj) {
+    public static UploaderQueue newEntryForWatch(String action, Object obj) {
         UserError.Log.d(TAG, "new entry called for watch");
         final UploaderQueue result = new UploaderQueue();
         result.bitfield_wanted = DEFAULT_UPLOAD_CIRCUITS
                 | (Pref.getBooleanDefaultFalse("wear_sync") ? WATCH_WEARAPI : 0);
         if (result.bitfield_wanted == 0) return null; // no queue required
         result.timestamp = JoH.tsl();
-        result.reference_id = obj.getId();
+        result.reference_id = referenceId(obj);
         // TODO this probably could be neater
         if (result.reference_uuid == null)
             result.reference_uuid = obj instanceof BgReading ? ((BgReading) obj).uuid : null;
@@ -261,6 +261,24 @@ public class UploaderQueue extends Model {
             if (d) UserError.Log.d(TAG, "Exception: " + e.toString());
             fixUpTable();
             return new ArrayList<UploaderQueue>();
+        }
+    }
+
+
+    /**
+     * Primary key of an object being queued. ActiveAndroid models expose getId(); models already
+     * migrated to Room expose their key as a public long _id field.
+     */
+    private static long referenceId(Object obj) {
+        if (obj instanceof Model) {
+            final Long id = ((Model) obj).getId();
+            return id != null ? id : -1;
+        }
+        try {
+            return obj.getClass().getField("_id").getLong(obj);
+        } catch (Exception e) {
+            UserError.Log.wtf(TAG, "Unable to determine reference id for " + obj.getClass().getSimpleName());
+            return -1;
         }
     }
 
