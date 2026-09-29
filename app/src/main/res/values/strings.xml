@@ -2012,6 +2012,7 @@
     <string name="insulin_pens">Insulin Pens</string>
     <string name="editing">Editing</string>
     <string name="enable_missed_reading_alert">Enable Missed Reading Alert</string>
+    <string name="title_missed_reading">Missed reading</string>
     <string name="alert_if_no_data_received_in_colon">Alert if no data received in:</string>
     <string name="wait_before_raising_the_same_alert_after_snooze_colon">Wait before raising the same alert after snooze:</string>
     <string name="reraise_alerts_before_snooze_time">Reraise alerts before snooze time</string>
