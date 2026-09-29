@@ -107,4 +107,32 @@ class SettingsActivityTest {
 
         assertThat(ThemeColorStore.isOverridden(ThemeColor.PRIMARY)).isFalse()
     }
+
+    @Test
+    fun dataSourceWebFollowGateHiddenByDefault() {
+        Pref.setString("dex_collection_method", "BluetoothWixel")
+
+        composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_web_follow").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_share_key").assertDoesNotExist()
+    }
+
+    @Test
+    fun dataSourceWebFollowGateVisibleForWebFollow() {
+        Pref.setString("dex_collection_method", "WebFollower")
+
+        composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_web_follow").assertExists()
+    }
+
+    @Test
+    fun dataSourceNfcGateVisibleForLibre() {
+        Pref.setString("dex_collection_method", "LimiTTer")
+
+        composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_nfc").assertExists()
+    }
 }

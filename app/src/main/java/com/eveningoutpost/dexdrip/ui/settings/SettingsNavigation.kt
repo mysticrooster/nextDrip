@@ -21,6 +21,12 @@ internal sealed interface SettingsScreen {
     data object SensorExpiry : SettingsScreen
     data object CalibrationAlerts : SettingsScreen
     data object OtherAlerts : SettingsScreen
+    data object DataSource : SettingsScreen
+    data object WebFollow : SettingsScreen
+    data object NfcSettings : SettingsScreen
+    data object NsFollowDownload : SettingsScreen
+    data object G5Debug : SettingsScreen
+    data object PreemptiveRestart : SettingsScreen
 }
 
 /** A searchable settings destination shown by the root search field. */
@@ -34,6 +40,9 @@ internal data class SettingsSearchEntry(
 internal val SETTINGS_SEARCH_INDEX = listOf(
     SettingsSearchEntry("Glucose Units", SettingsScreen.Units, listOf("mmol", "mg/dl", "bg", "high", "low", "target")),
     SettingsSearchEntry("Theme colours", SettingsScreen.Theme, listOf("colour", "color", "material you", "theme", "appearance")),
+    SettingsSearchEntry("Data Source Settings", SettingsScreen.DataSource, listOf("hardware", "collector", "sensor", "dexcom", "libre", "nightscout", "medtrum")),
+    SettingsSearchEntry("Web Follower Settings", SettingsScreen.WebFollow, listOf("webfollow", "proxy")),
+    SettingsSearchEntry("NFC Scan Features", SettingsScreen.NfcSettings, listOf("nfc", "libre", "scan", "expiry")),
     SettingsSearchEntry("Alarms and Alerts", SettingsScreen.Notifications, listOf("notifications", "alerts", "sounds")),
     SettingsSearchEntry("Glucose Alerts Settings", SettingsScreen.BgAlerts, listOf("alert profile", "audio focus", "snooze")),
     SettingsSearchEntry("Suppress Alerts if Missed Readings", SettingsScreen.SuppressAlerts, listOf("stale data")),

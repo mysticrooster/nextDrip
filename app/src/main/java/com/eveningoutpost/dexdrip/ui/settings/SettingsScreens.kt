@@ -39,6 +39,12 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.SensorExpiry -> stringResource(R.string.title_sens_expiry)
     SettingsScreen.CalibrationAlerts -> stringResource(R.string.calibration_alerts)
     SettingsScreen.OtherAlerts -> stringResource(R.string.other_alerts)
+    SettingsScreen.DataSource -> stringResource(R.string.data_source_settings)
+    SettingsScreen.WebFollow -> "Web Follower Settings"
+    SettingsScreen.NfcSettings -> stringResource(R.string.nfc_scan_features)
+    SettingsScreen.NsFollowDownload -> stringResource(R.string.title_nsfollow_download_treatments)
+    SettingsScreen.G5Debug -> stringResource(R.string.g5_debug_settings)
+    SettingsScreen.PreemptiveRestart -> stringResource(R.string.title_ob1_g5_preemptive_restart)
 }
 
 @Composable
@@ -61,6 +67,12 @@ internal fun SettingsScreenContent(
         SettingsScreen.SensorExpiry -> SensorExpiryScreen()
         SettingsScreen.CalibrationAlerts -> CalibrationAlertsScreen()
         SettingsScreen.OtherAlerts -> OtherAlertsScreen()
+        SettingsScreen.DataSource -> DataSourceScreen(onNavigate)
+        SettingsScreen.WebFollow -> WebFollowScreen()
+        SettingsScreen.NfcSettings -> NfcSettingsScreen()
+        SettingsScreen.NsFollowDownload -> NsFollowDownloadScreen()
+        SettingsScreen.G5Debug -> G5DebugScreen(onNavigate)
+        SettingsScreen.PreemptiveRestart -> PreemptiveRestartScreen()
     }
 }
 
@@ -120,6 +132,14 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
             subtitle = context.getString(R.string.glucose_calibration_and_other_alerts),
             onClick = { onNavigate(SettingsScreen.Notifications) },
             modifier = Modifier.testTag("setting_notifications"),
+        )
+    }
+    SettingsCategory(context.getString(R.string.data_source_settings)) {
+        SettingsActionRow(
+            title = context.getString(R.string.hardware_data_source),
+            subtitle = context.getString(R.string.how_receive_data),
+            onClick = { onNavigate(SettingsScreen.DataSource) },
+            modifier = Modifier.testTag("setting_data_source"),
         )
     }
     SettingsCategory("About") {
@@ -473,7 +493,7 @@ private fun OtherAlertsScreen() {
 }
 
 @Composable
-private fun SwitchPref(
+internal fun SwitchPref(
     state: SettingsState,
     key: String,
     title: String,
@@ -481,19 +501,22 @@ private fun SwitchPref(
     subtitle: String? = null,
     enabled: Boolean = true,
     tag: String? = null,
+    onCheckedChange: ((Boolean) -> Unit)? = null,
 ) {
     SettingsSwitchRow(
         title = title,
         subtitle = subtitle,
         checked = state.bool(key, default),
-        onCheckedChange = { state.setBool(key, it) },
+        onCheckedChange = { checked ->
+            if (onCheckedChange != null) onCheckedChange(checked) else state.setBool(key, checked)
+        },
         enabled = enabled,
         modifier = tag?.let { Modifier.testTag(it) } ?: Modifier,
     )
 }
 
 @Composable
-private fun EditPref(
+internal fun EditPref(
     state: SettingsState,
     key: String,
     title: String,
@@ -504,6 +527,7 @@ private fun EditPref(
     tag: String? = null,
     validate: ((String) -> Boolean)? = null,
     valueColor: Color = Color.Unspecified,
+    onValueChange: ((String) -> Unit)? = null,
 ) {
     SettingsEditTextRow(
         title = title,
@@ -513,8 +537,9 @@ private fun EditPref(
         enabled = enabled,
         valueColor = valueColor,
         onValueChange = { newValue ->
-            if (validate == null || validate(newValue)) {
-                state.setString(key, newValue)
+            when {
+                onValueChange != null -> onValueChange(newValue)
+                validate == null || validate(newValue) -> state.setString(key, newValue)
             }
         },
         modifier = tag?.let { Modifier.testTag(it) } ?: Modifier,
@@ -522,7 +547,7 @@ private fun EditPref(
 }
 
 @Composable
-private fun ListPref(
+internal fun ListPref(
     state: SettingsState,
     key: String,
     title: String,
@@ -546,7 +571,7 @@ private fun ListPref(
 }
 
 @Composable
-private fun RingtonePref(
+internal fun RingtonePref(
     state: SettingsState,
     key: String,
     title: String,
