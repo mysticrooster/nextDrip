@@ -5,20 +5,20 @@ package com.eveningoutpost.dexdrip.models;
  */
 
 import android.content.Context;
-import android.provider.BaseColumns;
 import android.util.Pair;
 
 import androidx.annotation.Nullable;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
-import com.activeandroid.util.SQLiteUtils;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.alert.SensorExpiry;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.TreatmentsDao;
 import com.eveningoutpost.dexdrip.g5model.DexSessionKeeper;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.eveningoutpost.dexdrip.R;
@@ -66,8 +66,12 @@ import static com.eveningoutpost.dexdrip.models.JoH.emptyString;
 // TODO Switchable Carb models
 // TODO Linear array timeline optimization
 
-@Table(name = "Treatments", id = BaseColumns._ID)
-public class Treatments extends Model {
+@Entity(tableName = "Treatments",
+        indices = {
+                @Index("timestamp"),
+                @Index(value = "uuid", unique = true)
+        })
+public class Treatments {
     private static final String TAG = "jamorham " + Treatments.class.getSimpleName();
 
     public static final String SENSOR_START_EVENT_TYPE = "Sensor Start";
@@ -78,37 +82,41 @@ public class Treatments extends Model {
 
     //public static double activityMultipler = 8.4; // somewhere between 8.2 and 8.8
     private static Treatments lastCarbs;
-    private static boolean patched = false;
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
     @Expose
-    @Column(name = "timestamp", index = true)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
     @Expose
-    @Column(name = "eventType")
+    @ColumnInfo(name = "eventType")
     public String eventType;
     @Expose
-    @Column(name = "enteredBy")
+    @ColumnInfo(name = "enteredBy")
     public String enteredBy;
     @Expose
-    @Column(name = "notes")
+    @ColumnInfo(name = "notes")
     public String notes;
     @Expose
-    @Column(name = "uuid", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "uuid")
     public String uuid;
     @Expose
-    @Column(name = "carbs")
+    @ColumnInfo(name = "carbs")
     public double carbs;
     @Expose
-    @Column(name = "insulin")
+    @ColumnInfo(name = "insulin")
     public double insulin;
     @Expose
-    @Column(name = "insulinJSON")
+    @ColumnInfo(name = "insulinJSON")
     public String insulinJSON;
     @Expose
-    @Column(name = "created_at")
+    @ColumnInfo(name = "created_at")
     public String created_at;
 
     // don't access this directly use getInsulinInjections()
+    @Ignore
     private List<InsulinInjection> insulinInjections = null;
 
     private boolean hasInsulinInjections() {
@@ -374,7 +382,6 @@ public class Treatments extends Model {
     }
 
     static void createForTest(long timestamp, double insulin) {
-        fixUpTable();
         val treatment = new Treatments();
         treatment.notes = "test";
         treatment.timestamp = timestamp;
@@ -498,86 +505,29 @@ public class Treatments extends Model {
     }
 
     // This shouldn't be needed but it seems it is
-    private static void fixUpTable() {
-        if (patched) return;
-        String[] patchup = {
-                "CREATE TABLE Treatments (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-                "ALTER TABLE Treatments ADD COLUMN timestamp INTEGER;",
-                "ALTER TABLE Treatments ADD COLUMN uuid TEXT;",
-                "ALTER TABLE Treatments ADD COLUMN eventType TEXT;",
-                "ALTER TABLE Treatments ADD COLUMN enteredBy TEXT;",
-                "ALTER TABLE Treatments ADD COLUMN notes TEXT;",
-                "ALTER TABLE Treatments ADD COLUMN created_at TEXT;",
-                "ALTER TABLE Treatments ADD COLUMN insulin REAL;",
-                "ALTER TABLE Treatments ADD COLUMN insulinJSON TEXT;",
-                "ALTER TABLE Treatments ADD COLUMN carbs REAL;",
-                "CREATE INDEX index_Treatments_timestamp on Treatments(timestamp);",
-                "CREATE UNIQUE INDEX index_Treatments_uuid on Treatments(uuid);"};
-
-        for (String patch : patchup) {
-            try {
-                SQLiteUtils.execSql(patch);
-                //Log.e(TAG, "Processed patch should not have succeeded!!: " + patch);
-            } catch (Exception e) {
-                // Log.d(TAG, "Patch: " + patch + " generated exception as it should: " + e.toString());
-            }
-        }
-        patched = true;
-    }
-
     public static Treatments last() {
-        fixUpTable();
-        return new Select()
-                .from(Treatments.class)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().last();
     }
 
     public static Treatments lastNotFromXdrip() {
-        fixUpTable();
-        return new Select()
-                .from(Treatments.class)
-                .where("enteredBy NOT LIKE '" + XDRIP_TAG + "%'")
-                .orderBy("_ID DESC")
-                .executeSingle();
+        return dao().lastNotFromXdrip(XDRIP_TAG + "%");
     }
 
     public static Treatments lastEventTypeFromXdrip(final String eventType) {
-        fixUpTable();
-        return new Select()
-                .from(Treatments.class)
-                .where("enteredBy LIKE '" + XDRIP_TAG + "%' and eventType = ?", eventType)
-                .orderBy("_ID DESC")
-                .executeSingle();       // TODO does the where clause order affect optimization ref database indexes?
+        return dao().lastEventTypeFromXdrip(XDRIP_TAG + "%", eventType);
     }
 
     public static List<Treatments> latest(int num) {
-        try {
-            return new Select()
-                    .from(Treatments.class)
-                    .orderBy("timestamp desc")
-                    .limit(num)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().latest(num);
     }
 
     public static Treatments byuuid(String uuid) {
         if (uuid == null) return null;
-        return new Select()
-                .from(Treatments.class)
-                .where("uuid = ?", uuid)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().byuuid(uuid);
     }
 
     public static Treatments byid(long id) {
-        return new Select()
-                .from(Treatments.class)
-                .where("_ID = ?", id)
-                .executeSingle();
+        return dao().byid(id);
     }
 
     public static Treatments byTimestamp(long timestamp) {
@@ -592,19 +542,11 @@ public class Treatments extends Model {
     }
 
     public static Treatments byTimestamp(long timestamp, int plus_minus_millis) {
-        return new Select()
-                .from(Treatments.class)
-                .where("timestamp <= ? and timestamp >= ?", (timestamp + plus_minus_millis), (timestamp - plus_minus_millis)) // window
-                .orderBy("abs(timestamp-" + Long.toString(timestamp) + ") asc")
-                .executeSingle();
+        return dao().byTimestamp(timestamp + plus_minus_millis, timestamp - plus_minus_millis, timestamp);
     }
 
     public static List<Treatments> listByTimestamp(long timestamp) {
-        return new Select()
-                .from(Treatments.class)
-                .where("timestamp = ?", timestamp)
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().listByTimestamp(timestamp);
     }
 
     public static void delete_all() {
@@ -615,9 +557,7 @@ public class Treatments extends Model {
         if (from_interactive) {
             GcmActivity.push_delete_all_treatments();
         }
-        new Delete()
-                .from(Treatments.class)
-                .execute();
+        dao().deleteAll();
         // not synced with uploader queue - should we?
     }
 
@@ -653,7 +593,7 @@ public class Treatments extends Model {
                 SyncService.startSyncService(3000); // sync in 3 seconds
             }
 
-            thistreat.delete();
+            dao().delete(thistreat);
             Home.staticRefreshBGCharts();
         }
     }
@@ -668,17 +608,13 @@ public class Treatments extends Model {
                 //gdrive.deleteTreatmentAtRemote(thistreat.uuid);
             }
             UploaderQueue.newEntry("delete", thistreat);
-            thistreat.delete();
+            dao().delete(thistreat);
         }
         return null;
     }
 
     public static void cleanup(final int retention_days) {
-        fixUpTable();
-        new Delete()
-                .from(Treatments.class)
-                .where("timestamp < ?", JoH.tsl() - (retention_days * Constants.DAY_IN_MS))
-                .execute();
+        dao().cleanup(JoH.tsl() - (retention_days * Constants.DAY_IN_MS));
     }
 
     public static Treatments fromJSON(String json) {
@@ -745,7 +681,6 @@ public class Treatments extends Model {
 
                     if ((dupe_treatment.notes == null) || (dupe_treatment.notes.length() < mytreatment.notes.length())) {
                         dupe_treatment.notes = mytreatment.notes;
-                        fixUpTable();
                         dupe_treatment.save();
                         Log.d(TAG, "Saved updated treatement notes");
                         // should not end up needing to append notes and be from_interactive via undo as these
@@ -773,7 +708,6 @@ public class Treatments extends Model {
                 }
             }
 
-            fixUpTable();
             long x = mytreatment.save();
             Log.d(TAG, "Saving treatment result: " + x);
             if (from_interactive) {
@@ -804,25 +738,11 @@ public class Treatments extends Model {
     }
 
     public static List<Treatments> latestForGraph(int number, double startTime, double endTime) {
-        fixUpTable();
-        DecimalFormat df = new DecimalFormat("#");
-        df.setMaximumFractionDigits(1); // are there decimal points in the database??
-        return new Select()
-                .from(Treatments.class)
-                .where("timestamp >= ? and timestamp <= ?", df.format(startTime), df.format(endTime))
-                .orderBy("timestamp asc")
-                .limit(number)
-                .execute();
+        return dao().latestForGraph(startTime, endTime, number);
     }
 
     public static List<Treatments> latestForGraph(final int number, final long startTime, final long endTime) {
-        fixUpTable();
-        return new Select()
-                .from(Treatments.class)
-                .where("timestamp >= ? and timestamp <= ?", startTime, endTime)
-                .orderBy("timestamp asc")
-                .limit(number)
-                .execute();
+        return dao().latestForGraph(startTime, endTime, number);
     }
 
     public static long getTimeStampWithOffset(double offset) {
@@ -1436,6 +1356,30 @@ public class Treatments extends Model {
 
     public boolean isPrimingDose() {
         return notes != null && notes.startsWith("Priming");
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration
+     * (external callers in SaveCompleted/PendiqService call it directly).
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    public void delete() {
+        dao().delete(this);
+    }
+
+    private static TreatmentsDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).treatmentsDao();
     }
 }
 

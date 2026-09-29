@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **17** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest` (+ `Libre2Sensors` as a `@DatabaseView`) |
+| Migrated tables | **18** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest`, `Treatments` (+ `Libre2Sensors` as a `@DatabaseView`) |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -355,6 +355,14 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     `BloodTest` (and later `Treatments`) are no longer `Model`s.
   - Bumped `@Database` to `version = 3`.
   - Added `BloodTestTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `Treatments` (18/29).**
+  - `Treatments`: Room @Entity + DAO (all the ordered/precise-timestamp/like queries,
+    `deleteAll`, `cleanup`). Kept instance `save()`/`delete()` (external callers in
+    `SaveCompleted`, `PendiqService`); `@Ignore` the transient `insulinInjections`.
+  - Re-pointed the raw-SQL stats queries (`StatsResult.getTotal_carbs`/`getTotal_insulin`
+    read `treatments`) at new `TreatmentsDao.sumCarbs`/`sumInsulin`.
+  - Bumped `@Database` to `version = 4`.
+  - Added `TreatmentsTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 

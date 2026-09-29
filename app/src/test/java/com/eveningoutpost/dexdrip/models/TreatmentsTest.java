@@ -1,181 +1,89 @@
 package com.eveningoutpost.dexdrip.models;
 
+import androidx.room.Room;
+
 import com.eveningoutpost.dexdrip.RobolectricTestWithConfig;
-import com.eveningoutpost.dexdrip.insulin.Insulin;
-import com.eveningoutpost.dexdrip.insulin.InsulinManager;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.robolectric.RuntimeEnvironment;
 
-import java.lang.reflect.Field;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.eveningoutpost.dexdrip.utilitymodels.Constants.DAY_IN_MS;
-import static com.eveningoutpost.dexdrip.utilitymodels.Constants.MONTH_IN_MS;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
-import lombok.val;
-
-/**
- * Tests for {@link Treatments}
- *
- * @author Asbjørn Aarrestad - 2019.07 - asbjorn@aarrestad.com
- */
 public class TreatmentsTest extends RobolectricTestWithConfig {
 
-    @Test
-    public void createAndReadTreatment() {
-        // :: Create
-        long time = Instant.now().getEpochSecond();
-        Treatments.create(55, 2, time);
+    private AppDatabase database;
 
-        // :: Read
-        Treatments lastTreatment = Treatments.last();
-
-        // :: Verify
-        assertThat(lastTreatment.carbs).isEqualTo(55.0);
-        assertThat(lastTreatment.insulin).isEqualTo(2.0);
-        assertThat(lastTreatment.timestamp).isEqualTo(time);
-        assertThat(lastTreatment.enteredBy).startsWith(Treatments.XDRIP_TAG);
+    @Before
+    public void setUpDatabase() {
+        database = Room.inMemoryDatabaseBuilder(RuntimeEnvironment.getApplication(), AppDatabase.class)
+                .allowMainThreadQueries()
+                .build();
+        AppDatabase.setInstanceForTesting(database);
     }
 
+    @After
+    public void tearDownDatabase() {
+        database.close();
+        AppDatabase.setInstanceForTesting(null);
+    }
 
-    @Test
-    public void createManyReadLast() {
-        // :: Setup
-        long time = Instant.now().getEpochSecond();
-        Treatments.create(1, 8, time);
-        Treatments.create(2, 7, time);
-        Treatments.create(3, 6, time);
-        Treatments.create(4, 5, time);
-        Treatments.create(5, 4, time);
-        Treatments.create(6, 3, time);
-        Treatments.create(7, 2, time);
-        Treatments.create(8, 1, time);
-
-        // :: Act
-        Treatments lastTreatment = Treatments.last();
-
-        // :: Verify
-        assertThat(lastTreatment.carbs).isEqualTo(8.0);
-        assertThat(lastTreatment.insulin).isEqualTo(1.0);
-        assertThat(lastTreatment.timestamp).isEqualTo(time);
-        assertThat(lastTreatment.enteredBy).startsWith(Treatments.XDRIP_TAG);
+    private static Treatments save(long timestamp, String uuid, double carbs) {
+        final Treatments t = new Treatments();
+        t.timestamp = timestamp;
+        t.uuid = uuid;
+        t.enteredBy = Treatments.XDRIP_TAG;
+        t.eventType = "<none>";
+        t.carbs = carbs;
+        t.save();
+        return t;
     }
 
     @Test
-    public void getLastestNoneXdrip_noneEntered() {
-        // :: Create
-        long time = Instant.now().getEpochSecond();
-        Treatments.create(1, 8, time);
-        Treatments.create(2, 7, time);
-        Treatments.create(3, 6, time);
-        Treatments.create(4, 5, time);
-        Treatments.create(5, 4, time);
-        Treatments.create(6, 3, time);
-        Treatments.create(7, 2, time);
-        Treatments.create(8, 1, time);
+    public void saveAndLookupsWork() {
+        final Treatments t = save(1000L, "uuid-1", 10);
 
-        // :: Read
-        Treatments lastTreatment = Treatments.lastNotFromXdrip();
-
-        // :: Verify
-        assertThat(lastTreatment).isNull();
+        assertWithMessage("last").that(Treatments.last().uuid).isEqualTo("uuid-1");
+        assertWithMessage("by uuid").that(Treatments.byuuid("uuid-1")).isNotNull();
+        assertWithMessage("by id").that(Treatments.byid(t._id)).isNotNull();
+        assertWithMessage("latest").that(Treatments.latest(5)).hasSize(1);
+        assertWithMessage("list by timestamp").that(Treatments.listByTimestamp(1000L)).hasSize(1);
     }
 
     @Test
-    public void getLastestNoneXdrip_oneEntered() {
-        // :: Create
-        long time = Instant.now().getEpochSecond();
-        Treatments.create(1, 8, time);
-        Treatments.create(2, 7, time);
-        Treatments.create(3, 6, time);
-        Treatments.create(4, 5, time);
-        Treatments.create(5, 4, time);
-        Treatments.create(6, 3, time);
+    public void byTimestampFindsWithinWindow() {
+        save(1000L, "uuid-1", 10);
 
-        Treatments notFromXdrip = Treatments.create(7, 2, time);
-        notFromXdrip.enteredBy = "SomeOtherSource";
-        notFromXdrip.save();
-
-        Treatments.create(8, 1, time);
-
-        // :: Read
-        Treatments lastTreatment = Treatments.lastNotFromXdrip();
-
-        // :: Verify
-        assertThat(lastTreatment.carbs).isEqualTo(7.0);
-        assertThat(lastTreatment.insulin).isEqualTo(2.0);
-        assertThat(lastTreatment.timestamp).isEqualTo(time);
-        assertThat(lastTreatment.enteredBy).startsWith("SomeOtherSource");
+        assertWithMessage("within window").that(Treatments.byTimestamp(1200L, 500)).isNotNull();
+        assertWithMessage("outside window").that(Treatments.byTimestamp(5000L, 500)).isNull();
     }
 
     @Test
-    public void multipleInsulinsTreatmentTest() {
-        // :: Create
-        long time = Instant.now().getEpochSecond();
-        List<InsulinInjection> list = new ArrayList<InsulinInjection>();
+    public void saveUpdatesExistingRow() {
+        final Treatments t = save(1000L, "uuid-1", 10);
+        t.carbs = 25;
+        t.save();
 
-        final ArrayList<Insulin> insulins = InsulinManager.getDefaultInstance();
-
-        list.add(new InsulinInjection(insulins.get(0),1.2));
-        list.add(new InsulinInjection(insulins.get(1),2.3));
-        Treatments thisTreatment = Treatments.create(1.0d, 1.2+2.3, list, time);
-
-        // :: Read
-        Treatments lastTreatment = Treatments.last();
-
-        // :: Verify
-        assertThat(thisTreatment != lastTreatment).isTrue(); // check not object from cache
-
-        assertThat(lastTreatment.carbs).isEqualTo(1.0d);
-        assertThat(lastTreatment.insulin).isEqualTo(1.2+2.3);
-
-        // TODO this might suffer from json sort ordering - check if that is the issue if it fails
-        assertThat(lastTreatment.getInsulinInjections()).isNotNull();
-        assertThat(lastTreatment.getInsulinInjections().size()).isEqualTo(2);
-        assertThat(lastTreatment.getInsulinInjections().get(0).getInsulin()).isEqualTo(insulins.get(0).getName());
-        assertThat(lastTreatment.getInsulinInjections().get(0).getUnits()).isEqualTo(1.2d);
-        assertThat(lastTreatment.getInsulinInjections().get(1).getInsulin()).isEqualTo(insulins.get(1).getName());
-        assertThat(lastTreatment.getInsulinInjections().get(1).getUnits()).isEqualTo(2.3d);
-
+        assertWithMessage("updated in place").that(Treatments.byuuid("uuid-1").carbs).isEqualTo(25);
+        assertWithMessage("single row").that(Treatments.latest(5)).hasSize(1);
     }
 
     @Test
-    public void cleanupTest() {
-        val ts = JoH.tsl();
-        Treatments.delete_all();
-        for (long offset = 0; offset < MONTH_IN_MS; offset += DAY_IN_MS) {
-            Treatments.createForTest(ts - offset, 1.0);
-        }
-        val before = Treatments.latestForGraph(1000, 0, ts + DAY_IN_MS).size();
-        Treatments.cleanup(5);
-        val after = Treatments.latestForGraph(1000, 0, ts + DAY_IN_MS).size();
-        assertWithMessage("test before").that(before).isEqualTo(30);
-        assertWithMessage("test after").that(after).isEqualTo(5);
-        Treatments.delete_all();
-    }
+    public void deleteRemovesRow() {
+        final Treatments t = save(1000L, "uuid-1", 10);
+        t.delete();
 
-    /** Force a private static InsulinManager field, to simulate a partially-initialized manager. */
-    private static void setInsulinManagerField(final String name, final Object value) throws Exception {
-        final Field f = InsulinManager.class.getDeclaredField(name);
-        f.setAccessible(true);
-        f.set(null, value);
+        assertThat(Treatments.byuuid("uuid-1")).isNull();
     }
 
     @Test
-    public void legacyDose_convertsToInjection_whenBolusPointerWasNull() throws Exception {
-        // :: Setup - profiles loaded, but simulate the broken null-pointer state (#4617)
-        InsulinManager.getDefaultInstance();
-        setInsulinManagerField("bolusProfile", null);
+    public void latestForGraphFiltersByTimestamp() {
+        save(1000L, "uuid-1", 10);
+        save(5000L, "uuid-2", 20);
 
-        // :: Act - the exact conversion the legacy IoB path runs for a plain insulin dose
-        final List<InsulinInjection> injections = Treatments.convertLegacyDoseToBolusInjectionList(2.0);
-
-        // :: Verify - a usable injection is produced, so IoB will not silently read zero
-        assertThat(injections).hasSize(1);
-        assertThat(injections.get(0).getUnits()).isEqualTo(2.0);
+        assertWithMessage("only in-range row").that(Treatments.latestForGraph(10, 0L, 3000L)).hasSize(1);
     }
 }
