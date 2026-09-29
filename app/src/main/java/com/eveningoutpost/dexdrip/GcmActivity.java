@@ -662,7 +662,7 @@ public class GcmActivity extends FauxActivity {
         Treatments.pushTreatmentFromJson(json);
     }
 
-    static void pushCalibration(String bg_value, String seconds_ago) {
+    public static void pushCalibration(String bg_value, String seconds_ago) {
         if ((bg_value.length() == 0) || (seconds_ago.length() == 0)) return;
         if (Home.get_master()) {
             // For master, we now send the entire table, no need to send this specific table each time
