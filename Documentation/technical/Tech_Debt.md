@@ -18,7 +18,7 @@ part of the Jetpack Compose migration and the broader modernization of xDrip+.
 
 View-based / XML libraries that Compose replaces. These are retired incrementally as
 screens migrate. The settings/secondary-views phases are planned in
-[`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md).
+[`Settings_Migration.md`](./Settings_Migration.md).
 
 | Dependency | Usage | Replace with | Track / Phase | Effort | Status |
 | --- | --- | --- | --- | --- | --- |
@@ -26,7 +26,8 @@ screens migrate. The settings/secondary-views phases are planned in
 | `colorpicker` AAR (`com.rarepebble.colorpicker`) | 3 files + prefs XML | Compose-native color picker | Compose / Phase 4 | Low | Partial — Compose picker added (`ThemeEditorScreen`/`SettingsColorRow`); AAR remains for the legacy color page + `NumberWallPreview` until migrated |
 | `search-preference` (local AAR) | 1 file | Compose search/settings UI | Compose / Phase 4 | Low | Partial — root search over migrated settings added; AAR remains for the legacy settings until retired |
 | `com.github.amlcurran.showcaseview` | 13 files | Compose tooltips/coach-marks (or drop) | Compose / Phase 2–5 | Medium | Not started |
-| `androidx.preference` | settings screens | Compose settings | Compose / Phase 4 | Medium | Planned (settings plan) |
+| `androidx.preference` | settings screens | Compose settings | Compose / Phase 4 | Medium | In progress — Compose host reads/writes via `Pref`; legacy UI still in use for unmigrated screens |
+| `android.preference` settings UI (`Preferences.java`, `BasePreferenceActivity`, `pref_*.xml`) | main settings screen | Compose settings host | Compose / Phase 4 (S6) | High | In progress — General/Alerts/Data Source/Data Sync/Advanced-other migrated; watches + xdrip_plus remain; delete in S6 |
 | `androidx.recyclerview` | 8 files | `LazyColumn` / `LazyRow` | Compose / cross-cutting | Medium | Not started |
 | `androidx.cardview` | legacy layouts | `Card` / `Surface` | Compose / cross-cutting | Low | Not started |
 | `androidx.constraintlayout` | 9 layouts | Compose layouts | Compose / cross-cutting | Medium | Not started |

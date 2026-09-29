@@ -1,10 +1,8 @@
 # S5a — Advanced Settings → Compose (plan & progress)
 
-Working plan for porting `pref_advanced_settings.xml` (273 elements, 2 top-level branches)
-into the Compose settings host. Companion to
-[`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md) and the
-change/verification checklist
-[`Settings_Conversion_Change_And_Verification.md`](./Settings_Conversion_Change_And_Verification.md).
+Working plan for porting `pref_advanced_settings.xml` (273 elements, 2 top-level branches) into the
+Compose settings host. Annex to [`Settings_Migration.md`](./Settings_Migration.md), where the recipe,
+verification passes and higher-level status board live.
 
 **Invariant:** pref keys and types never change. **This doc is a living document** — update the
 section status table and progress log as work lands.
@@ -137,7 +135,7 @@ From `Preferences.java`:
 ## 5. Verification mapping
 
 Per section, run the passes from
-[`Settings_Conversion_Change_And_Verification.md`](./Settings_Conversion_Change_And_Verification.md):
+[`Settings_Migration.md`](./Settings_Migration.md):
 
 - **A** structure/navigation, **B** key/type round-trip, **D** conditional visibility,
   **E** side effects, **F** summaries/validation — targeted per screen.

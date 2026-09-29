@@ -35,15 +35,13 @@ Phase 2 has its component library seeded and the header state extracted, but the
 header *rendering* was reverted to the original design pending a proper redesign.
 
 **Phase 4 (settings) is in progress:** a Compose settings host
-(`ui/settings/SettingsActivity`) with a hand-rolled row library
-(`ui/settings/SettingsComponents.kt`) renders the **General**, **Alarms and Alerts**,
-**Data Source** and **Data Sync** categories plus a **Theme editor** (Compose colour picker,
-ringtone/time/slider rows, root search), and links through
-to the legacy settings activity for everything else. The theme now provides the app's data colors
-(`LocalXdripColors`) to Compose (see
-[`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)). The
-remaining categories and their verification passes are tracked in
-[`Settings_Conversion_Change_And_Verification.md`](./Settings_Conversion_Change_And_Verification.md).
+(`ui/settings/SettingsActivity`) with a hand-rolled row library renders the **General**,
+**Alarms and Alerts**, **Data Source**, **Data Sync** and **Advanced → Other settings** categories
+plus a **Theme editor** (Compose colour picker, ringtone/time/slider rows, root search), and links
+to the legacy settings activity for the rest. The theme now provides the app's data colours
+(`LocalXdripColors`) to Compose. Plan, status board and verification passes live in
+[`Settings_Migration.md`](./Settings_Migration.md); the large Advanced phase has its own annex
+[`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md).
 
 ---
 
@@ -59,16 +57,32 @@ medical app of this size. The migration is **incremental and hybrid**:
 3. The global navigation shell (drawer) is migrated early to establish the
    Compose navigation pattern.
 
-### Order of work
+### Actual order & why
+
+The work did **not** follow the nominal 0→5 order. This is the real sequence and the reasoning:
+
+1. **Foundation (Phase 0).** Required before any Compose.
+2. **ActiveAndroid → Room (parallel track, done first).** The data foundation for
+   Home/charts/settings; doing it before the UI work avoids rewriting data access twice, and
+   medical-data integrity needed dedicated focus. See
+   [`ActiveAndroid_to_Room.md`](./ActiveAndroid_to_Room.md).
+3. **Phase 1 (theme + drawer).** Establishes `XdripTheme`, the colour system and interop patterns,
+   and migrates the navigation shell early.
+4. **Phase 2 (Home) — started, then paused.** The header state was extracted, but the rendering was
+   reverted pending a redesign and the charts are blocked on Phase 3 (Vico).
+5. **Phase 4 (settings) — prioritised next.** Self-contained, low-risk, retires a large legacy
+   subsystem, and its components are reused by Track V. Within it: framework → smallest pilot →
+   next-simplest category → gating-heavy categories → the bulk → retire legacy last.
+6. **Phase 3 (charts → Vico), then Phase 5 (secondary views).** Phase 3 unblocks the rest of Home.
 
 | Phase | Scope | Status |
 | --- | --- | --- |
 | 0 | Foundation: dependency upgrades, Compose setup, `targetSdk 34` + AGP 9.4.1 upgrade + runtime correctness sweep | **Done** |
-| 1 | Theme (dynamic color) + interop patterns + drawer content migration | **Done** |
-| 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **In progress** (state extracted, rendering deferred) |
-| 3 | Charts → Vico (line graphs; basal column editor last) | Planned |
-| 4 | Settings → Compose (see [`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)) | **In progress** (General, Alarms & Alerts, Data Source, Data Sync, Theme done; S5a/S5b remain) |
-| 5 | Secondary views → Compose (long tail; see the same plan) | Planned (review) |
+| 1 | Theme (Material You) + interop patterns + drawer content migration | **Done** |
+| 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **Paused** (state extracted, rendering reverted pending redesign) |
+| 3 | Charts → Vico (line graphs; basal column editor last) | Planned (unblocks Phase 2) |
+| 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **In progress** (S0–S4 done, S5a Other settings done; S5a watches / S5b / S6 remain) |
+| 5 | Secondary views → Compose (long tail; same doc) | Planned |
 
 ### Parallel modernization tracks (own backlog, not UI phases)
 
@@ -84,8 +98,10 @@ These are large enough to run independently of the Compose phases:
 
 ### Structural conventions
 
-- **State extraction first.** Every migrated slice extracts a `ViewModel`/state
-  holder before rendering (proven pattern: `NavDrawerMenuState`, `HomeGlucoseState`).
+- **State extraction first.** Migrated Home slices extract a `ViewModel`/state holder before
+  rendering (proven: `NavDrawerMenuState`, `HomeGlucoseState`). Settings uses a lighter
+  `SettingsState` (`Pref`-backed snapshot) rather than a `ViewModel`, since screens only need
+  row-level state; add a `ViewModel` only for cross-row derived state.
 - **Compose over composition.** Prefer thin delegate-based bridges when a legacy
   collection/view must be touched (as in `PrefsView*`).
 

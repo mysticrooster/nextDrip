@@ -1,5 +1,10 @@
 # ActiveAndroid → Room Migration
 
+> **Status: complete** (2026-09-28, commit `7bb2eb5d5`). All 28 tables + the `Libre2Sensors`
+> view are on Room and ActiveAndroid is fully retired. This document is retained as the
+> *record* of why/how and the deferred follow-ups. See also
+> [`Tech_Debt.md`](./Tech_Debt.md) §5 and [`Compose_Migration.md`](./Compose_Migration.md).
+
 ## Overview
 
 The data layer is being migrated from the abandoned **ActiveAndroid** ORM to
