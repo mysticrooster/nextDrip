@@ -31,14 +31,12 @@ import com.eveningoutpost.dexdrip.utilitymodels.VersionTracker;
 import com.eveningoutpost.dexdrip.calibrations.PluggableCalibration;
 import com.eveningoutpost.dexdrip.utils.SentryCrashReporting;
 import com.eveningoutpost.dexdrip.utils.jobs.DailyJob;
-import com.eveningoutpost.dexdrip.utils.jobs.XDripJobCreator;
 import com.eveningoutpost.dexdrip.watch.lefun.LeFunEntry;
 import com.eveningoutpost.dexdrip.watch.miband.MiBandEntry;
 import com.eveningoutpost.dexdrip.watch.thinjam.BlueJayEntry;
 import com.eveningoutpost.dexdrip.services.broadcastservice.BroadcastEntry;
 import com.eveningoutpost.dexdrip.wearintegration.ExternalStatusBroadcastReceiver;
 import com.eveningoutpost.dexdrip.webservices.XdripWebService;
-import com.evernote.android.job.JobManager;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
@@ -129,7 +127,6 @@ public class xdrip extends Application {
             }
         }, new IntentFilter("com.eveningoutpost.dexdrip.ExternalStatusline"), Context.RECEIVER_EXPORTED);
 
-        JobManager.create(this).addJobCreator(new XDripJobCreator());
         DailyJob.schedule();
         //SyncService.startSyncServiceSoon();
 
