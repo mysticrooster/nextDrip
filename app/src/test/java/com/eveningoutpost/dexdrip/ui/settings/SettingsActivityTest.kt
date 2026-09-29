@@ -153,4 +153,23 @@ class SettingsActivityTest {
 
         composeRule.onNodeWithText("Web Deposit").assertDoesNotExist()
     }
+
+    @Test
+    fun advancedExtraStatusLineToggleWritesPref() {
+        Pref.setBoolean("extra_status_line", false)
+
+        composeRule.onNodeWithTag("setting_less_common").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_nav_extra_status_line").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_extra_status_line").performClick()
+
+        assertThat(Pref.getBoolean("extra_status_line", false)).isTrue()
+    }
+
+    @Test
+    fun advancedCalibrationPluginRowPresent() {
+        composeRule.onNodeWithTag("setting_less_common").performScrollTo().performClick()
+        composeRule.onNodeWithText("Advanced Calibration").performClick()
+
+        composeRule.onNodeWithTag("setting_calibration_plugin").assertExists()
+    }
 }

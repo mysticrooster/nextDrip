@@ -59,6 +59,18 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.NightLite -> "NightLite"
     SettingsScreen.Nocturne -> stringResource(R.string.nocturne)
     SettingsScreen.GlucoseMeters -> stringResource(R.string.glucose_meters)
+    SettingsScreen.SpeakReadings -> stringResource(R.string.speak_readings)
+    SettingsScreen.InterApp -> stringResource(R.string.interapp_settings)
+    SettingsScreen.HealthConnect -> stringResource(R.string.google_health_connect)
+    SettingsScreen.LessCommon -> stringResource(R.string.less_common_settings)
+    SettingsScreen.ExtraStatusLine -> stringResource(R.string.extra_status_line)
+    SettingsScreen.CalibrationSettings -> stringResource(R.string.advanced_calibration)
+    SettingsScreen.BluetoothSettings -> stringResource(R.string.bluetooth_settings)
+    SettingsScreen.BlueReaderSettings -> stringResource(R.string.advanced_bluereader_settings)
+    SettingsScreen.Libre2Settings -> stringResource(R.string.title_advanced_settings_4_Lib2)
+    SettingsScreen.LoggingSettings -> stringResource(R.string.extra_logging)
+    SettingsScreen.OtherMiscSettings -> stringResource(R.string.title_Other_misc_options)
+    SettingsScreen.CollectorInForeground -> stringResource(R.string.title_collector_in_foreground)
 }
 
 @Composable
@@ -101,6 +113,18 @@ internal fun SettingsScreenContent(
         SettingsScreen.NightLite -> NightLiteScreen()
         SettingsScreen.Nocturne -> NocturneScreen()
         SettingsScreen.GlucoseMeters -> GlucoseMetersScreen()
+        SettingsScreen.SpeakReadings -> SpeakReadingsScreen()
+        SettingsScreen.InterApp -> InterAppScreen(onNavigate)
+        SettingsScreen.HealthConnect -> HealthConnectScreen()
+        SettingsScreen.LessCommon -> LessCommonScreen(onNavigate)
+        SettingsScreen.ExtraStatusLine -> ExtraStatusLineScreen()
+        SettingsScreen.CalibrationSettings -> CalibrationSettingsScreen()
+        SettingsScreen.BluetoothSettings -> BluetoothSettingsScreen()
+        SettingsScreen.BlueReaderSettings -> BlueReaderSettingsScreen()
+        SettingsScreen.Libre2Settings -> Libre2SettingsScreen()
+        SettingsScreen.LoggingSettings -> LoggingSettingsScreen()
+        SettingsScreen.OtherMiscSettings -> OtherMiscSettingsScreen(onNavigate)
+        SettingsScreen.CollectorInForeground -> CollectorInForegroundScreen()
     }
 }
 
@@ -176,6 +200,23 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
             subtitle = context.getString(R.string.options_for_upload),
             onClick = { onNavigate(SettingsScreen.DataSync) },
             modifier = Modifier.testTag("setting_data_sync"),
+        )
+    }
+    SettingsCategory(context.getString(R.string.other_settings)) {
+        SettingsActionRow(
+            title = context.getString(R.string.speak_readings),
+            onClick = { onNavigate(SettingsScreen.SpeakReadings) },
+            modifier = Modifier.testTag("setting_speak_readings"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.interapp_settings),
+            onClick = { onNavigate(SettingsScreen.InterApp) },
+            modifier = Modifier.testTag("setting_interapp"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.less_common_settings),
+            onClick = { onNavigate(SettingsScreen.LessCommon) },
+            modifier = Modifier.testTag("setting_less_common"),
         )
     }
     SettingsCategory("About") {

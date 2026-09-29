@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -57,7 +58,11 @@ class SettingsActivity : ComponentActivity() {
 @Composable
 internal fun SettingsRoot(onOpenClassic: () -> Unit) {
     val stack = remember { mutableStateListOf<SettingsScreen>(SettingsScreen.Root) }
+    val scrollState = rememberScrollState()
     BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
+
+    // Reset the scroll position when navigating between screens.
+    LaunchedEffect(stack.last()) { scrollState.scrollTo(0) }
 
     Scaffold(
         topBar = {
@@ -80,7 +85,7 @@ internal fun SettingsRoot(onOpenClassic: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
         ) {
             SettingsScreenContent(
                 screen = stack.last(),

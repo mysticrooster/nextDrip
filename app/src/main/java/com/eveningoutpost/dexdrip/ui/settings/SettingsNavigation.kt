@@ -41,6 +41,18 @@ internal sealed interface SettingsScreen {
     data object NightLite : SettingsScreen
     data object Nocturne : SettingsScreen
     data object GlucoseMeters : SettingsScreen
+    data object SpeakReadings : SettingsScreen
+    data object InterApp : SettingsScreen
+    data object HealthConnect : SettingsScreen
+    data object LessCommon : SettingsScreen
+    data object ExtraStatusLine : SettingsScreen
+    data object CalibrationSettings : SettingsScreen
+    data object BluetoothSettings : SettingsScreen
+    data object BlueReaderSettings : SettingsScreen
+    data object Libre2Settings : SettingsScreen
+    data object LoggingSettings : SettingsScreen
+    data object OtherMiscSettings : SettingsScreen
+    data object CollectorInForeground : SettingsScreen
 }
 
 /** A searchable settings destination shown by the root search field. */
@@ -59,6 +71,9 @@ internal val SETTINGS_SEARCH_INDEX = listOf(
     SettingsSearchEntry("NFC Scan Features", SettingsScreen.NfcSettings, listOf("nfc", "libre", "scan", "expiry")),
     SettingsSearchEntry("Data Sync", SettingsScreen.DataSync, listOf("cloud", "upload", "nightscout", "tidepool", "mongodb", "influxdb", "nocturne", "nightlite")),
     SettingsSearchEntry("Glucose Meters", SettingsScreen.GlucoseMeters, listOf("bluetooth meter", "nfc meter", "calibration meter")),
+    SettingsSearchEntry("Advanced Calibration", SettingsScreen.CalibrationSettings, listOf("calibration plugin", "double calibration")),
+    SettingsSearchEntry("Bluetooth Settings", SettingsScreen.BluetoothSettings, listOf("bluetooth", "gatt", "watchdog")),
+    SettingsSearchEntry("Extra Status Line", SettingsScreen.ExtraStatusLine, listOf("status line", "a1c", "average")),
     SettingsSearchEntry("Alarms and Alerts", SettingsScreen.Notifications, listOf("notifications", "alerts", "sounds")),
     SettingsSearchEntry("Glucose Alerts Settings", SettingsScreen.BgAlerts, listOf("alert profile", "audio focus", "snooze")),
     SettingsSearchEntry("Suppress Alerts if Missed Readings", SettingsScreen.SuppressAlerts, listOf("stale data")),

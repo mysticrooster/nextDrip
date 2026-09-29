@@ -236,7 +236,7 @@ internal fun NfcSettingsScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     val useNfc = state.bool("use_nfc_scan", false)
-    val engineering = SettingsVisibility.isEngineeringMode()
+    val engineering = SettingsVisibility.isEngineeringMode(state)
 
     SettingsCategory(context.getString(R.string.nfc_scan_features)) {
         SwitchPref(
@@ -318,7 +318,7 @@ internal fun NsFollowDownloadScreen() {
 internal fun G5DebugScreen(onNavigate: (SettingsScreen) -> Unit) {
     val context = LocalContext.current
     val state = rememberSettingsState()
-    val engineering = SettingsVisibility.isEngineeringMode()
+    val engineering = SettingsVisibility.isEngineeringMode(state)
     val useTransmitterAlg = state.bool("ob1_g5_use_transmitter_alg", true)
     val minimizeScanning = state.bool("ob1_minimize_scanning", false)
 

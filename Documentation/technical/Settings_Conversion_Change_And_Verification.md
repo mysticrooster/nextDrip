@@ -18,7 +18,7 @@ Everything the legacy settings screen does, split into the plan's tracks:
 | S2 | Alarms & Alerts | `pref_notifications.xml` | 12 | 54 | **Done** |
 | S3 | Data Source | `pref_data_source.xml` | 7 | 59 | **Done** |
 | S4 | Data Sync | `pref_data_sync.xml` | 16 | 67 | **Done** |
-| S5a | Advanced Settings | `pref_advanced_settings.xml` | 24 | 232 | Todo |
+| S5a | Advanced Settings | `pref_advanced_settings.xml` | 24 | 232 | **In progress** (Other settings done; watches todo) |
 | S5b | xDrip+ Options | `xdrip_plus_prefs.xml` | 23 | 157 | Todo |
 | S6 | Retire legacy settings | `Preferences.java`, XMLs, libs | — | — | Todo |
 | — | Theme editor (new) | — | 1 | 36 roles + 34 data | **Done** |
@@ -136,6 +136,9 @@ Todo. Contains the bulk: display/colours, calibration (`current_calibration_plug
 `Experience.gotData()`), update channel (title-append), language, logging
 (`enable_bugfender`), `BlueReader` hardware gate, NFC expiry listeners, Pebble/MiBand/watch
 sections (many `removePreference` + dynamic `addPreference`), etc.
+
+**Living plan:** [`S5a_Advanced_Settings_Plan.md`](./S5a_Advanced_Settings_Plan.md) — section
+breakdown, gating/side-effect inventory, status table and progress log.
 
 ### 2.5 S5b — xDrip+ Options (`xdrip_plus_prefs.xml`, 23 screens, ~157 leaves)
 

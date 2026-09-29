@@ -73,13 +73,14 @@ internal fun AutoConfigScreen() {
 @Composable
 internal fun CloudUploadScreen(onNavigate: (SettingsScreen) -> Unit) {
     val context = LocalContext.current
+    val state = rememberSettingsState()
     SettingsCategory(context.getString(R.string.cloud_upload)) {
         SettingsActionRow(title = context.getString(R.string.pref_title_api), subtitle = context.getString(R.string.pref_summary_api_enabled), onClick = { onNavigate(SettingsScreen.RestApi) })
         SettingsActionRow(title = context.getString(R.string.pref_title_mongodb), subtitle = context.getString(R.string.pref_summary_mongodb_enabled), onClick = { onNavigate(SettingsScreen.Mongo) })
         SettingsActionRow(title = context.getString(R.string.pref_title_influxdb), subtitle = context.getString(R.string.pref_summary_influxdb_enabled), onClick = { onNavigate(SettingsScreen.Influx) })
         SettingsActionRow(title = context.getString(R.string.dexcom_share_server_upload), subtitle = context.getString(R.string.upload_data_to_dex_servers), onClick = { onNavigate(SettingsScreen.DexcomUpload) })
         SettingsActionRow(title = context.getString(R.string.title_tidepool), subtitle = context.getString(R.string.summary_tidepool_upload_screen), onClick = { onNavigate(SettingsScreen.Tidepool) })
-        if (SettingsVisibility.isEngineeringMode()) {
+        if (SettingsVisibility.isEngineeringMode(state)) {
             SettingsActionRow(title = "Web Deposit", subtitle = "Simple batch API currently used for diagnostics", onClick = { onNavigate(SettingsScreen.WebDeposit) })
         }
         SettingsActionRow(title = "NightLite", subtitle = "Lightweight Nightscout compatible service intended for followers", onClick = { onNavigate(SettingsScreen.NightLite) })
