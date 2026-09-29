@@ -92,21 +92,6 @@ public class HomeEspressoTest {
 
     @Test
     @AllowFlaky(attempts = 5)
-    public void A2_accept_license() {
-        // accept the license agreement
-        // TODO note espresso recorder uses hardcoded strings
-        ViewInteraction appCompatCheckBox2 = onView(
-                allOf(withId(R.id.agreeCheckBox), withText("I UNDERSTAND AND AGREE")));
-        appCompatCheckBox2.perform(scrollTo(), click());
-
-        ViewInteraction appCompatButton2 = onView(
-                allOf(withId(R.id.saveButton), withText("Save")));
-        appCompatButton2.perform(scrollTo(), click());
-
-    }
-
-    @Test
-    @AllowFlaky(attempts = 5)
     public void B1_checkExperienceDialogAppears() {
         onView(withText("5.5"))
                 .inRoot(isDialog())
