@@ -91,6 +91,7 @@ public class DatabaseUtil {
                 zipOutputStream = new ZipOutputStream(new BufferedOutputStream(foStream));
 
                 // Include both databases so a restore brings back everything.
+                AppDatabase.checkpointForBackup();
                 boolean wroteAny = false;
                 wroteAny |= zipDatabaseFile(context, LegacyDataImporter.LEGACY_DB_NAME, zipOutputStream, prefix + stamp + ".sqlite");
                 wroteAny |= zipDatabaseFile(context, AppDatabase.DATABASE_NAME, zipOutputStream, prefix + stamp + "-room.sqlite");

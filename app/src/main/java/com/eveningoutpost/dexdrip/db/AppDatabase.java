@@ -165,6 +165,22 @@ public abstract class AppDatabase extends RoomDatabase {
         INSTANCE = database;
     }
 
+    /**
+     * Best-effort WAL checkpoint so that a subsequent copy of the database file (backups)
+     * includes recent writes. No-op if the database is not open yet.
+     */
+    public static void checkpointForBackup() {
+        final AppDatabase db = INSTANCE;
+        if (db == null) {
+            return;
+        }
+        try (android.database.Cursor cursor = db.query("PRAGMA wal_checkpoint(FULL)", null)) {
+            cursor.moveToFirst();
+        } catch (Exception e) {
+            // best effort
+        }
+    }
+
     /** Closes and reopens the database, e.g. after the underlying file was replaced. */
     public static synchronized void resetAndReopen(Context context) {
         if (INSTANCE != null) {

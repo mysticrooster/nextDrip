@@ -311,6 +311,7 @@ public class Backup {
 
     public static boolean doCompleteBackup(final BackupStatus status) {
         UserError.Log.d(TAG, "doCompleteBackup() called");
+        AppDatabase.checkpointForBackup();
         return compressEncryptFilesToUri(status, getBackupUri(), getPreferencesPath(),
                 getDatabasePath(), getRoomDatabasePath());
     }
