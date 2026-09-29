@@ -1,7 +1,5 @@
 package com.eveningoutpost.dexdrip.models;
 
-import org.joda.time.DateTime;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.OffsetDateTime;
@@ -34,12 +32,8 @@ public class DateUtil {
      */
     public static Date tolerantFromISODateString(String isoDateString) {
         String strDateTime = pDateFix.matcher(isoDateString).replaceFirst("$1T$2Z");
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) { // use Joda Time classes
-            return DateTime.parse(strDateTime).toDate();
-        } else {  // use built-in java.time classes
-            OffsetDateTime odt = OffsetDateTime.parse(pOffsetFix.matcher(strDateTime).replaceFirst("$1:$2"));
-            return Date.from(odt.toInstant());
-        }
+        OffsetDateTime odt = OffsetDateTime.parse(pOffsetFix.matcher(strDateTime).replaceFirst("$1:$2"));
+        return Date.from(odt.toInstant());
     }
 
     /**
