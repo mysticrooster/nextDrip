@@ -72,7 +72,8 @@ public final class LegacyDataImporter {
                     "Prediction",
                     "APStatus",
                     "Accuracy",
-                    "LibreData")));
+                    "LibreData",
+                    "Libre2RawValue2")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

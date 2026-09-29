@@ -1,42 +1,42 @@
 package com.eveningoutpost.dexdrip.models;
 
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.Libre2RawValueDao;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.Date;
 import java.util.List;
 
-@Table(name = "Libre2RawValue2", id = BaseColumns._ID)
-public class Libre2RawValue extends PlusModel {
+@Entity(tableName = "Libre2RawValue2",
+        indices = {
+                @Index("serial"),
+                @Index("ts")
+        })
+public class Libre2RawValue {
 
-    static final String[] schema = {
-            "DROP TABLE Libre2RawValue;",
-            "CREATE TABLE Libre2RawValue2 (_id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER, serial STRING, glucose REAL);",
-            "CREATE INDEX index_Libre2RawValue2_ts on Libre2RawValue2(ts);"
-    };
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
-    @Column(name = "serial", index = true)
+    @ColumnInfo(name = "serial")
     public String serial;
 
-    @Column(name = "ts", index = true)
+    @ColumnInfo(name = "ts")
     public long timestamp;
 
-    @Column(name = "glucose", index = false)
+    @ColumnInfo(name = "glucose")
     public double glucose;
 
     public static List<Libre2RawValue> weightedAverageInterval(long min) {
         double timestamp = (new Date().getTime()) - (60000 * min);
-        return new Select()
-                .from(Libre2RawValue.class)
-                .where("ts >= " + timestamp)
-                .orderBy("ts asc")
-                .execute();
+        return dao().weightedAverageInterval((long) timestamp);
     }
 
     public static List<Libre2RawValue> latestForGraph(int number, double startTime) {
@@ -48,25 +48,30 @@ public class Libre2RawValue extends PlusModel {
     }
 
     public static List<Libre2RawValue> latestForGraph(int number, long startTime, long endTime) {
-        return new Select()
-                .from(Libre2RawValue.class)
-                .where("ts >= " + Math.max(startTime, 0))
-                .where("ts <= " + endTime)
-                .where("glucose != 0")
-                .orderBy("ts desc")
-                .limit(number)
-                .execute();
+        return dao().latestForGraph(Math.max(startTime, 0), endTime, number);
     }
 
     public static List<Libre2RawValue> cleanup(final int retention_days) {
-        updateDB();
-        return new Delete()
-                .from(Libre2RawValue.class)
-                .where("ts < ?", JoH.tsl() - (retention_days * Constants.DAY_IN_MS))
-                .execute();
+        dao().cleanup(JoH.tsl() - (retention_days * Constants.DAY_IN_MS));
+        return new java.util.ArrayList<>();
     }
 
-    public static void updateDB() {
-        fixUpTable(schema, false);
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    private static Libre2RawValueDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).libre2RawValueDao();
     }
 }

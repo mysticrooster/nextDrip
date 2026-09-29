@@ -1,32 +1,35 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
 import android.text.format.DateFormat;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import androidx.room.ColumnInfo;
+import androidx.room.DatabaseView;
+
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.Libre2SensorDao;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.List;
 
-@Table(name = "Libre2Sensors", id = BaseColumns._ID)
-public class Libre2Sensor extends PlusModel {
+@DatabaseView(viewName = "Libre2Sensors",
+        value = "SELECT MIN(_id) as _id, serial, MIN(ts) as ts_from, MAX(ts) AS ts_to, COUNT(*) AS readings "
+                + "FROM Libre2RawValue2 GROUP BY serial ORDER BY ts DESC")
+public class Libre2Sensor {
     static final String TAG = "Libre2Sensor";
 
-    static final String[] schema = {
-            "CREATE VIEW Libre2Sensors AS SELECT MIN(_id) as _id, serial, MIN(ts) as ts_from, MAX(ts) AS ts_to, COUNT(*) AS readings FROM Libre2RawValue2 GROUP BY serial ORDER BY ts DESC;"
-    };
+    @ColumnInfo(name = "_id")
+    public long _id;
 
-    @Column(name = "serial", index = true)
+    @ColumnInfo(name = "serial")
     public String serial;
 
-    @Column(name = "ts_from", index = false)
+    @ColumnInfo(name = "ts_from")
     public long ts_from;
 
-    @Column(name = "ts_to", index = false)
+    @ColumnInfo(name = "ts_to")
     public long ts_to;
 
-    @Column(name = "readings", index = false)
+    @ColumnInfo(name = "readings")
     public long readings;
 
     private static volatile String cachedStringSensors = null;
@@ -36,9 +39,7 @@ public class Libre2Sensor extends PlusModel {
 
         if ((cachedStringSensors == null) || (JoH.ratelimit("libre2sensor-report", 120))) {
 
-            List<Libre2Sensor> rs = new Select()
-                    .from(Libre2Sensor.class)
-                    .execute();
+            List<Libre2Sensor> rs = dao().all();
 
             for (Libre2Sensor Sensorpart : rs) {
                 Long Diff_ts = Sensorpart.ts_to - Sensorpart.ts_from;
@@ -49,13 +50,13 @@ public class Libre2Sensor extends PlusModel {
                         " readings: " + ((Sensorpart.readings * 100) / (Diff_ts / 60000)) + "%\n" +
                         "------------------\n";
             }
-            cachedStringSensors=Sum;
+            cachedStringSensors = Sum;
         }
 
         return cachedStringSensors;
     }
 
-    public static void updateDB() {
-        fixUpTable(schema, false);
+    private static Libre2SensorDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).libre2SensorDao();
     }
 }

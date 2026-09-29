@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **15** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData` |
+| Migrated tables | **16** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2` (+ `Libre2Sensors` as a `@DatabaseView`) |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -314,6 +314,15 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
   - `LibreData`: Room @Entity (no DAO — only `updateDB()` referenced it; that call is
     gone from `IdempotentMigrations`).
   - Added `AccuracyTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `Libre2RawValue`, `Libre2Sensor` (16 tables + 1 view).**
+  - `Libre2RawValue`: Room @Entity, table `Libre2RawValue2` (columns `ts`/`serial`/
+    `glucose`); kept instance `save()`.
+  - `Libre2Sensor`: this was never a table — ActiveAndroid created it as a **VIEW**
+    over `Libre2RawValue2`. Modelled with Room `@DatabaseView` (added to
+    `@Database(views = …)`), so it is intentionally **not** in `MIGRATED_TABLES`
+    (views are derived; there is nothing to copy).
+  - Dropped both `updateDB()` calls from `IdempotentMigrations`.
+  - Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 
