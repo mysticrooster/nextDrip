@@ -132,13 +132,16 @@ selector) — see the existing `dialog_*.xml` layouts (`dialog_text_entry`, `dia
 
 1. **S0 — foundation.** `ui/settings/` package + components + `SettingsViewModel` + nav graph
    + the Compose color picker + settings search. Host it from the existing entry point with a
-   single **pilot category** visible and the rest still legacy. **Done (components + host,
-   hand-rolled screen stack; color picker/search still to come).**
+   single **pilot category** visible and the rest still legacy. **Done** (components incl.
+   ringtone/time/color rows and a Compose color picker, hand-rolled screen stack, root search
+   over the migrated destinations, app-theme data via `LocalXdripColors`; a shared
+   `SettingsViewModel` is deferred until a screen needs cross-row state).
 2. **S1 — pilot: `pref_general`** (31 lines, 2 screens) + `pref_license`. Smallest, proves the
    pattern end-to-end (rows, summaries, sound picker, validation). **Done** (`General` category:
    units + high/low + license row; Compose tests in `SettingsActivityTest`).
 3. **S2 — `pref_notifications`** (412 lines, 12 screens) — dialogs, sounds, unitized numeric
-   summaries.
+   summaries. **Done** (`Alarms and Alerts` + its sub-screens, dependency/`disableDependentsState`
+   handling, ringtone picker, calibrated numeric validation).
 4. **S3 — `pref_data_source`** (447 lines, 7 screens) — collection-method dependent visibility.
 5. **S4 — `pref_data_sync`** (558 lines, 16 screens) — QR/barcode flows, cloud creds, test
    buttons.

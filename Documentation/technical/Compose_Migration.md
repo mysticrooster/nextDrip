@@ -36,9 +36,10 @@ header *rendering* was reverted to the original design pending a proper redesign
 
 **Phase 4 (settings) has started:** a Compose settings host
 (`ui/settings/SettingsActivity`) with a hand-rolled row library
-(`ui/settings/SettingsComponents.kt`) renders the **General** category as the pilot;
-every other category links through to the legacy settings activity for now. The drawer's
-Settings entry opens the new host (see
+(`ui/settings/SettingsComponents.kt`) renders the **General** and **Alarms and Alerts**
+categories (incl. a Compose color picker, ringtone/time rows and root search) and links through
+to the legacy settings activity for everything else. The theme now provides the app's data colors
+(`LocalXdripColors`) to Compose (see
 [`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)).
 
 ---

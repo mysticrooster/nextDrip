@@ -4,6 +4,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
 import com.eveningoutpost.dexdrip.BuildConfig
 import com.eveningoutpost.dexdrip.TestingApplication
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
@@ -40,5 +42,42 @@ class SettingsActivityTest {
 
         // The edit dialog (with its OK button) is shown.
         composeRule.onNodeWithText("OK").assertExists()
+    }
+
+    @Test
+    fun notificationSwitchWritesPref() {
+        Pref.setBoolean("smart_snoozing", true)
+
+        composeRule.onNodeWithTag("setting_notifications").performClick()
+        composeRule.onNodeWithText("Glucose Alerts Settings").performClick()
+        composeRule.onNodeWithText("Smart Snoozing").performClick()
+
+        assertThat(Pref.getBoolean("smart_snoozing", true)).isFalse()
+    }
+
+    @Test
+    fun dependentRowDisabledUntilMasterEnabled() {
+        Pref.setBoolean("disable_alerts_stale_data", false)
+
+        composeRule.onNodeWithTag("setting_notifications").performClick()
+        composeRule.onNodeWithText("Glucose Alerts Settings").performClick()
+        composeRule.onNodeWithText("Suppress Alerts if missed readings").performScrollTo().performClick()
+
+        // Master off -> dependent numeric row does not react.
+        composeRule.onNodeWithTag("setting_stale_minutes").performClick()
+        composeRule.onNodeWithText("OK").assertDoesNotExist()
+
+        // Master on -> dependent row opens its dialog.
+        composeRule.onNodeWithTag("setting_stale_enabled").performClick()
+        composeRule.onNodeWithTag("setting_stale_minutes").performClick()
+        composeRule.onNodeWithText("OK").assertExists()
+    }
+
+    @Test
+    fun searchNavigatesToMigratedSetting() {
+        composeRule.onNodeWithTag("setting_search").performTextInput("calibration")
+        composeRule.onNodeWithText("Calibration Alerts").performClick()
+
+        composeRule.onNodeWithTag("setting_calibration_notifications").assertExists()
     }
 }

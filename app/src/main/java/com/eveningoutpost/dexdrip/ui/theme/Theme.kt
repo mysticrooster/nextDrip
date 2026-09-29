@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 
 /**
@@ -35,6 +36,9 @@ fun XdripTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = AppTypography,
-        content = content,
-    )
+    ) {
+        CompositionLocalProvider(LocalXdripColors provides currentXdripColors()) {
+            content()
+        }
+    }
 }
