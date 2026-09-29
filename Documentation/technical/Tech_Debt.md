@@ -86,7 +86,9 @@ its dependency stack modernized before it compiles.
 ## 5. ActiveAndroid → Room (in scope)
 
 The largest single modernization item. ActiveAndroid is an abandoned ORM and is the
-data backbone of the app (41 model files). Migrating to Room:
+data backbone of the app (29 `@Table` classes, 64 files, ~478 query sites).
+
+**Detailed plan:** [`ActiveAndroid_to_Room.md`](./ActiveAndroid_to_Room.md).
 
 - **Why now:** the Compose migration will consume `BgReading`/`Calibration`/`Treatment`
   data heavily (Home, charts, stats). A clean, observable data layer (`Room` +
@@ -99,7 +101,7 @@ data backbone of the app (41 model files). Migrating to Room:
 - **Risk:** data integrity is critical (medical data). Add parity tests per model
   (existing `*Test` classes are the baseline) before switching any model's storage.
 - **Track:** framework modernization, parallel to the Compose phases. Own its own
-  backlog, do not block Phase 1–2 on it.
+  backlog; recommended *before* the deep Home slices.
 
 ---
 
