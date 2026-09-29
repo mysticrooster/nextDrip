@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **18** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest`, `Treatments` (+ `Libre2Sensors` as a `@DatabaseView`) |
+| Migrated tables | **19** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest`, `Treatments`, `LibreBlock` (+ `Libre2Sensors` as a `@DatabaseView`) |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -363,6 +363,12 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     read `treatments`) at new `TreatmentsDao.sumCarbs`/`sumInsulin`.
   - Bumped `@Database` to `version = 4`.
   - Added `TreatmentsTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `LibreBlock` (19/29).**
+  - `LibreBlock`: Room @Entity + DAO. The trend query used a hand-written
+    `INDEXED BY` raw query; re-expressed as a normal Room query (the timestamp index is
+    still used). Kept instance `save()`; dropped `updateDB`/`getFromCursor`.
+  - Bumped `@Database` to `version = 5`.
+  - Added `LibreBlockTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 

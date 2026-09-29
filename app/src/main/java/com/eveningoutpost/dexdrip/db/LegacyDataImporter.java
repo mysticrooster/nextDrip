@@ -75,7 +75,8 @@ public final class LegacyDataImporter {
                     "LibreData",
                     "Libre2RawValue2",
                     "BloodTest",
-                    "Treatments")));
+                    "Treatments",
+                    "LibreBlock")));
 
     private static final Object stateLock = new Object();
     private static boolean started;
