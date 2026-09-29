@@ -16,7 +16,24 @@ import com.eveningoutpost.dexdrip.utilitymodels.Pref
  * to a Material 3 [ColorScheme] role; data/chart colours keep their legacy `ColorCache` key so the
  * legacy screens stay consistent while they are migrated.
  */
-enum class ThemeColorGroup { Chrome, Data }
+/**
+ * Editor grouping, mirroring the legacy `xdrip_plus_color_settings` titled sections (plus
+ * [Chrome] for the Material 3 role set added in S0). [NumberWall] colours are rendered on the
+ * Number Wall settings screen instead of the theme editor, matching the legacy XML.
+ */
+enum class ThemeColorGroup {
+    Chrome,
+    GlucoseValues,
+    BgValues,
+    TreatmentsPrediction,
+    AverageTarget,
+    AnnotationsDots,
+    Backgrounds,
+    PluginsFeatures,
+    InsulinColors,
+    Flair,
+    NumberWall,
+}
 
 enum class ThemeColor(
     val key: String,
@@ -62,44 +79,44 @@ enum class ThemeColor(
     SURFACE_CONTAINER_LOW("theme_color_surface_container_low", R.string.theme_role_surface_container_low, ThemeColorGroup.Chrome),
     SURFACE_CONTAINER_LOWEST("theme_color_surface_container_lowest", R.string.theme_role_surface_container_lowest, ThemeColorGroup.Chrome),
 
-    // --- Data / chart colours (legacy ColorCache keys) ---------------------------------------
-    HIGH_VALUES("theme_color_high_values", R.string.high_glucose_values, ThemeColorGroup.Data, ColorCache.X.color_high_values),
-    IN_RANGE_VALUES("theme_color_in_range_values", R.string.in_range_glucose_values, ThemeColorGroup.Data, ColorCache.X.color_inrange_values),
-    LOW_VALUES("theme_color_low_values", R.string.low_glucose_values, ThemeColorGroup.Data, ColorCache.X.color_low_values),
-    BAD_VALUES("theme_color_bad_values", R.string.bad_glucose_values, ThemeColorGroup.Data, ColorCache.X.color_bad_values),
-    FILTERED("theme_color_filtered", R.string.filtered_values, ThemeColorGroup.Data, ColorCache.X.color_filtered),
-    HIGH_BG_VALUES("theme_color_high_bg_values", R.string.high_glucose_values, ThemeColorGroup.Data, ColorCache.X.color_high_bg_values),
-    IN_RANGE_BG_VALUES("theme_color_in_range_bg_values", R.string.in_range_glucose_values, ThemeColorGroup.Data, ColorCache.X.color_inrange_bg_values),
-    LOW_BG_VALUES("theme_color_low_bg_values", R.string.low_glucose_values, ThemeColorGroup.Data, ColorCache.X.color_low_bg_values),
-    LOW_PREDICTED_CRITICAL_NOTE("theme_color_low_predicted_critical_note", R.string.low_predicted_too_close_note, ThemeColorGroup.Data, ColorCache.X.color_low_predicted_critical_note),
-    TREATMENT("theme_color_treatment", R.string.treatment_color, ThemeColorGroup.Data, ColorCache.X.color_treatment),
-    TREATMENT_DARK("theme_color_treatment_dark", R.string.treatment_color_dark, ThemeColorGroup.Data, ColorCache.X.color_treatment_dark),
-    PREDICTIVE("theme_color_predictive", R.string.predictive_color, ThemeColorGroup.Data, ColorCache.X.color_predictive),
-    PREDICTIVE_DARK("theme_color_predictive_dark", R.string.predictive_color_dark, ThemeColorGroup.Data, ColorCache.X.color_predictive_dark),
-    AVERAGE1_LINE("theme_color_average1_line", R.string.eight_hour_average_line, ThemeColorGroup.Data, ColorCache.X.color_average1_line),
-    AVERAGE2_LINE("theme_color_average2_line", R.string.twenty_four_hour_average_line, ThemeColorGroup.Data, ColorCache.X.color_average2_line),
-    TARGET_LINE("theme_color_target_line", R.string.glucose_target_line, ThemeColorGroup.Data, ColorCache.X.color_target_line),
-    CALIBRATION_DOT_BACKGROUND("theme_color_calibration_dot_background", R.string.blood_test_background, ThemeColorGroup.Data, ColorCache.X.color_calibration_dot_background),
-    CALIBRATION_DOT_FOREGROUND("theme_color_calibration_dot_foreground", R.string.blood_test_foreground, ThemeColorGroup.Data, ColorCache.X.color_calibration_dot_foreground),
-    TREATMENT_DOT_BACKGROUND("theme_color_treatment_dot_background", R.string.treatment_background, ThemeColorGroup.Data, ColorCache.X.color_treatment_dot_background),
-    TREATMENT_DOT_FOREGROUND("theme_color_treatment_dot_foreground", R.string.treatment_foreground, ThemeColorGroup.Data, ColorCache.X.color_treatment_dot_foreground),
-    HOME_CHART_BACKGROUND("theme_color_home_chart_background", R.string.main_chart_background, ThemeColorGroup.Data, ColorCache.X.color_home_chart_background),
-    NOTIFICATION_CHART_BACKGROUND("theme_color_notification_chart_background", R.string.notification_chart_background, ThemeColorGroup.Data, ColorCache.X.color_notification_chart_background),
-    WIDGET_CHART_BACKGROUND("theme_color_widget_chart_background", R.string.widget_chart_background, ThemeColorGroup.Data, ColorCache.X.color_widget_chart_background),
-    SECONDARY_GLUCOSE_VALUE("theme_color_secondary_glucose_value", R.string.secondary_plugin_glucose_value, ThemeColorGroup.Data, ColorCache.X.color_secondary_glucose_value),
-    STEP_COUNTER1("theme_color_step_counter1", R.string.step_counter_1st_color, ThemeColorGroup.Data, ColorCache.X.color_step_counter1),
-    STEP_COUNTER2("theme_color_step_counter2", R.string.step_counter_2nd_color, ThemeColorGroup.Data, ColorCache.X.color_step_counter2),
-    HEART_RATE1("theme_color_heart_rate1", R.string.title_color_heart_rate1, ThemeColorGroup.Data, ColorCache.X.color_heart_rate1),
-    BASAL_TBR("theme_color_basal_tbr", R.string.title_color_basal_tbr, ThemeColorGroup.Data, ColorCache.X.color_basal_tbr),
-    SMB_ICON("theme_color_smb_icon", R.string.title_color_smb_icon, ThemeColorGroup.Data, ColorCache.X.color_smb_icon),
-    SMB_LINE("theme_color_smb_line", R.string.title_color_smb_line, ThemeColorGroup.Data, ColorCache.X.color_smb_line),
-    UPPER_FLAIR_BAR("theme_color_upper_flair_bar", R.string.upper_title_bar_flair, ThemeColorGroup.Data, ColorCache.X.color_upper_flair_bar),
-    LOWER_FLAIR_BAR("theme_color_lower_flair_bar", R.string.lower_button_bar_falir, ThemeColorGroup.Data, ColorCache.X.color_lower_flair_bar),
-    NUMBER_WALL("theme_color_number_wall", R.string.title_color_number_wall, ThemeColorGroup.Data, ColorCache.X.color_number_wall),
-    NUMBER_WALL_SHADOW("theme_color_number_wall_shadow", R.string.title_color_number_wall_shadow, ThemeColorGroup.Data, ColorCache.X.color_number_wall_shadow),
+    // --- Legacy colour-screen groups (order/titles mirror the XML) ---------------------------
+    HIGH_VALUES("theme_color_high_values", R.string.high_glucose_values, ThemeColorGroup.GlucoseValues, ColorCache.X.color_high_values),
+    IN_RANGE_VALUES("theme_color_in_range_values", R.string.in_range_glucose_values, ThemeColorGroup.GlucoseValues, ColorCache.X.color_inrange_values),
+    LOW_VALUES("theme_color_low_values", R.string.low_glucose_values, ThemeColorGroup.GlucoseValues, ColorCache.X.color_low_values),
+    BAD_VALUES("theme_color_bad_values", R.string.bad_glucose_values, ThemeColorGroup.GlucoseValues, ColorCache.X.color_bad_values),
+    FILTERED("theme_color_filtered", R.string.filtered_values, ThemeColorGroup.GlucoseValues, ColorCache.X.color_filtered),
+    HIGH_BG_VALUES("theme_color_high_bg_values", R.string.high_glucose_values, ThemeColorGroup.BgValues, ColorCache.X.color_high_bg_values),
+    IN_RANGE_BG_VALUES("theme_color_in_range_bg_values", R.string.in_range_glucose_values, ThemeColorGroup.BgValues, ColorCache.X.color_inrange_bg_values),
+    LOW_BG_VALUES("theme_color_low_bg_values", R.string.low_glucose_values, ThemeColorGroup.BgValues, ColorCache.X.color_low_bg_values),
+    LOW_PREDICTED_CRITICAL_NOTE("theme_color_low_predicted_critical_note", R.string.low_predicted_too_close_note, ThemeColorGroup.BgValues, ColorCache.X.color_low_predicted_critical_note),
+    TREATMENT("theme_color_treatment", R.string.treatment_color, ThemeColorGroup.TreatmentsPrediction, ColorCache.X.color_treatment),
+    TREATMENT_DARK("theme_color_treatment_dark", R.string.treatment_color_dark, ThemeColorGroup.TreatmentsPrediction, ColorCache.X.color_treatment_dark),
+    PREDICTIVE("theme_color_predictive", R.string.predictive_color, ThemeColorGroup.TreatmentsPrediction, ColorCache.X.color_predictive),
+    PREDICTIVE_DARK("theme_color_predictive_dark", R.string.predictive_color_dark, ThemeColorGroup.TreatmentsPrediction, ColorCache.X.color_predictive_dark),
+    AVERAGE1_LINE("theme_color_average1_line", R.string.eight_hour_average_line, ThemeColorGroup.AverageTarget, ColorCache.X.color_average1_line),
+    AVERAGE2_LINE("theme_color_average2_line", R.string.twenty_four_hour_average_line, ThemeColorGroup.AverageTarget, ColorCache.X.color_average2_line),
+    TARGET_LINE("theme_color_target_line", R.string.glucose_target_line, ThemeColorGroup.AverageTarget, ColorCache.X.color_target_line),
+    CALIBRATION_DOT_BACKGROUND("theme_color_calibration_dot_background", R.string.blood_test_background, ThemeColorGroup.AnnotationsDots, ColorCache.X.color_calibration_dot_background),
+    CALIBRATION_DOT_FOREGROUND("theme_color_calibration_dot_foreground", R.string.blood_test_foreground, ThemeColorGroup.AnnotationsDots, ColorCache.X.color_calibration_dot_foreground),
+    TREATMENT_DOT_BACKGROUND("theme_color_treatment_dot_background", R.string.treatment_background, ThemeColorGroup.AnnotationsDots, ColorCache.X.color_treatment_dot_background),
+    TREATMENT_DOT_FOREGROUND("theme_color_treatment_dot_foreground", R.string.treatment_foreground, ThemeColorGroup.AnnotationsDots, ColorCache.X.color_treatment_dot_foreground),
+    HOME_CHART_BACKGROUND("theme_color_home_chart_background", R.string.main_chart_background, ThemeColorGroup.Backgrounds, ColorCache.X.color_home_chart_background),
+    NOTIFICATION_CHART_BACKGROUND("theme_color_notification_chart_background", R.string.notification_chart_background, ThemeColorGroup.Backgrounds, ColorCache.X.color_notification_chart_background),
+    WIDGET_CHART_BACKGROUND("theme_color_widget_chart_background", R.string.widget_chart_background, ThemeColorGroup.Backgrounds, ColorCache.X.color_widget_chart_background),
+    SECONDARY_GLUCOSE_VALUE("theme_color_secondary_glucose_value", R.string.secondary_plugin_glucose_value, ThemeColorGroup.PluginsFeatures, ColorCache.X.color_secondary_glucose_value),
+    STEP_COUNTER1("theme_color_step_counter1", R.string.step_counter_1st_color, ThemeColorGroup.PluginsFeatures, ColorCache.X.color_step_counter1),
+    STEP_COUNTER2("theme_color_step_counter2", R.string.step_counter_2nd_color, ThemeColorGroup.PluginsFeatures, ColorCache.X.color_step_counter2),
+    HEART_RATE1("theme_color_heart_rate1", R.string.title_color_heart_rate1, ThemeColorGroup.PluginsFeatures, ColorCache.X.color_heart_rate1),
+    BASAL_TBR("theme_color_basal_tbr", R.string.title_color_basal_tbr, ThemeColorGroup.InsulinColors, ColorCache.X.color_basal_tbr),
+    SMB_ICON("theme_color_smb_icon", R.string.title_color_smb_icon, ThemeColorGroup.InsulinColors, ColorCache.X.color_smb_icon),
+    SMB_LINE("theme_color_smb_line", R.string.title_color_smb_line, ThemeColorGroup.InsulinColors, ColorCache.X.color_smb_line),
+    UPPER_FLAIR_BAR("theme_color_upper_flair_bar", R.string.upper_title_bar_flair, ThemeColorGroup.Flair, ColorCache.X.color_upper_flair_bar),
+    LOWER_FLAIR_BAR("theme_color_lower_flair_bar", R.string.lower_button_bar_falir, ThemeColorGroup.Flair, ColorCache.X.color_lower_flair_bar),
+    NUMBER_WALL("theme_color_number_wall", R.string.title_color_number_wall, ThemeColorGroup.NumberWall, ColorCache.X.color_number_wall),
+    NUMBER_WALL_SHADOW("theme_color_number_wall_shadow", R.string.title_color_number_wall_shadow, ThemeColorGroup.NumberWall, ColorCache.X.color_number_wall_shadow),
     ;
 
-    val isData: Boolean get() = group == ThemeColorGroup.Data
+    val isData: Boolean get() = group != ThemeColorGroup.Chrome
 
     /** The Material You default for this colour, read from [scheme]. */
     fun defaultFrom(scheme: ColorScheme): Color = when (this) {

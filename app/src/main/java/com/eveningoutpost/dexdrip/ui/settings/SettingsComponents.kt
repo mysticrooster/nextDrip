@@ -141,6 +141,8 @@ fun SettingsEditTextRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     numeric: Boolean = false,
+    decimal: Boolean = false,
+    masked: Boolean = false,
     enabled: Boolean = true,
     valueColor: Color = Color.Unspecified,
     maxLength: Int? = null,
@@ -161,6 +163,8 @@ fun SettingsEditTextRow(
             title = title,
             initial = value,
             numeric = numeric,
+            decimal = decimal,
+            masked = masked,
             maxLength = maxLength,
             onDismiss = { showDialog = false },
             onConfirm = { onValueChange(it); showDialog = false },
@@ -399,6 +403,7 @@ fun SettingsColorRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     enabled: Boolean = true,
+    showHex: Boolean = false,
     onReset: (() -> Unit)? = null,
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -406,12 +411,20 @@ fun SettingsColorRow(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
         trailingContent = {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .background(Color(color), CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
-            )
+            Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .background(Color(color), CircleShape)
+                        .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                )
+                if (showHex) {
+                    Text(
+                        text = String.format("#%08X", color),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
         },
         modifier = modifier
             .fillMaxWidth()
@@ -482,6 +495,8 @@ private fun EditTextDialog(
     title: String,
     initial: String,
     numeric: Boolean,
+    decimal: Boolean,
+    masked: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
     maxLength: Int? = null,
@@ -498,7 +513,12 @@ private fun EditTextDialog(
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = if (numeric) KeyboardType.Number else KeyboardType.Text
+                    keyboardType = when {
+                        masked -> KeyboardType.NumberPassword
+                        decimal -> KeyboardType.Decimal
+                        numeric -> KeyboardType.Number
+                        else -> KeyboardType.Text
+                    }
                 ),
             )
         },
