@@ -1,55 +1,54 @@
 package com.eveningoutpost.dexdrip.utilitymodels;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.SensorSendQueueDao;
 import com.eveningoutpost.dexdrip.models.Sensor;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.List;
 
 /**
  * Created by Emma Black on 11/7/14.
  */
-@Table(name = "SensorSendQueue", id = BaseColumns._ID)
-public class SensorSendQueue extends Model {
+@Entity(tableName = "SensorSendQueue",
+        indices = {
+                @Index("Sensor"),
+                @Index("success")
+        })
+public class SensorSendQueue {
 
-    @Column(name = "Sensor", index = true)
-    public Sensor sensor;
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
-    @Column(name = "success", index = true)
+    @ColumnInfo(name = "Sensor")
+    public long sensor_id;
+
+    @ColumnInfo(name = "success")
     public boolean success;
 
 
     public static SensorSendQueue nextSensorJob() {
-        SensorSendQueue job = new Select()
-                .from(SensorSendQueue.class)
-                .where("success =", false)
-                .orderBy("_ID desc")
-                .limit(1)
-                .executeSingle();
-        return job;
+        return dao().nextUnsuccessful();
     }
 
     public static List<SensorSendQueue> queue() {
-        return new Select()
-                .from(SensorSendQueue.class)
-                .where("success = ?", false)
-                .orderBy("_ID desc")
-                .execute();
+        return dao().queue();
     }
 
     public static void addToQueue(Sensor sensor) {
         SendToFollower(sensor);
         SensorSendQueue sensorSendQueue = new SensorSendQueue();
-        sensorSendQueue.sensor = sensor;
+        sensorSendQueue.sensor_id = sensor._id;
         sensorSendQueue.success = false;
-        sensorSendQueue.save();
+        dao().insert(sensorSendQueue);
     }
     
     public static void SendToFollower(Sensor sensor) {
@@ -60,8 +59,10 @@ public class SensorSendQueue extends Model {
     }
 
     public static void deleteAll() {
-        new Delete()
-                .from(SensorSendQueue.class)
-                .execute();
+        dao().deleteAll();
+    }
+
+    private static SensorSendQueueDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).sensorSendQueueDao();
     }
 }

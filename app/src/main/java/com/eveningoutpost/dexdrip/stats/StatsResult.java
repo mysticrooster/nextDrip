@@ -1,11 +1,9 @@
 package com.eveningoutpost.dexdrip.stats;
 
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 
-import com.activeandroid.Cache;
 import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.BgReadingDao;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
@@ -58,35 +56,19 @@ public class StatsResult {
             high *= Constants.MMOLL_TO_MGDL;
             low *= Constants.MMOLL_TO_MGDL;
         }
-        SQLiteDatabase db = Cache.openDatabase();
+        final BgReadingDao dao = AppDatabase.getInstance(xdrip.getAppContext()).bgReadingDao();
 
-        Cursor cursor= db.rawQuery("select count(*) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND calculated_value >= " + low + " AND calculated_value <= " + high + " AND snyced == 0", null);
-        cursor.moveToFirst();
-        in = cursor.getInt(0);
-        cursor.close();
-
-        cursor= db.rawQuery("select count(*) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND calculated_value > " + DBSearchUtil.CUTOFF + " AND calculated_value < " + low + " AND snyced == 0", null);
-        cursor.moveToFirst();
-        below = cursor.getInt(0);
-        cursor.close();
-
-        cursor= db.rawQuery("select count(*) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND calculated_value > " + high + " AND snyced == 0", null);
-        cursor.moveToFirst();
-        above = cursor.getInt(0);
-        cursor.close();
+        in = dao.statsCountIn(from, to, low, high);
+        below = dao.statsCountBelow(from, to, Double.parseDouble(DBSearchUtil.CUTOFF), low);
+        above = dao.statsCountAbove(from, to, high);
 
         if (canShowRealtimeCapture()) {
-            cursor = db.rawQuery("select count(*) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND source_info LIKE \"%Backfill\" AND snyced == 0", null);
-            cursor.moveToFirst();
-            backfilledNativeG5 = cursor.getInt(0);
-            cursor.close();
+            backfilledNativeG5 = dao.statsCountBackfill(from, to);
         }
 
         if(getTotalReadings() > 0){
-            cursor= db.rawQuery("select avg(calculated_value) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND calculated_value > " + DBSearchUtil.CUTOFF + " AND snyced == 0", null);
-            cursor.moveToFirst();
-            avg = cursor.getDouble(0);
-            cursor.close();
+            final Double average = dao.statsAvg(from, to, Double.parseDouble(DBSearchUtil.CUTOFF));
+            avg = average != null ? average : 0;
         } else {
             avg = 0;
         }
@@ -124,11 +106,9 @@ public class StatsResult {
     public void calc_StdDev() {
         if (stdev < 0) {
             if(getTotalReadings() > 0){
-                Cursor cursor= Cache.openDatabase().rawQuery("select ((count(*)*(sum(calculated_value * calculated_value)) - (sum(calculated_value)*sum(calculated_value)) )/((count(*)-1)*(count(*))) ) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND calculated_value > " + DBSearchUtil.CUTOFF + " AND snyced == 0", null);
-                cursor.moveToFirst();
-                stdev = cursor.getDouble(0);
-                stdev = Math.sqrt(stdev);
-                cursor.close();
+                final Double variance = AppDatabase.getInstance(xdrip.getAppContext()).bgReadingDao()
+                        .statsStdev(from, to, Double.parseDouble(DBSearchUtil.CUTOFF));
+                stdev = variance != null ? Math.sqrt(variance) : 0;
             } else {
                 stdev = 0;
             }
@@ -142,19 +122,19 @@ public class StatsResult {
             if(getTotalReadings() > 0){
                 int totalReadings = getTotalReadings();
                 double NormalReadingspct = getIn()*100/getTotalReadings();
-                Cursor cursor= Cache.openDatabase().rawQuery("select calculated_value from bgreadings where timestamp >= " + from + " AND timestamp <= " + to + " AND calculated_value > " + DBSearchUtil.CUTOFF + " AND snyced == 0", null);
-                cursor.moveToFirst();
-                double glucoseFirst = cursor.getDouble(0);
+                final java.util.List<Double> values = AppDatabase.getInstance(xdrip.getAppContext()).bgReadingDao()
+                        .statsValues(from, to, Double.parseDouble(DBSearchUtil.CUTOFF));
+                double glucoseFirst = values.get(0);
                 double glucoseLast = glucoseFirst;
                 double GVITotal = 0;
                 double glucoseTotal =  glucoseLast;
                 int usedRecords = 1;
-                while(cursor.moveToNext()) {
-                    double delta = cursor.getDouble(0) - glucoseLast;
+                for (int i = 1; i < values.size(); i++) {
+                    double delta = values.get(i) - glucoseLast;
                     GVITotal += Math.sqrt(25 + Math.pow(delta, 2));
                     usedRecords += 1;
-                    glucoseLast = cursor.getDouble(0);
-                    glucoseTotal +=  glucoseLast;
+                    glucoseLast = values.get(i);
+                    glucoseTotal += glucoseLast;
                 }
                 double GVIDelta = Math.abs(glucoseLast - glucoseFirst);//Math.floor(glucose_data[0].bgValue,glucose_data[glucose_data.length-1].bgValue);
                 double GVIIdeal = Math.sqrt(Math.pow(usedRecords*5,2) + Math.pow(GVIDelta,2));
@@ -165,7 +145,6 @@ public class StatsResult {
                 double tirMultiplier = NormalReadingspct / 100.0;
                 PGS = (GVI * glucoseMean * (1-tirMultiplier) * 100) / 100;
                 UserError.Log.d(TAG, "NormalReadingspct=" + NormalReadingspct + " glucoseMean=" + glucoseMean + " tirMultiplier=" + tirMultiplier + " PGS=" + PGS);
-                cursor.close();
             } else {
                 GVI = 0;
                 PGS = 0;

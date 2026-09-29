@@ -304,8 +304,6 @@ public class UploaderQueue extends Model {
             return -1;
         }
     }
-
-
     private static int getCount(String where) {
         try {
             final String query = new Select("COUNT(*) as total").from(UploaderQueue.class).toSql();
@@ -433,14 +431,14 @@ public class UploaderQueue extends Model {
                 // handle legacy tables
                 if (bitfield == MONGO_DIRECT) {
                     // legacy
-                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), getLegacyCount(BgSendQueue.class, null, false, null) + " Legacy Glucose Values"));
-                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), getLegacyCount(CalibrationSendQueue.class, null, false, null) + " Legacy Calibrations"));
+                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), BgSendQueue.countByMongoSuccess(false) + " Legacy Glucose Values"));
+                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), CalibrationSendQueue.countByMongoSuccess(false) + " Legacy Calibrations"));
                 }
                 // handle legacy tables
                 if (bitfield == NIGHTSCOUT_RESTAPI) {
                     // legacy
-                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), getLegacyCount(BgSendQueue.class, false, null, null) + " Legacy Glucose Values"));
-                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), getLegacyCount(CalibrationSendQueue.class, false, null, null) + " Legacy Calibrations"));
+                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), BgSendQueue.countBySuccess(false) + " Legacy Glucose Values"));
+                    l.add(new StatusItem(circuits_for_stats.valueAt(i).toString(), CalibrationSendQueue.countBySuccess(false) + " Legacy Calibrations"));
                 }*/
         }
 

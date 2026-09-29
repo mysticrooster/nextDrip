@@ -1,34 +1,46 @@
 package com.eveningoutpost.dexdrip.utilitymodels;
 
 import android.content.Context;
-import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.CalibrationSendQueueDao;
 import com.eveningoutpost.dexdrip.models.Calibration;
 import com.eveningoutpost.dexdrip.models.Sensor;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
+import com.eveningoutpost.dexdrip.xdrip;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Emma Black on 11/7/14.
  */
 @Deprecated
-@Table(name = "CalibrationSendQueue", id = BaseColumns._ID)
-public class CalibrationSendQueue extends Model {
+@Entity(tableName = "CalibrationSendQueue",
+        indices = {
+                @Index("calibration"),
+                @Index("success"),
+                @Index("mongo_success")
+        })
+public class CalibrationSendQueue {
     private final static String TAG = CalibrationSendQueue.class.getSimpleName();
 
-    @Column(name = "calibration", index = true)
-    public Calibration calibration;
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
-    @Column(name = "success", index = true)
+    @ColumnInfo(name = "calibration")
+    public long calibration_id;
+
+    @ColumnInfo(name = "success")
     public boolean success;
 
-    @Column(name = "mongo_success", index = true)
+    @ColumnInfo(name = "mongo_success")
     public boolean mongo_success;
 
     /*
@@ -41,20 +53,21 @@ public class CalibrationSendQueue extends Model {
     }
     */
     public static List<CalibrationSendQueue> mongoQueue() {
-        return new Select()
-                .from(CalibrationSendQueue.class)
-                .where("mongo_success = ?", false)
-                .orderBy("_ID desc")
-                .limit(20)
-                .execute();
+        return dao().mongoQueue();
     }
 
     @Deprecated
     public static List<CalibrationSendQueue> cleanQueue() {
-        return new Delete()
-                .from(CalibrationSendQueue.class)
-                .where("mongo_success = ?", true)
-                .execute();
+        dao().cleanQueue();
+        return new ArrayList<>();
+    }
+
+    public static int countBySuccess(boolean success) {
+        return dao().countBySuccess(success);
+    }
+
+    public static int countByMongoSuccess(boolean success) {
+        return dao().countByMongoSuccess(success);
     }
 
     public static void addToQueue(Calibration calibration, Context context) {
@@ -73,6 +86,10 @@ public class CalibrationSendQueue extends Model {
 
     public void markMongoSuccess() {
         mongo_success = true;
-        save();
+        dao().update(this);
+    }
+
+    private static CalibrationSendQueueDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).calibrationSendQueueDao();
     }
 }

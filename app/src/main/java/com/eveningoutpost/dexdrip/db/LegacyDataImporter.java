@@ -77,7 +77,13 @@ public final class LegacyDataImporter {
                     "BloodTest",
                     "Treatments",
                     "LibreBlock",
-                    "DesertSync")));
+                    "DesertSync",
+                    "Sensors",
+                    "Calibration",
+                    "BgReadings",
+                    "SensorSendQueue",
+                    "CalibrationSendQueue",
+                    "BgSendQueue")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

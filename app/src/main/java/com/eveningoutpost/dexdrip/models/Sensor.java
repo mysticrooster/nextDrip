@@ -2,18 +2,20 @@ package com.eveningoutpost.dexdrip.models;
 
 import static com.eveningoutpost.dexdrip.models.JoH.tsl;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.SensorDao;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.SensorSendQueue;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
@@ -34,29 +36,37 @@ import lombok.val;
  * Created by Emma Black on 10/29/14.
  */
 
-@Table(name = "Sensors", id = BaseColumns._ID)
-public class Sensor extends Model {
+@Entity(tableName = "Sensors",
+        indices = {
+                @Index("started_at"),
+                @Index("uuid")
+        })
+public class Sensor {
     private final static String TAG = Sensor.class.getSimpleName();
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "started_at", index = true)
+    @ColumnInfo(name = "started_at")
     public long started_at;
 
     @Expose
-    @Column(name = "stopped_at")
+    @ColumnInfo(name = "stopped_at")
     public long stopped_at;
 
     @Expose
     //latest minimal battery level
-    @Column(name = "latest_battery_level")
+    @ColumnInfo(name = "latest_battery_level")
     public int latest_battery_level;
 
     @Expose
-    @Column(name = "uuid", index = true)
+    @ColumnInfo(name = "uuid")
     public String uuid;
 
   @Expose
-  @Column(name = "sensor_location")
+  @ColumnInfo(name = "sensor_location")
   public String sensor_location;
 
 
@@ -137,14 +147,7 @@ public class Sensor extends Model {
     }
 
     public static Sensor lastStopped() {
-        Sensor sensor = new Select()
-                .from(Sensor.class)
-                .where("started_at != 0")
-                .where("stopped_at != 0")
-                .orderBy("_ID desc")
-                .limit(1)
-                .executeSingle();
-        return sensor;
+        return dao().lastStopped();
     }
 
     public static boolean stoppedRecently() {
@@ -153,12 +156,7 @@ public class Sensor extends Model {
     }
 
     public static Sensor currentSensor() {
-        Sensor sensor = new Select()
-                .from(Sensor.class)
-                .where("started_at != 0")
-                .orderBy("_ID desc")
-                .limit(1)
-                .executeSingle();
+        Sensor sensor = dao().currentSensor();
 
         if (sensor != null) {
             if (sensor.stopped_at != 0) {
@@ -174,10 +172,7 @@ public class Sensor extends Model {
     }
 
     public static Sensor getByTimestamp(long started_at) {
-        return new Select()
-                .from(Sensor.class)
-                .where("started_at = ?", started_at)
-                .executeSingle();
+        return dao().getByTimestamp(started_at);
     }
 
     public static Sensor restartSensor(String sensorUuid) {
@@ -204,10 +199,7 @@ public class Sensor extends Model {
         }
         Log.d("SENSOR", "xDrip_sensor_uuid is " + xDrip_sensor_uuid);
 
-        return new Select()
-                .from(Sensor.class)
-                .where("uuid = ?", xDrip_sensor_uuid)
-                .executeSingle();
+        return dao().getByUuid(xDrip_sensor_uuid);
     }
 
     public static void updateBatteryLevel(int sensorBatteryLevel, boolean from_sync) {
@@ -284,9 +276,7 @@ public class Sensor extends Model {
     public static void deleteAll() {
         // will fail if bg readings not deleted first
             SensorSendQueue.deleteAll();
-            new Delete()
-                    .from(Sensor.class)
-                    .execute();
+            dao().deleteAll();
     }
 
     public String toJSON() {
@@ -349,12 +339,36 @@ public class Sensor extends Model {
 
 
     public static void shutdownAllSensors() {
-        final List<Sensor> l = new Select().from(Sensor.class).execute();
+        final List<Sensor> l = dao().all();
         for (final Sensor s : l) {
             s.stopped_at = s.started_at;
             s.save();
             System.out.println(s.toJSON());
         }
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    /** Mirrors the ActiveAndroid Model.getId() used by callers. */
+    public Long getId() {
+        return _id;
+    }
+
+    private static SensorDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).sensorDao();
     }
 }
 

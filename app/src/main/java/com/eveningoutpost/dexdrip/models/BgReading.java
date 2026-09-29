@@ -12,17 +12,18 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.PowerManager;
 import androidx.preference.PreferenceManager;
-import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
-import com.activeandroid.util.SQLiteUtils;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
 import com.eveningoutpost.dexdrip.BestGlucose;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.BgReadingDao;
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.records.EGVRecord;
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.records.SensorRecord;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
@@ -42,7 +43,6 @@ import com.eveningoutpost.dexdrip.calibrations.CalibrationAbstract;
 import com.eveningoutpost.dexdrip.messages.BgReadingMessage;
 import com.eveningoutpost.dexdrip.messages.BgReadingMultiMessage;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
-import com.eveningoutpost.dexdrip.utils.SqliteRejigger;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.Gson;
@@ -66,8 +66,15 @@ import java.util.UUID;
 
 import lombok.val;
 
-@Table(name = "BgReadings", id = BaseColumns._ID)
-public class BgReading extends Model implements ShareUploadableBg {
+@Entity(tableName = "BgReadings",
+        indices = {
+                @Index("sensor"),
+                @Index("calibration"),
+                @Index("timestamp"),
+                @Index("sensor_uuid"),
+                @Index(value = "uuid", unique = true)
+        })
+public class BgReading implements ShareUploadableBg {
 
     private final static String TAG = BgReading.class.getSimpleName();
     private final static String TAG_ALERT = TAG + " AlertBg";
@@ -85,138 +92,101 @@ public class BgReading extends Model implements ShareUploadableBg {
 
     private static volatile long earliest_backfill = 0;
 
-    @Column(name = "sensor", index = true)
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
+    @ColumnInfo(name = "sensor")
+    public long sensor_id;
+
+    @Ignore
     public Sensor sensor;
 
-    @Column(name = "calibration", index = true, onDelete = Column.ForeignKeyAction.CASCADE)
+    @ColumnInfo(name = "calibration")
+    public long calibration_id;
+
+    @Ignore
     public Calibration calibration;
 
     @Expose
-    @Column(name = "timestamp", index = true)
     public long timestamp;
 
     @Expose
-    @Column(name = "time_since_sensor_started")
     public double time_since_sensor_started;
 
     @Expose
-    @Column(name = "raw_data")
     public volatile double raw_data;
 
     @Expose
-    @Column(name = "filtered_data")
     public double filtered_data;
 
     @Expose
-    @Column(name = "age_adjusted_raw_value")
     public double age_adjusted_raw_value;
 
     @Expose
-    @Column(name = "calibration_flag")
     public boolean calibration_flag;
 
     @Expose
-    @Column(name = "calculated_value")
     public double calculated_value;
 
     @Expose
-    @Column(name = "filtered_calculated_value")
     public double filtered_calculated_value;
 
     @Expose
-    @Column(name = "calculated_value_slope")
     public double calculated_value_slope;
 
     @Expose
-    @Column(name = "a")
     public double a;
 
     @Expose
-    @Column(name = "b")
     public double b;
 
     @Expose
-    @Column(name = "c")
     public double c;
 
     @Expose
-    @Column(name = "ra")
     public double ra;
 
     @Expose
-    @Column(name = "rb")
     public double rb;
 
     @Expose
-    @Column(name = "rc")
     public double rc;
     @Expose
     // TODO unification with wear support ConflictAction.REPLACE for wear, done with rejig below
-    @Column(name = "uuid", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
     public String uuid;
 
     @Expose
-    @Column(name = "calibration_uuid")
     public String calibration_uuid;
 
     @Expose
-    @Column(name = "sensor_uuid", index = true)
     public String sensor_uuid;
 
     // mapped to the no longer used "synced" to keep DB Scheme compatible
     @Expose
-    @Column(name = "snyced")
+    @ColumnInfo(name = "snyced")
     public boolean ignoreForStats;
 
     @Expose
-    @Column(name = "raw_calculated")
     public double raw_calculated;
 
     @Expose
-    @Column(name = "hide_slope")
     public boolean hide_slope;
 
     @Expose
-    @Column(name = "noise")
     public String noise;
 
     @Expose
-    @Column(name = "dg_mgdl")
     public double dg_mgdl = 0d;
 
     @Expose
-    @Column(name = "dg_slope")
     public double dg_slope = 0d;
 
     @Expose
-    @Column(name = "dg_delta_name")
     public String dg_delta_name;
 
     @Expose
-    @Column(name = "source_info")
     public volatile String source_info;
-
-    public synchronized static void updateDB() {
-        final String[] updates = new String[]{"ALTER TABLE BgReadings ADD COLUMN dg_mgdl REAL;",
-                "ALTER TABLE BgReadings ADD COLUMN dg_slope REAL;",
-                "ALTER TABLE BgReadings ADD COLUMN dg_delta_name TEXT;",
-                "ALTER TABLE BgReadings ADD COLUMN source_info TEXT;"};
-        for (String patch : updates) {
-            try {
-                SQLiteUtils.execSql(patch);
-            } catch (Exception e) {
-            }
-        }
-
-        // needs different handling on wear
-        if (JoH.areWeRunningOnAndroidWear()) {
-            BgSendQueue.emptyQueue();
-            SqliteRejigger.rejigSchema("BgReadings", "uuid TEXT UNIQUE ON CONFLICT FAIL", "uuid TEXT UNIQUE ON CONFLICT REPLACE");
-            SqliteRejigger.rejigSchema("BgReadings", "uuid TEXT UNIQUE ON CONFLICT IGNORE", "uuid TEXT UNIQUE ON CONFLICT REPLACE");
-            SqliteRejigger.rejigSchema("BgSendQueue", "BgReadings_temp", "BgReadings");
-        }
-
-    }
 
     public double getDg_mgdl(){
         if(dg_mgdl != 0) return dg_mgdl;
@@ -401,14 +371,7 @@ public class BgReading extends Model implements ShareUploadableBg {
     public static BgReading getForTimestamp(double timestamp) {
         Sensor sensor = Sensor.currentSensor();
         if (sensor != null) {
-            BgReading bgReading = new Select()
-                    .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
-                    .where("timestamp <= ?", (timestamp + (60 * 1000))) // 1 minute padding (should never be that far off, but why not)
-                    .where("calculated_value = 0")
-                    .where("raw_calculated = 0")
-                    .orderBy("timestamp desc")
-                    .executeSingle();
+            BgReading bgReading = dao().getForTimestampUncalculated(sensor.getId(), (long) (timestamp + (60 * 1000)));
             if (bgReading != null && Math.abs(bgReading.timestamp - timestamp) < (3 * 60 * 1000)) { //cool, so was it actually within 4 minutes of that bg reading?
                 Log.i(TAG, "getForTimestamp: Found a BG timestamp match");
                 return bgReading;
@@ -422,12 +385,7 @@ public class BgReading extends Model implements ShareUploadableBg {
     public static BgReading getForTimestampExists(double timestamp) {
         Sensor sensor = Sensor.currentSensor();
         if (sensor != null) {
-            BgReading bgReading = new Select()
-                    .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
-                    .where("timestamp <= ?", (timestamp + (60 * 1000))) // 1 minute padding (should never be that far off, but why not)
-                    .orderBy("timestamp desc")
-                    .executeSingle();
+            BgReading bgReading = dao().getForTimestampExists(sensor.getId(), (long) (timestamp + (60 * 1000)));
             if (bgReading != null && Math.abs(bgReading.timestamp - timestamp) < (3 * 60 * 1000)) { //cool, so was it actually within 4 minutes of that bg reading?
                 Log.i(TAG, "getForTimestamp: Found a BG timestamp match");
                 return bgReading;
@@ -444,13 +402,9 @@ public class BgReading extends Model implements ShareUploadableBg {
     public static BgReading getForPreciseTimestamp(long timestamp, long precision, boolean lock_to_sensor) {
         final Sensor sensor = Sensor.currentSensor();
         if ((sensor != null) || !lock_to_sensor) {
-            final BgReading bgReading = new Select()
-                    .from(BgReading.class)
-                    .where(lock_to_sensor ? "Sensor = ?" : "timestamp > ?", (lock_to_sensor ? sensor.getId() : 0))
-                    .where("timestamp <= ?", (timestamp + precision))
-                    .where("timestamp >= ?", (timestamp - precision))
-                    .orderBy("abs(timestamp - " + timestamp + ") asc")
-                    .executeSingle();
+            final BgReading bgReading = lock_to_sensor
+                    ? dao().preciseLocked(sensor.getId(), (timestamp - precision), (timestamp + precision), timestamp)
+                    : dao().preciseUnlocked((timestamp - precision), (timestamp + precision), timestamp);
             if (bgReading != null && Math.abs(bgReading.timestamp - timestamp) < precision) { //cool, so was it actually within precision of that bg reading?
                 //Log.d(TAG, "getForPreciseTimestamp: Found a BG timestamp match");
                 return bgReading;
@@ -465,12 +419,7 @@ public class BgReading extends Model implements ShareUploadableBg {
         double timestamp = sensorRecord.getSystemTime().getTime() + addativeOffset;
         Sensor sensor = Sensor.currentSensor();
         if (sensor != null) {
-            BgReading bgReading = new Select()
-                    .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
-                    .where("timestamp <= ?", (timestamp + (60 * 1000))) // 1 minute padding (should never be that far off, but why not)
-                    .orderBy("timestamp desc")
-                    .executeSingle();
+            BgReading bgReading = dao().getForTimestampExists(sensor.getId(), (long) (timestamp + (60 * 1000)));
             if (bgReading != null && Math.abs(bgReading.timestamp - timestamp) < (3 * 60 * 1000)) { //cool, so was it actually within 4 minutes of that bg reading?
                 Log.i(TAG, "isNew; Old Reading");
                 return false;
@@ -770,24 +719,11 @@ public class BgReading extends Model implements ShareUploadableBg {
 
     public static BgReading last(boolean is_follower) {
         if (is_follower) {
-            return new Select()
-                    .from(BgReading.class)
-                    .where("calculated_value != 0")
-                    .where("raw_data != 0")
-              //      .where("timestamp <= ?", JoH.tsl())
-                    .orderBy("timestamp desc")
-                    .executeSingle();
+            return dao().lastAny();
         } else {
             Sensor sensor = Sensor.currentSensor();
             if (sensor != null) {
-                return new Select()
-                        .from(BgReading.class)
-                        .where("Sensor = ? ", sensor.getId())
-                        .where("calculated_value != 0")
-                        .where("raw_data != 0")
-                //        .where("timestamp <= ?", JoH.tsl())
-                        .orderBy("timestamp desc")
-                        .executeSingle();
+                return dao().lastForSensor(sensor.getId());
             }
         }
         return null;
@@ -796,23 +732,11 @@ public class BgReading extends Model implements ShareUploadableBg {
     public static List<BgReading> latest_by_size(int number) {
         final Sensor sensor = Sensor.currentSensor();
         if (sensor == null) return null;
-        return new Select()
-                .from(BgReading.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("raw_data != 0")
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
+        return dao().latestRawForSensor(sensor.getId(), number);
     }
 
     public static BgReading lastNoSenssor() {
-        return new Select()
-                .from(BgReading.class)
-                .where("calculated_value != 0")
-                .where("raw_data != 0")
-            //    .where("timestamp <= ?", JoH.tsl())
-                .orderBy("timestamp desc")
-                .executeSingle();
+        return dao().lastAny();
     }
 
     public static List<BgReading> latest(int number) {
@@ -822,28 +746,13 @@ public class BgReading extends Model implements ShareUploadableBg {
     public static List<BgReading> latest(int number, boolean is_follower) {
         if (is_follower) {
             // exclude sensor information when working as a follower
-            return new Select()
-                    .from(BgReading.class)
-                    .where("calculated_value != 0")
-                    .where("raw_data != 0")
-            //        .where("timestamp <= ?", JoH.tsl())
-                    .orderBy("timestamp desc")
-                    .limit(number)
-                    .execute();
+            return dao().latestAny(number);
         } else {
             Sensor sensor = Sensor.currentSensor();
             if (sensor == null) {
                 return null;
             }
-            return new Select()
-                    .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
-                    .where("calculated_value != 0")
-                    .where("raw_data != 0")
-              //      .where("timestamp <= ?", JoH.tsl())
-                    .orderBy("timestamp desc")
-                    .limit(number)
-                    .execute();
+            return dao().latestForSensor(sensor.getId(), number);
         }
     }
 
@@ -878,13 +787,7 @@ public class BgReading extends Model implements ShareUploadableBg {
     public static List<BgReading> latestUnCalculated(int number) {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
-                .from(BgReading.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("raw_data != 0")
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
+        return dao().latestRawForSensor(sensor.getId(), number);
     }
 
     public static List<BgReading> latestForGraph(int number, double startTime) {
@@ -896,17 +799,8 @@ public class BgReading extends Model implements ShareUploadableBg {
     }
 
     public static List<BgReading> latestForGraph(int number, long startTime, long endTime) {
-        final List<BgReading> readings = new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + Math.max(startTime, 0))
-                .where("timestamp <= " + endTime)
-                .where("calculated_value != 0")
-                .where("raw_data != 0")
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
-
-       return filterInvalidReadings(readings);
+        final List<BgReading> readings = dao().latestForGraph(Math.max(startTime, 0), endTime, number);
+        return filterInvalidReadings(readings);
     }
 
     private static List<BgReading> filterInvalidReadings(final List<BgReading> readings) {
@@ -928,45 +822,18 @@ public class BgReading extends Model implements ShareUploadableBg {
     public static List<BgReading> latestForGraphSensor(int number, long startTime, long endTime) {
         Sensor sensor = Sensor.currentSensor();
         if (sensor == null) { return null; }
-        return new Select()
-                .from(BgReading.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("timestamp >= " + Math.max(startTime, 0))
-                .where("timestamp <= " + endTime)
-                .where("calculated_value != 0")
-                .where("raw_data != 0")
-                .where("calibration_uuid != \"\"")
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
+        return dao().latestForGraphSensor(sensor.getId(), Math.max(startTime, 0), endTime, number);
     }
 
     public static List<BgReading> latestForSensorAsc(int number, long startTime, long endTime, boolean follower) {
         if (follower) {
-            return new Select()
-                    .from(BgReading.class)
-                    .where("timestamp >= ?", Math.max(startTime, 0))
-                    .where("timestamp <= ?", endTime)
-                    .where("calculated_value != 0")
-                    .where("raw_data != 0")
-                    .orderBy("timestamp asc")
-                    .limit(number)
-                    .execute();
+            return dao().latestAscAny(Math.max(startTime, 0), endTime, number);
         } else {
             final Sensor sensor = Sensor.currentSensor();
             if (sensor == null) {
                 return null;
             }
-            return new Select()
-                    .from(BgReading.class)
-                    .where("Sensor = ? ", sensor.getId())
-                    .where("timestamp >= ?", Math.max(startTime, 0))
-                    .where("timestamp <= ?", endTime)
-                    .where("calculated_value != 0")
-                    .where("raw_data != 0")
-                    .orderBy("timestamp asc")
-                    .limit(number)
-                    .execute();
+            return dao().latestAscForSensor(sensor.getId(), Math.max(startTime, 0), endTime, number);
         }
     }
 
@@ -980,28 +847,12 @@ public class BgReading extends Model implements ShareUploadableBg {
     }
 
     public static List<BgReading> latestForGraphAsc(int number, long startTime, long endTime) {//KS
-        return new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + Math.max(startTime, 0))
-                .where("timestamp <= " + endTime)
-                .where("calculated_value != 0")
-                .where("raw_data != 0")
-                .orderBy("timestamp asc")
-                .limit(number)
-                .execute();
+        return dao().latestAscAny(Math.max(startTime, 0), endTime, number);
     }
 
     public static List<BgReading> latestForGraphAscNewest(int number, long startTime, long endTime) {
         // If the number of readings in the specified period exceeds the limit, keep the most recent readings.
-        List<BgReading> list = new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + Math.max(startTime, 0))
-                .where("timestamp <= " + endTime)
-                .where("calculated_value != 0")
-                .where("raw_data != 0")
-                .orderBy("timestamp desc") // get newest first
-                .limit(number)
-                .execute();
+        List<BgReading> list = dao().latestForGraph(Math.max(startTime, 0), endTime, number);
 
         // Restore ascending order for graph logic and remove invalid readings.
         if (list != null) {
@@ -1019,26 +870,12 @@ public class BgReading extends Model implements ShareUploadableBg {
     }
 
     public static BgReading readingNearTimeStamp(long startTime, final long margin) {
-        final DecimalFormat df = new DecimalFormat("#");
-        df.setMaximumFractionDigits(1);
-        return new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + df.format(startTime - margin))
-                .where("timestamp <= " + df.format(startTime + margin))
-                .where("calculated_value != 0")
-                .where("raw_data != 0")
-                .executeSingle();
+        return dao().readingNearTimestamp(startTime - margin, startTime + margin);
     }
 
     public static List<BgReading> last30Minutes() {
         double timestamp = (new Date().getTime()) - (60000 * 30);
-        return new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + timestamp)
-                .where("calculated_value != 0")
-                .where("raw_data != 0")
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().since(timestamp);
     }
 
     public static boolean isDataSuitableForDoubleCalibration() {
@@ -1056,19 +893,12 @@ public class BgReading extends Model implements ShareUploadableBg {
 
     public static List<BgReading> futureReadings() {
         double timestamp = new Date().getTime();
-        return new Select()
-                .from(BgReading.class)
-                .where("timestamp > " + timestamp)
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().future(timestamp);
     }
 
     // used in wear
     public static BgReading findByUuid(String uuid) {
-        return new Select()
-                .from(BgReading.class)
-                .where("uuid = ?", uuid)
-                .executeSingle();
+        return dao().findByUuid(uuid);
     }
 
     public static double estimated_bg(double timestamp) {
@@ -1491,17 +1321,11 @@ public class BgReading extends Model implements ShareUploadableBg {
 
     public static BgReading byUUID(String uuid) {
         if (uuid == null) return null;
-        return new Select()
-                .from(BgReading.class)
-                .where("uuid = ?", uuid)
-                .executeSingle();
+        return dao().findByUuid(uuid);
     }
 
     public static BgReading byid(long id) {
-        return new Select()
-                .from(BgReading.class)
-                .where("_ID = ?", id)
-                .executeSingle();
+        return dao().byid(id);
     }
 
     public static BgReading fromJSON(String json) {
@@ -1642,8 +1466,8 @@ public class BgReading extends Model implements ShareUploadableBg {
 
     public static void deleteALL() {
         try {
-            SQLiteUtils.execSql("delete from BgSendQueue");
-            SQLiteUtils.execSql("delete from BgReadings");
+            BgSendQueue.deleteAll();
+            dao().deleteAll();
             Log.d(TAG, "Deleting all BGReadings");
         } catch (Exception e) {
             Log.e(TAG, "Got exception running deleteALL " + e.toString());
@@ -1661,39 +1485,25 @@ public class BgReading extends Model implements ShareUploadableBg {
     }
 
     public static void testDeleteRange(long start_time, long end_time) {
-        List<BgReading> bgrs = new Delete()
-                .from(BgReading.class)
-                .where("timestamp < ?", end_time)
-                .where("timestamp > ?",start_time)
-                .execute();
+        dao().deleteRange(start_time, end_time);
        // UserError.Log.d("OB1TEST","Deleted: "+bgrs.size()+" records");
     }
 
     public static List<BgReading> cleanup(int retention_days) {
-        return new Delete()
-                .from(BgReading.class)
-                .where("timestamp < ?", JoH.tsl() - (retention_days * Constants.DAY_IN_MS))
-                .execute();
+        dao().deleteOlderThan(JoH.tsl() - (retention_days * Constants.DAY_IN_MS));
+        return new ArrayList<>();
     }
 
     public static void cleanupOutOfRangeValues() {
-        new Delete()
-                .from(BgReading.class)
-                .where("timestamp > ?", JoH.tsl() - (3 * Constants.DAY_IN_MS))
-                .where("calculated_value > ?", 324)
-                .execute();
+        dao().deleteOutOfRange(JoH.tsl() - (3 * Constants.DAY_IN_MS), 324);
     }
 
 
     // used in wear
     public static void cleanup(long timestamp) {
         try {
-            SQLiteUtils.execSql("delete from BgSendQueue");
-            List<BgReading> data = new Select()
-                    .from(BgReading.class)
-                    .where("timestamp < ?", timestamp)
-                    .orderBy("timestamp desc")
-                    .execute();
+            BgSendQueue.deleteAll();
+            List<BgReading> data = dao().olderThan(timestamp);
             if (data != null) Log.d(TAG, "cleanup BgReading size=" + data.size());
             new Cleanup().execute(data);
         } catch (Exception e) {
@@ -2390,5 +2200,41 @@ public class BgReading extends Model implements ShareUploadableBg {
 
     public long getEpochTimestamp() {
         return timestamp;
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     * Also keeps the transient {@link #sensor}/{@link #calibration} objects and their persisted
+     * id columns in sync.
+     */
+    public Long save() {
+        if (sensor != null) {
+            sensor_id = sensor._id;
+        }
+        if (calibration != null) {
+            calibration_id = calibration._id;
+        }
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    /** Mirrors the ActiveAndroid Model.getId() used by callers. */
+    public Long getId() {
+        return _id;
+    }
+
+    public void delete() {
+        dao().delete(this);
+    }
+
+    private static BgReadingDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).bgReadingDao();
     }
 }

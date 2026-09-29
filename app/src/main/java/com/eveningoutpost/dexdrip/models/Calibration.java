@@ -3,19 +3,21 @@ package com.eveningoutpost.dexdrip.models;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.preference.PreferenceManager;
-import android.provider.BaseColumns;
 import androidx.annotation.NonNull;
 import android.widget.Toast;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
 import com.activeandroid.ActiveAndroid;
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.CalibrationDao;
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.records.CalRecord;
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.records.CalSubrecord;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
@@ -167,116 +169,100 @@ class TestParameters extends SlopeParameters {
 /**
  * Created by Emma Black on 10/29/14.
  */
-@Table(name = "Calibration", id = BaseColumns._ID)
-public class Calibration extends Model {
+@Entity(tableName = "Calibration",
+        indices = {
+                @Index("timestamp"),
+                @Index("sensor"),
+                @Index("uuid"),
+                @Index("sensor_uuid")
+        })
+public class Calibration {
     private final static String TAG = Calibration.class.getSimpleName();
     private final static double note_only_marker = 0.000001d;
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "timestamp", index = true)
     public long timestamp;
 
     @Expose
-    @Column(name = "sensor_age_at_time_of_estimation")
     public double sensor_age_at_time_of_estimation;
 
-    @Column(name = "sensor", index = true)
+    @ColumnInfo(name = "sensor")
+    public long sensor_id;
+
+    @Ignore
     public Sensor sensor;
 
     @Expose
-    @Column(name = "bg")
     public double bg;
 
     @Expose
-    @Column(name = "raw_value")
     public double raw_value;
-//
-//    @Expose
-//    @Column(name = "filtered_value")
-//    public double filtered_value;
 
     @Expose
-    @Column(name = "adjusted_raw_value")
     public double adjusted_raw_value;
 
     @Expose
-    @Column(name = "sensor_confidence")
     public double sensor_confidence;
 
     @Expose
-    @Column(name = "slope_confidence")
     public double slope_confidence;
 
     @Expose
-    @Column(name = "raw_timestamp")
     public long raw_timestamp;
 
     @Expose
-    @Column(name = "slope")
     public double slope;
 
     @Expose
-    @Column(name = "intercept")
     public double intercept;
 
     @Expose
-    @Column(name = "distance_from_estimate")
     public double distance_from_estimate;
 
     @Expose
-    @Column(name = "estimate_raw_at_time_of_calibration")
     public double estimate_raw_at_time_of_calibration;
 
     @Expose
-    @Column(name = "estimate_bg_at_time_of_calibration")
     public double estimate_bg_at_time_of_calibration;
 
     @Expose
-    @Column(name = "uuid", index = true)
     public String uuid;
 
     @Expose
-    @Column(name = "sensor_uuid", index = true)
     public String sensor_uuid;
 
     @Expose
-    @Column(name = "possible_bad")
     public Boolean possible_bad;
 
     @Expose
-    @Column(name = "check_in")
     public boolean check_in;
 
     @Expose
-    @Column(name = "first_decay")
     public double first_decay;
 
     @Expose
-    @Column(name = "second_decay")
     public double second_decay;
 
     @Expose
-    @Column(name = "first_slope")
     public double first_slope;
 
     @Expose
-    @Column(name = "second_slope")
     public double second_slope;
 
     @Expose
-    @Column(name = "first_intercept")
     public double first_intercept;
 
     @Expose
-    @Column(name = "second_intercept")
     public double second_intercept;
 
     @Expose
-    @Column(name = "first_scale")
     public double first_scale;
 
     @Expose
-    @Column(name = "second_scale")
     public double second_scale;
 
     public static void initialCalibration(double bg1, double bg2, Context context) {
@@ -490,12 +476,7 @@ public class Calibration extends Model {
 
     public static boolean is_new(CalSubrecord calSubrecord, long addativeOffset) {
         Sensor sensor = Sensor.currentSensor();
-        Calibration calibration = new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("timestamp <= ?", calSubrecord.getDateEntered().getTime() + addativeOffset + (1000 * 60 * 2))
-                .orderBy("timestamp desc")
-                .executeSingle();
+        Calibration calibration = dao().closestBefore(sensor.getId(), calSubrecord.getDateEntered().getTime() + addativeOffset + (1000 * 60 * 2));
         if (calibration != null && Math.abs(calibration.timestamp - (calSubrecord.getDateEntered().getTime() + addativeOffset)) < (4 * 60 * 1000)) {
             Log.d("CAL CHECK IN ", "Already have that calibration!");
             return false;
@@ -507,14 +488,7 @@ public class Calibration extends Model {
 
     public static Calibration getForTimestamp(double timestamp) {
         Sensor sensor = Sensor.currentSensor();
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("timestamp < ?", timestamp)
-                .orderBy("timestamp desc")
-                .executeSingle();
+        return dao().getForTimestamp(sensor.getId(), timestamp);
     }
 
     public static Calibration getByTimestamp(double timestamp) {//KS
@@ -522,11 +496,7 @@ public class Calibration extends Model {
         if(sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("timestamp = ?", timestamp)
-                .executeSingle();
+        return dao().getByTimestamp(sensor.getId(), timestamp);
     }
 
     public static Double getConvertedBg(double bg) {
@@ -665,14 +635,7 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 5)))
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().allForSensorSince(sensor.getId(), (new Date().getTime() - (60000 * 60 * 24 * 5)));
     }
 
     private synchronized static void calculate_w_l_s() {
@@ -773,6 +736,10 @@ public class Calibration extends Model {
                         ||(Double.isNaN(calibration.intercept))) {
                     calibration.sensor_confidence = 0;
                     calibration.slope_confidence = 0;
+                    // Room columns are NOT NULL (primitive doubles) but SQLite stores NaN as NULL,
+                    // so coerce non-finite values to 0 to match the old "nulled record" behaviour.
+                    if (!Double.isFinite(calibration.slope)) calibration.slope = 0;
+                    if (!Double.isFinite(calibration.intercept)) calibration.intercept = 0;
                     Home.toaststaticnext("Got invalid impossible slope calibration!");
                     calibration.save(); // Save nulled record, lastValid should protect from bad calibrations
                     newFingerStickData();
@@ -870,13 +837,7 @@ public class Calibration extends Model {
     }
 
     private static List<Calibration> calibrations_for_sensor(Sensor sensor) {
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ?", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().allForSensorDesc(sensor.getId());
     }
 
     private double calculateWeight() {
@@ -1033,19 +994,12 @@ public class Calibration extends Model {
     }
 
     public static Calibration byid(long id) {
-        return new Select()
-                .from(Calibration.class)
-                .where("_ID = ?", id)
-                .executeSingle();
+        return dao().byid(id);
     }
 
     public static Calibration byuuid(String uuid) {
         if (uuid == null) return null;
-        return new Select()
-                .from(Calibration.class)
-                .where("uuid = ?", uuid)
-                .orderBy("_ID desc")
-                .executeSingle();
+        return dao().byuuid(uuid);
     }
 
     public static void clear_byuuid(String uuid, boolean from_interactive) {
@@ -1121,11 +1075,7 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .orderBy("timestamp desc")
-                .executeSingle();
+        return dao().last(sensor.getId());
     }
 
     public static Calibration lastValid() {
@@ -1133,38 +1083,17 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("slope != 0")
-                .where("intercept <= ?", CalibrationAbstract.getHighestSaneIntercept())
-                .orderBy("timestamp desc")
-                .executeSingle();
+        return dao().lastValid(sensor.getId(), CalibrationAbstract.getHighestSaneIntercept());
     }
 
     public static Calibration first() {
         Sensor sensor = Sensor.currentSensor();
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .orderBy("timestamp asc")
-                .executeSingle();
+        return dao().first(sensor.getId());
     }
 
     public static double max_recent() {
         Sensor sensor = Sensor.currentSensor();
-        Calibration calibration = new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
-                .orderBy("bg desc")
-                .executeSingle();
+        Calibration calibration = dao().maxRecent(sensor.getId(), (new Date().getTime() - (60000 * 60 * 24 * 4)));
         if (calibration != null) {
             return calibration.bg;
         } else {
@@ -1174,14 +1103,7 @@ public class Calibration extends Model {
 
     public static double min_recent() {
         Sensor sensor = Sensor.currentSensor();
-        Calibration calibration = new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
-                .orderBy("bg asc")
-                .executeSingle();
+        Calibration calibration = dao().minRecent(sensor.getId(), (new Date().getTime() - (60000 * 60 * 24 * 4)));
         if (calibration != null) {
             return calibration.bg;
         } else {
@@ -1194,12 +1116,7 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
+        return dao().latest(sensor.getId(), number);
     }
 
     // TODO calls to this method are used for UI features as to whether calibration is needed
@@ -1214,16 +1131,7 @@ public class Calibration extends Model {
             return null;
         }
         // we don't filter invalid intercepts here as they will be filtered in the plugin itself
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("slope != 0")
-                .where("timestamp <= ?", until)
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
+        return dao().latestValid(sensor.getId(), until, number);
     }
 
     public static List<Calibration> latestForGraph(int number, long startTime) {
@@ -1231,14 +1139,7 @@ public class Calibration extends Model {
     }
 
     public static List<Calibration> latestForGraph(int number, long startTime, long endTime) {
-        return new Select()
-                .from(Calibration.class)
-                .where("timestamp >= " + Math.max(startTime, 0))
-                .where("timestamp <= " + endTime)
-                .where("(slope != 0 or slope_confidence = ?)", note_only_marker)
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
+        return dao().latestForGraph(Math.max(startTime, 0), endTime, note_only_marker, number);
     }
 
     public static List<Calibration> latestForGraphSensor(int number, long startTime, long endTime) {
@@ -1246,15 +1147,7 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("timestamp >= " + Math.max(startTime, 0))
-                .where("timestamp <= " + endTime)
-                .where("(slope != 0 or slope_confidence = ?)", note_only_marker)
-                .orderBy("timestamp desc")
-                .limit(number)
-                .execute();
+        return dao().latestForGraphSensor(sensor.getId(), Math.max(startTime, 0), endTime, note_only_marker, number);
     }
 
     public static List<Calibration> allForSensor() {
@@ -1262,13 +1155,7 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().allForSensorDesc(sensor.getId());
     }
 
     public static List<Calibration> allForSensorInLastFourDays() {
@@ -1276,14 +1163,7 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .where("timestamp > ?", (new Date().getTime() - (60000 * 60 * 24 * 4)))
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().allForSensorSince(sensor.getId(), (new Date().getTime() - (60000 * 60 * 24 * 4)));
     }
 
     public static List<Calibration> allForSensorLimited(int limit) {
@@ -1291,32 +1171,16 @@ public class Calibration extends Model {
         if (sensor == null) {
             return null;
         }
-        return new Select()
-                .from(Calibration.class)
-                .where("Sensor = ? ", sensor.getId())
-                .where("slope_confidence != 0")
-                .where("sensor_confidence != 0")
-                .orderBy("timestamp desc")
-                .limit(limit)
-                .execute();
+        return dao().allForSensorLimited(sensor.getId(), limit);
     }
 
     public static List<Calibration> getCalibrationsForSensor(Sensor sensor, int limit) {
-        return new Select()
-                .from(Calibration.class)
-                .where("sensor_uuid = ? ", sensor.uuid)
-                 .orderBy("timestamp desc")
-                 .limit(limit)
-                .execute();
+        return dao().forSensorUuid(sensor.uuid, limit);
     }
 
     public static List<Calibration> futureCalibrations() {
         double timestamp = new Date().getTime();
-        return new Select()
-                .from(Calibration.class)
-                .where("timestamp > " + timestamp)
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().future(timestamp);
     }
 
     public boolean isNote() {
@@ -1366,9 +1230,35 @@ public class Calibration extends Model {
     }
 
     public static void deleteAll() {
-        new Delete()
-                .from(Calibration.class)
-                .execute();
+        dao().deleteAll();
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     * Also keeps the transient {@link #sensor} object and the persisted {@code sensor_id} in sync.
+     */
+    public Long save() {
+        if (sensor != null) {
+            sensor_id = sensor._id;
+        }
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    /** Mirrors the ActiveAndroid Model.getId() used by callers. */
+    public Long getId() {
+        return _id;
+    }
+
+    private static CalibrationDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).calibrationDao();
     }
 
 }

@@ -90,14 +90,11 @@ data backbone of the app (29 `@Table` classes, 64 files, ~478 query sites).
 
 **Detailed plan:** [`ActiveAndroid_to_Room.md`](./ActiveAndroid_to_Room.md).
 
-- **Status (2026-09-28):** underway. Room 2.8.5 + `db/AppDatabase` + background
-  `LegacyDataImporter` (no user data lost) in place. Migrated 20 of 29 tables (plus
-  `Libre2Sensors` as a `@DatabaseView`): `CalibrationRequest`, `ActiveBgAlert`,
-  `PenData`, `AlertType`, `HeartRate`, `PebbleMovement` (StepCounter),
-  `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`,
-  `Notifications` (UserNotification), `Prediction`, `APStatus`, `Accuracy`,
-  `LibreData`, `Libre2RawValue2`, `BloodTest`, `Treatments`, `LibreBlock`,
-  `DesertSync` — façades preserved, tests green, verified running on-device.
+- **Status (2026-09-28):** nearly complete. Room 2.8.5 + `db/AppDatabase` + background
+  `LegacyDataImporter` (no user data lost) in place. Migrated 26 of 28 tables (plus
+  `Libre2Sensors` as a `@DatabaseView`): all the FK-free leaves, the FK spine
+  (`Sensor`→`Calibration`→`BgReading`), and the queues — façades preserved, tests
+  green. Remaining: `UserError`, `UploaderQueue`.
 
 - **Why now:** the Compose migration will consume `BgReading`/`Calibration`/`Treatment`
   data heavily (Home, charts, stats). A clean, observable data layer (`Room` +

@@ -17,6 +17,10 @@ import com.eveningoutpost.dexdrip.db.dao.ActiveBluetoothDeviceDao;
 import com.eveningoutpost.dexdrip.db.dao.AlertTypeDao;
 import com.eveningoutpost.dexdrip.db.dao.APStatusDao;
 import com.eveningoutpost.dexdrip.db.dao.AccuracyDao;
+import com.eveningoutpost.dexdrip.db.dao.BgReadingDao;
+import com.eveningoutpost.dexdrip.db.dao.BgSendQueueDao;
+import com.eveningoutpost.dexdrip.db.dao.CalibrationDao;
+import com.eveningoutpost.dexdrip.db.dao.CalibrationSendQueueDao;
 import com.eveningoutpost.dexdrip.db.dao.BloodTestDao;
 import com.eveningoutpost.dexdrip.db.dao.CalibrationRequestDao;
 import com.eveningoutpost.dexdrip.db.dao.DesertSyncDao;
@@ -27,6 +31,8 @@ import com.eveningoutpost.dexdrip.db.dao.LibreBlockDao;
 import com.eveningoutpost.dexdrip.db.dao.MetaDao;
 import com.eveningoutpost.dexdrip.db.dao.PenDataDao;
 import com.eveningoutpost.dexdrip.db.dao.PredictionDao;
+import com.eveningoutpost.dexdrip.db.dao.SensorDao;
+import com.eveningoutpost.dexdrip.db.dao.SensorSendQueueDao;
 import com.eveningoutpost.dexdrip.db.dao.ReminderDao;
 import com.eveningoutpost.dexdrip.db.dao.StepCounterDao;
 import com.eveningoutpost.dexdrip.db.dao.TreatmentsDao;
@@ -34,6 +40,8 @@ import com.eveningoutpost.dexdrip.db.dao.TransmitterDataDao;
 import com.eveningoutpost.dexdrip.db.dao.UserNotificationDao;
 import com.eveningoutpost.dexdrip.models.APStatus;
 import com.eveningoutpost.dexdrip.models.Accuracy;
+import com.eveningoutpost.dexdrip.models.BgReading;
+import com.eveningoutpost.dexdrip.models.Calibration;
 import com.eveningoutpost.dexdrip.models.ActiveBgAlert;
 import com.eveningoutpost.dexdrip.models.ActiveBluetoothDevice;
 import com.eveningoutpost.dexdrip.models.AlertType;
@@ -48,13 +56,17 @@ import com.eveningoutpost.dexdrip.models.LibreData;
 import com.eveningoutpost.dexdrip.models.PenData;
 import com.eveningoutpost.dexdrip.models.Prediction;
 import com.eveningoutpost.dexdrip.models.Reminder;
+import com.eveningoutpost.dexdrip.models.Sensor;
 import com.eveningoutpost.dexdrip.models.StepCounter;
 import com.eveningoutpost.dexdrip.models.Treatments;
 import com.eveningoutpost.dexdrip.models.TransmitterData;
 import com.eveningoutpost.dexdrip.models.UserNotification;
 import com.eveningoutpost.dexdrip.sharemodels.models.ShareGlucose;
+import com.eveningoutpost.dexdrip.utilitymodels.BgSendQueue;
+import com.eveningoutpost.dexdrip.utilitymodels.CalibrationSendQueue;
+import com.eveningoutpost.dexdrip.utilitymodels.SensorSendQueue;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class}, views = {Libre2Sensor.class}, version = 6, exportSchema = false)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class, Sensor.class, Calibration.class, BgReading.class, SensorSendQueue.class, CalibrationSendQueue.class, BgSendQueue.class}, views = {Libre2Sensor.class}, version = 7, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
@@ -99,6 +111,18 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract Libre2SensorDao libre2SensorDao();
 
     public abstract LibreBlockDao libreBlockDao();
+
+    public abstract SensorDao sensorDao();
+
+    public abstract CalibrationDao calibrationDao();
+
+    public abstract BgReadingDao bgReadingDao();
+
+    public abstract SensorSendQueueDao sensorSendQueueDao();
+
+    public abstract CalibrationSendQueueDao calibrationSendQueueDao();
+
+    public abstract BgSendQueueDao bgSendQueueDao();
 
     public abstract MetaDao metaDao();
 

@@ -1,6 +1,5 @@
 package com.eveningoutpost.dexdrip.models;
 
-import com.activeandroid.query.Delete;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.RobolectricTestWithConfig;
 import com.eveningoutpost.dexdrip.services.DexCollectionService;
@@ -60,7 +59,7 @@ public class BlueReaderTest extends RobolectricTestWithConfig {
         BgReading.deleteALL();
         ActiveBluetoothDevice.deleteAll();
         TransmitterData.deleteAll();
-        new Delete().from(Calibration.class).execute();
+        Calibration.deleteAll();
 
         PersistentStore.setLong("blueReader_Full_Battery", 0);
     }

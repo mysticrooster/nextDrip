@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **20** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData`, `Libre2RawValue2`, `BloodTest`, `Treatments`, `LibreBlock`, `DesertSync` (+ `Libre2Sensors` as a `@DatabaseView`) |
+| Migrated tables | **26** of 28 — all FK-free leaves **and the FK spine** (`Sensor`→`Calibration`→`BgReading`) + the queues (`SensorSendQueue`, `CalibrationSendQueue`, `BgSendQueue`). Remaining: `UserError`, `UploaderQueue`. `Libre2Sensors` is a `@DatabaseView`. |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -376,6 +376,21 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     different package). Kept instance `save()`; dropped `updateDB`.
   - Bumped `@Database` to `version = 6`.
   - Added `DesertSyncTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — FK spine + queues (26/28 tables).**
+  - Migrated `Sensor`, `Calibration`, `BgReading` and the three `*SendQueue` classes.
+  - **FK pattern (option A):** the object fields (`sensor`, `calibration`, queues' `sensor`/
+    `calibration`/`bgReading`) are now `@Ignore` transients; the persisted id lives in a
+    `*_id` field mapped to the original column name. `save()` syncs the id from the object,
+    so existing write sites are unchanged. `BgReading`/`Calibration` gained `getId()`/`delete()`
+    shims. `BgReading.calibration` reads go through the transient field populated on demand.
+  - Re-pointed raw-SQL readers of migrated tables: `StatsResult` and `DBSearchUtil` (bgreadings
+    stats) now use `BgReadingDao`; `UploaderQueue`'s `getLegacyCount` for the queue classes was
+    replaced with DAO counts.
+  - **Pitfall:** Room makes primitive `double` columns `NOT NULL`, but SQLite stores `NaN` as
+    `NULL`, so `Calibration`'s "invalid slope" path crashed — coerce non-finite values to 0
+    before saving (equivalent filtering, since `lastValid()` excludes `slope == 0` too).
+  - Bumped `@Database` to `version = 7`.
+  - Full suite (921 tests) + `assembleFastDebug` (R8) pass.
 
 ---
 

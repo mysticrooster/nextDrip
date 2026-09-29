@@ -2,17 +2,16 @@ package com.eveningoutpost.dexdrip.stats;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import androidx.preference.PreferenceManager;
 
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.BgReadingDao;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 
-import com.activeandroid.Cache;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.models.BgReading;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -38,13 +37,7 @@ public class DBSearchUtil {
             high *= Constants.MMOLL_TO_MGDL;
         }
 
-        int count = new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + bounds.start)
-                .where("timestamp <= " + bounds.stop)
-                .where("calculated_value > " + CUTOFF)
-                .where("calculated_value > " + high)
-                .where("snyced == 0").count();
+        int count = dao().countAbove(bounds.start, bounds.stop, Double.parseDouble(CUTOFF), high);
         Log.d("DrawStats", "High count: " + count);
         return count;
     }
@@ -54,19 +47,15 @@ public class DBSearchUtil {
         try {
             Bounds bounds = new Bounds().invoke();
 
-            String orderBy = ordered ? "calculated_value desc" : null;
-
-            SQLiteDatabase db = Cache.openDatabase();
-            Cursor cur = db.query("bgreadings", new String[]{"timestamp", "calculated_value"}, "timestamp >= ? AND timestamp <=  ? AND calculated_value > ? AND snyced == 0", new String[]{"" + bounds.start, "" + bounds.stop, CUTOFF}, null, null, orderBy);
+            final List<BgReading> rows = ordered
+                    ? dao().statsReadingsOrdered(bounds.start, bounds.stop, Double.parseDouble(CUTOFF))
+                    : dao().statsReadingsUnordered(bounds.start, bounds.stop, Double.parseDouble(CUTOFF));
             List<BgReadingStats> readings = new Vector<BgReadingStats>();
-            BgReadingStats reading;
-            if (cur.moveToFirst()) {
-                do {
-                    reading = new BgReadingStats();
-                    reading.timestamp = (Long.parseLong(cur.getString(0)));
-                    reading.calculated_value = (Double.parseDouble(cur.getString(1)));
-                    readings.add(reading);
-                } while (cur.moveToNext());
+            for (BgReading row : rows) {
+                BgReadingStats reading = new BgReadingStats();
+                reading.timestamp = row.timestamp;
+                reading.calculated_value = row.calculated_value;
+                readings.add(reading);
             }
             return readings;
 
@@ -80,23 +69,17 @@ public class DBSearchUtil {
         try {
             Bounds bounds = new Bounds().invoke();
 
-            String orderBy = ordered ? "calculated_value desc" : null;
-
-            SQLiteDatabase db = Cache.openDatabase();
-            Cursor cur = db.query("bgreadings", new String[]{"timestamp", "calculated_value", "filtered_calculated_value"}, "timestamp >= ? AND timestamp <=  ? AND calculated_value > ? AND snyced == 0", new String[]{"" + bounds.start, "" + bounds.stop, CUTOFF}, null, null, orderBy);
+            final List<BgReading> rows = ordered
+                    ? dao().statsReadingsOrdered(bounds.start, bounds.stop, Double.parseDouble(CUTOFF))
+                    : dao().statsReadingsUnordered(bounds.start, bounds.stop, Double.parseDouble(CUTOFF));
             List<BgReadingStats> readings = new Vector<BgReadingStats>();
-            BgReadingStats reading;
-            if (cur.moveToFirst()) {
-                do {
-                    reading = new BgReadingStats();
-                    reading.timestamp = (Long.parseLong(cur.getString(0)));
-
-                    reading.calculated_value = (Double.parseDouble(cur.getString(2)));
-                    if(reading.calculated_value == 0)
-                        reading.calculated_value = (Double.parseDouble(cur.getString(1)));
-
-                    readings.add(reading);
-                } while (cur.moveToNext());
+            for (BgReading row : rows) {
+                BgReadingStats reading = new BgReadingStats();
+                reading.timestamp = row.timestamp;
+                reading.calculated_value = row.calculated_value;
+                if (reading.calculated_value == 0)
+                    reading.calculated_value = row.filtered_calculated_value;
+                readings.add(reading);
             }
             return readings;
 
@@ -120,15 +103,7 @@ public class DBSearchUtil {
             low *= Constants.MMOLL_TO_MGDL;
 
         }
-        int count = new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + bounds.start)
-                .where("timestamp <= " + bounds.stop)
-                .where("calculated_value > " + CUTOFF)
-                .where("calculated_value <= " + high)
-                .where("calculated_value >= " + low)
-                .where("snyced == 0")
-                .count();
+        int count = dao().countIn(bounds.start, bounds.stop, Double.parseDouble(CUTOFF), high, low);
         Log.d("DrawStats", "In count: " + count);
 
         return count;
@@ -145,14 +120,7 @@ public class DBSearchUtil {
             low *= Constants.MMOLL_TO_MGDL;
 
         }
-        int count = new Select()
-                .from(BgReading.class)
-                .where("timestamp >= " + bounds.start)
-                .where("timestamp <= " + bounds.stop)
-                .where("calculated_value > " + CUTOFF)
-                .where("calculated_value < " + low)
-                .where("snyced == 0")
-                .count();
+        int count = dao().countBelow(bounds.start, bounds.stop, Double.parseDouble(CUTOFF), low);
         Log.d("DrawStats", "Low count: " + count);
 
         return count;
@@ -182,6 +150,10 @@ public class DBSearchUtil {
         Calendar date = new GregorianCalendar();
         date.add(Calendar.DATE, -x);
         return date.getTimeInMillis();
+    }
+
+    private static BgReadingDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).bgReadingDao();
     }
 
     private static class Bounds {

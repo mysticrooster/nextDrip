@@ -5,15 +5,16 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.PowerManager;
-import android.provider.BaseColumns;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.BgSendQueueDao;
 import com.eveningoutpost.dexdrip.models.BgReading;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
@@ -22,27 +23,38 @@ import com.eveningoutpost.dexdrip.NewDataObserver;
 import com.eveningoutpost.dexdrip.services.SyncService;
 import com.eveningoutpost.dexdrip.WidgetUpdateService;
 import com.eveningoutpost.dexdrip.calibrations.PluggableCalibration;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.eveningoutpost.dexdrip.xDripWidget;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Emma Black on 11/7/14.
  */
 @Deprecated
-@Table(name = "BgSendQueue", id = BaseColumns._ID)
-public class BgSendQueue extends Model {
+@Entity(tableName = "BgSendQueue",
+        indices = {
+                @Index("bgReading"),
+                @Index("success"),
+                @Index("mongo_success")
+        })
+public class BgSendQueue {
 
-    @Column(name = "bgReading", index = true)
-    public BgReading bgReading;
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
-    @Column(name = "success", index = true)
+    @ColumnInfo(name = "bgReading")
+    public long bgReading_id;
+
+    @ColumnInfo(name = "success")
     public boolean success;
 
-    @Column(name = "mongo_success", index = true)
+    @ColumnInfo(name = "mongo_success")
     public boolean mongo_success;
 
-    @Column(name = "operation_type")
+    @ColumnInfo(name = "operation_type")
     public String operation_type;
 
     /*
@@ -58,43 +70,41 @@ public class BgSendQueue extends Model {
     @Deprecated
     public static void emptyQueue() {
         try {
-            new Delete()
-                    .from(BgSendQueue.class)
-                    .execute();
+            dao().deleteAll();
         } catch (Exception e) {
             // failed
         }
     }
 
     @Deprecated
+    public static void deleteAll() {
+        dao().deleteAll();
+    }
+
+    @Deprecated
     public static List<BgSendQueue> mongoQueue() {
-        return new Select()
-                .from(BgSendQueue.class)
-                .where("mongo_success = ?", false)
-                .where("operation_type = ?", "create")
-                .orderBy("_ID desc")
-                .limit(30)
-                .execute();
+        return dao().mongoQueue();
     }
 
     @Deprecated
     public static List<BgSendQueue> cleanQueue() {
-        return new Delete()
-                .from(BgSendQueue.class)
-                .where("mongo_success = ?", true)
-                .where("operation_type = ?", "create")
-                .execute();
+        dao().cleanQueue();
+        return new ArrayList<>();
+    }
+
+    @Deprecated
+    public static int countBySuccess(boolean success) {
+        return dao().countBySuccess(success);
+    }
+
+    @Deprecated
+    public static int countByMongoSuccess(boolean success) {
+        return dao().countByMongoSuccess(success);
     }
 
     @Deprecated
     private static void addToQueue(BgReading bgReading, String operation_type) {
-        BgSendQueue bgSendQueue = new BgSendQueue();
-        bgSendQueue.operation_type = operation_type;
-        bgSendQueue.bgReading = bgReading;
-        bgSendQueue.success = false;
-        bgSendQueue.mongo_success = false;
-        bgSendQueue.save();
-        Log.d("BGQueue", "New value added to queue!");
+        // deprecated no-op: uploads now go through UploaderQueue
     }
 
     public static void handleNewBgReading(BgReading bgReading, String operation_type, Context context) {
@@ -180,5 +190,9 @@ public class BgSendQueue extends Model {
         this.mongo_success = true;
         save();
     }*/
+
+    private static BgSendQueueDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).bgSendQueueDao();
+    }
 
 }
