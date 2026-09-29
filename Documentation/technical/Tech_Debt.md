@@ -91,10 +91,10 @@ data backbone of the app (29 `@Table` classes, 64 files, ~478 query sites).
 **Detailed plan:** [`ActiveAndroid_to_Room.md`](./ActiveAndroid_to_Room.md).
 
 - **Status (2026-09-28):** underway. Room 2.8.5 + `db/AppDatabase` + background
-  `LegacyDataImporter` (no user data lost) in place. Migrated 7 of 29 tables:
+  `LegacyDataImporter` (no user data lost) in place. Migrated 8 of 29 tables:
   `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`,
-  `PebbleMovement` (StepCounter), `TransmitterData` — façades preserved, tests green,
-  verified running on-device.
+  `PebbleMovement` (StepCounter), `TransmitterData`, `ActiveBluetoothDevice` — façades
+  preserved, tests green, verified running on-device.
 
 - **Why now:** the Compose migration will consume `BgReading`/`Calibration`/`Treatment`
   data heavily (Home, charts, stats). A clean, observable data layer (`Room` +

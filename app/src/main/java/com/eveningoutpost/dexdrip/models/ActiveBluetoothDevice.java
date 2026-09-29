@@ -1,36 +1,43 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.ActiveBluetoothDeviceDao;
 import com.eveningoutpost.dexdrip.utilitymodels.Blukon;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
+import com.eveningoutpost.dexdrip.xdrip;
 
 /**
  * Created by Emma Black on 11/3/14.
  */
-@Table(name = "ActiveBluetoothDevice", id = BaseColumns._ID)
-public class ActiveBluetoothDevice extends Model {
-    @Column(name = "name")
+@Entity(tableName = "ActiveBluetoothDevice")
+public class ActiveBluetoothDevice {
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
+    @ColumnInfo(name = "name")
     public String name;
 
-    @Column(name = "address")
+    @ColumnInfo(name = "address")
     public String address;
 
-    @Column(name = "connected")
+    @ColumnInfo(name = "connected")
     public boolean connected;
 
 
     public static final Object table_lock = new Object();
 
     public static synchronized ActiveBluetoothDevice first() {
-        return new Select()
-                .from(ActiveBluetoothDevice.class)
-                .orderBy("_ID asc")
-                .executeSingle();
+        return dao().first();
+    }
+
+    public static ActiveBluetoothDevice last() {
+        return dao().last();
     }
 
     public static String btDeviceAddresses() {
@@ -44,7 +51,7 @@ public class ActiveBluetoothDevice extends Model {
     public static synchronized  void forget() {
         ActiveBluetoothDevice activeBluetoothDevice = ActiveBluetoothDevice.first();
         if (activeBluetoothDevice != null) {
-            activeBluetoothDevice.delete();
+            dao().delete(activeBluetoothDevice);
         }
     }
 
@@ -52,7 +59,7 @@ public class ActiveBluetoothDevice extends Model {
         ActiveBluetoothDevice activeBluetoothDevice = ActiveBluetoothDevice.first();
         if(activeBluetoothDevice != null) {
             activeBluetoothDevice.connected = true;
-            activeBluetoothDevice.save();
+            dao().update(activeBluetoothDevice);
         }
     }
 
@@ -60,7 +67,7 @@ public class ActiveBluetoothDevice extends Model {
         ActiveBluetoothDevice activeBluetoothDevice = ActiveBluetoothDevice.first();
         if(activeBluetoothDevice != null) {
             activeBluetoothDevice.connected = false;
-            activeBluetoothDevice.save();
+            dao().update(activeBluetoothDevice);
         }
     }
 
@@ -69,12 +76,14 @@ public class ActiveBluetoothDevice extends Model {
         return (activeBluetoothDevice != null && activeBluetoothDevice.connected);
     }
 
+    public static void deleteAll() {
+        dao().deleteAll();
+    }
+
     public static synchronized void setDevice(String name, String address) {
         ActiveBluetoothDevice btDevice;
         synchronized (ActiveBluetoothDevice.table_lock) {
-             btDevice = new Select().from(ActiveBluetoothDevice.class)
-                    .orderBy("_ID desc")
-                    .executeSingle();
+             btDevice = dao().last();
         }
         Pref.setString("last_connected_device_address", address);
         Blukon.clearPin();
@@ -88,5 +97,25 @@ public class ActiveBluetoothDevice extends Model {
             btDevice.address = address;
             btDevice.save();
         }
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used by callers
+     * (e.g. BluetoothScan) before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    private static ActiveBluetoothDeviceDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).activeBluetoothDeviceDao();
     }
 }

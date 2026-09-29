@@ -64,7 +64,8 @@ public final class LegacyDataImporter {
                     "AlertType",
                     "HeartRate",
                     "PebbleMovement",
-                    "TransmitterData")));
+                    "TransmitterData",
+                    "ActiveBluetoothDevice")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

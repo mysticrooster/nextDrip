@@ -353,9 +353,7 @@ public class BluetoothScan extends ListActivityWithMenu {
 
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         synchronized (ActiveBluetoothDevice.table_lock) {
-            ActiveBluetoothDevice btDevice = new Select().from(ActiveBluetoothDevice.class)
-                    .orderBy("_ID desc")
-                    .executeSingle();
+            ActiveBluetoothDevice btDevice = ActiveBluetoothDevice.last();
 
             prefs.edit().putString("last_connected_device_address", device.getAddress()).apply();
             Blukon.clearPin();

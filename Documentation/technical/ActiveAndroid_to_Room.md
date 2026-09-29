@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **7** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData` |
+| Migrated tables | **8** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -277,6 +277,12 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     previously cleared the table with an ActiveAndroid `Delete`).
   - Added `TransmitterDataTest`. Full suite + `assembleFastDebug` (R8) pass, and the
     app has been run on a device with no crashes (migrated façades logging normally).
+- **2026-09-28 — `ActiveBluetoothDevice` (8/29).**
+  - Migrated `ActiveBluetoothDevice`; kept an instance `save()` and added a `last()`
+    façade so the two external direct `Select().from(ActiveBluetoothDevice.class)`
+    callers (`BluetoothScan`, `ShareTest`) now use the façade.
+  - Added `ActiveBluetoothDevice.deleteAll()` for `BlueReaderTest`'s reset.
+  - Added `ActiveBluetoothDeviceTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 

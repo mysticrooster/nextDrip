@@ -257,9 +257,7 @@ public class ShareTest extends BaseActivity {
         Log.i(TAG, "Connection state: " + mConnectionState);
         details.append("\nConnection state: " + mConnectionState);
         if (mConnectionState == STATE_DISCONNECTED || mConnectionState == STATE_DISCONNECTING) {
-            ActiveBluetoothDevice btDevice = new Select().from(ActiveBluetoothDevice.class)
-                    .orderBy("_ID desc")
-                    .executeSingle();
+            ActiveBluetoothDevice btDevice = ActiveBluetoothDevice.last();
             if (btDevice != null) {
                 details.append("\nBT Device: " + btDevice.name);
                 mDeviceName = btDevice.name;

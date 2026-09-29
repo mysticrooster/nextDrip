@@ -58,7 +58,7 @@ public class BlueReaderTest extends RobolectricTestWithConfig {
     public void reset() {
         blueReader.decodeblueReaderPacket("0".getBytes(), 1);
         BgReading.deleteALL();
-        new Delete().from(ActiveBluetoothDevice.class).execute();
+        ActiveBluetoothDevice.deleteAll();
         TransmitterData.deleteAll();
         new Delete().from(Calibration.class).execute();
 
