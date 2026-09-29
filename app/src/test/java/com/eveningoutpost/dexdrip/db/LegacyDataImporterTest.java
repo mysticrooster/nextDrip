@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Verifies that existing ActiveAndroid data is copied into Room exactly once, without
- * overwriting data the Room side already holds.
+ * overwriting data the Room side already holds, and that a re-import recovers rows.
  */
 @SQLiteMode(SQLiteMode.Mode.NATIVE)
 public class LegacyDataImporterTest extends RobolectricTestWithConfig {
@@ -29,6 +29,9 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
     private static final String ACTIVE_ALERT_TABLE_SQL =
             "CREATE TABLE ActiveBgAlert (_id INTEGER PRIMARY KEY AUTOINCREMENT, alert_uuid TEXT, is_snoozed INTEGER, "
                     + "last_alerted_at INTEGER, next_alert_at INTEGER, alert_started_at INTEGER)";
+
+    private static final String CALIBRATION_GENERATION_KEY =
+            LegacyDataImporter.GENERATION_KEY_PREFIX + "CalibrationRequest";
 
     private Context context;
 
@@ -57,6 +60,10 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
         return SQLiteDatabase.openOrCreateDatabase(file, null);
     }
 
+    private void importNow() {
+        LegacyDataImporter.importSynchronouslyForTesting(context);
+    }
+
     @Test
     public void importsLegacyRowsIntoRoom() {
         try (SQLiteDatabase legacy = createLegacyDatabase()) {
@@ -67,7 +74,7 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
                     + "VALUES ('legacy-uuid', 0, 0, 1000, 500)");
         }
 
-        LegacyDataImporter.importSynchronouslyForTesting(context);
+        importNow();
 
         final AppDatabase db = AppDatabase.getInstance(context);
         assertWithMessage("calibration request preserved")
@@ -99,11 +106,46 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
             legacy.execSQL("INSERT INTO CalibrationRequest (requestIfAbove, requestIfBelow) VALUES (140.0, 160.0)");
         }
 
-        LegacyDataImporter.importSynchronouslyForTesting(context);
-        LegacyDataImporter.importSynchronouslyForTesting(context);
+        importNow();
+        importNow();
 
         assertWithMessage("no duplicate rows after re-running")
                 .that(AppDatabase.getInstance(context).calibrationRequestDao().getAll()).hasSize(1);
+    }
+
+    @Test
+    public void nullInNotNullRoomColumnIsImported() {
+        try (SQLiteDatabase legacy = createLegacyDatabase()) {
+            legacy.execSQL(CALIBRATION_TABLE_SQL);
+            // requestIfAbove is NOT NULL in Room but nullable in the legacy schema.
+            legacy.execSQL("INSERT INTO CalibrationRequest (requestIfAbove, requestIfBelow) VALUES (NULL, 160.0)");
+        }
+
+        importNow();
+
+        final java.util.List<CalibrationRequest> all = AppDatabase.getInstance(context).calibrationRequestDao().getAll();
+        assertWithMessage("row with a NULL in a NOT NULL column still imported").that(all).hasSize(1);
+        assertWithMessage("NULL coerced to 0").that(all.get(0).requestIfAbove).isEqualTo(0.0);
+    }
+
+    @Test
+    public void reimportBackfillsRowsMissingFromRoom() {
+        try (SQLiteDatabase legacy = createLegacyDatabase()) {
+            legacy.execSQL(CALIBRATION_TABLE_SQL);
+            legacy.execSQL("INSERT INTO CalibrationRequest (requestIfAbove, requestIfBelow) VALUES (140.0, 160.0)");
+        }
+        importNow();
+
+        final AppDatabase db = AppDatabase.getInstance(context);
+        assertWithMessage("imported first time").that(db.calibrationRequestDao().getAll()).hasSize(1);
+
+        // Simulate a row that a previous (buggy) import dropped, then force a re-import.
+        db.calibrationRequestDao().deleteAll();
+        LegacyDataImporter.clearImportState();
+        importNow();
+
+        assertWithMessage("missing row backfilled by re-import")
+                .that(db.calibrationRequestDao().getAll()).hasSize(1);
     }
 
     @Test
@@ -119,7 +161,7 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
             legacy.execSQL("INSERT INTO CalibrationRequest (requestIfAbove, requestIfBelow) VALUES (140.0, 160.0)");
         }
 
-        LegacyDataImporter.importSynchronouslyForTesting(context);
+        importNow();
 
         assertWithMessage("existing Room data untouched")
                 .that(db.calibrationRequestDao().getAll()).hasSize(1);
@@ -129,7 +171,7 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
 
     @Test
     public void toleratesMissingLegacyDatabase() {
-        LegacyDataImporter.importSynchronouslyForTesting(context);
+        importNow();
 
         assertWithMessage("Room still usable with no legacy database")
                 .that(AppDatabase.getInstance(context).calibrationRequestDao().getAll()).isEmpty();
@@ -144,22 +186,23 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
                     + "VALUES (140.0, 160.0, 'ignored')");
         }
 
-        LegacyDataImporter.importSynchronouslyForTesting(context);
+        importNow();
 
         assertWithMessage("shared columns copied despite a legacy-only column")
                 .that(AppDatabase.getInstance(context).calibrationRequestDao().getAll()).hasSize(1);
     }
 
     @Test
-    public void destructiveMigrationClearsImportFlagSoDataIsReimported() {
+    public void destructiveMigrationClearsImportStateSoDataIsReimported() {
         // Legacy data present and already imported once.
         try (SQLiteDatabase legacy = createLegacyDatabase()) {
             legacy.execSQL(CALIBRATION_TABLE_SQL);
             legacy.execSQL("INSERT INTO CalibrationRequest (requestIfAbove, requestIfBelow) VALUES (140.0, 160.0)");
         }
-        LegacyDataImporter.importSynchronouslyForTesting(context);
-        final String flag = LegacyDataImporter.IMPORTED_FLAG_PREFIX + "CalibrationRequest";
-        assertWithMessage("flag set after import").that(PersistentStore.getBoolean(flag)).isTrue();
+        importNow();
+        assertWithMessage("generation set after import")
+                .that(PersistentStore.getLong(CALIBRATION_GENERATION_KEY))
+                .isEqualTo(LegacyDataImporter.CURRENT_IMPORT_GENERATION);
 
         // Simulate an older schema version so Room recreates the DB on the next open.
         final File roomFile = context.getDatabasePath(AppDatabase.DATABASE_NAME);
@@ -168,10 +211,11 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
         }
         AppDatabase.resetForTesting();
 
-        // Re-open: destructive migration runs and clears the import flags.
+        // Re-open: destructive migration runs and clears the import state.
         AppDatabase.getInstance(context).query("SELECT 1", null).close();
 
-        assertWithMessage("flag cleared by destructive migration").that(PersistentStore.getBoolean(flag)).isFalse();
+        assertWithMessage("generation cleared by destructive migration")
+                .that(PersistentStore.getLong(CALIBRATION_GENERATION_KEY)).isEqualTo(0);
         assertWithMessage("room table was recreated empty")
                 .that(AppDatabase.getInstance(context).calibrationRequestDao().getAll()).isEmpty();
     }
@@ -186,12 +230,12 @@ public class LegacyDataImporterTest extends RobolectricTestWithConfig {
         }
         AppDatabase.resetForTesting();
 
-        final String flag = LegacyDataImporter.IMPORTED_FLAG_PREFIX + "CalibrationRequest";
-        PersistentStore.setBoolean(flag, true);
+        PersistentStore.setLong(CALIBRATION_GENERATION_KEY, LegacyDataImporter.CURRENT_IMPORT_GENERATION);
 
-        // Re-open must self-heal (no crash) and clear the import flags.
+        // Re-open must self-heal (no crash) and clear the import state.
         AppDatabase.getInstance(context).query("SELECT 1", null).close();
 
-        assertWithMessage("flag cleared after self-heal").that(PersistentStore.getBoolean(flag)).isFalse();
+        assertWithMessage("generation cleared after self-heal")
+                .that(PersistentStore.getLong(CALIBRATION_GENERATION_KEY)).isEqualTo(0);
     }
 }

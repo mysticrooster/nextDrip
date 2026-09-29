@@ -15,10 +15,11 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Pair;
 
-import com.activeandroid.Configuration;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.LegacyDataImporter;
 import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
 import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
@@ -310,7 +311,8 @@ public class Backup {
 
     public static boolean doCompleteBackup(final BackupStatus status) {
         UserError.Log.d(TAG, "doCompleteBackup() called");
-        return compressEncryptFilesToUri(status, getBackupUri(), getPreferencesPath(), getDatabasePath());
+        return compressEncryptFilesToUri(status, getBackupUri(), getPreferencesPath(),
+                getDatabasePath(), getRoomDatabasePath());
     }
 
     public static String cleanPhoneName() {
@@ -335,8 +337,11 @@ public class Backup {
     }
 
     private static String getDatabasePath() {
-        val databaseName = new Configuration.Builder(xdrip.getAppContext()).create().getDatabaseName();
-        return xdrip.getAppContext().getDatabasePath(databaseName).getPath();
+        return xdrip.getAppContext().getDatabasePath(LegacyDataImporter.LEGACY_DB_NAME).getPath();
+    }
+
+    private static String getRoomDatabasePath() {
+        return xdrip.getAppContext().getDatabasePath(AppDatabase.DATABASE_NAME).getPath();
     }
 
     private static String getPreferencesPath() {
@@ -357,6 +362,13 @@ public class Backup {
                 moveIt(sourcePath, dbpath);
                 for (val suffix : dbSuffix) {
                     new File(dbpath + suffix).delete();
+                }
+                break;
+            case "xdrip-room.db":
+                val roompath = getRoomDatabasePath();
+                moveIt(sourcePath, roompath);
+                for (val suffix : dbSuffix) {
+                    new File(roompath + suffix).delete();
                 }
                 break;
             default:

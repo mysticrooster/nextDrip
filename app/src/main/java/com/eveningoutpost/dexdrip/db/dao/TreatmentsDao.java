@@ -63,4 +63,18 @@ public interface TreatmentsDao {
 
     @Query("SELECT SUM(insulin) FROM Treatments WHERE timestamp >= :from AND timestamp <= :to")
     Double sumInsulin(long from, long to);
+
+    @Query("UPDATE Treatments SET notes = :note WHERE uuid = :uuid")
+    void updateNotes(String note, String uuid);
+
+    @Query("SELECT timestamp, notes, carbs, insulin, uuid FROM Treatments WHERE notes IS NOT NULL "
+            + "AND timestamp < :to AND timestamp >= :from ORDER BY timestamp DESC")
+    android.database.Cursor notesCursor(long to, long from);
+
+    @Query("SELECT timestamp, notes, carbs, insulin, uuid FROM Treatments WHERE notes IS NOT NULL "
+            + "AND timestamp < :to AND timestamp >= :from AND notes LIKE :match ORDER BY timestamp DESC")
+    android.database.Cursor notesSearchCursor(long to, long from, String match);
+
+    @Query("SELECT timestamp, carbs, insulin, notes FROM Treatments WHERE timestamp >= :from ORDER BY timestamp ASC")
+    android.database.Cursor exportCursor(long from);
 }

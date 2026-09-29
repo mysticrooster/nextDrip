@@ -65,7 +65,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.activeandroid.ActiveAndroid;
 import com.eveningoutpost.dexdrip.BuildConfig;
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.R;
@@ -1004,19 +1003,14 @@ public class JoH {
     public static void fullDatabaseReset() {
         try {
             clearCache();
-            ActiveAndroid.dispose();
-            ActiveAndroid.initialize(xdrip.getAppContext());
+            com.eveningoutpost.dexdrip.db.AppDatabase.resetAndReopen(xdrip.getAppContext());
         } catch (Exception e) {
-            Log.e(TAG,"Error restarting active android db");
+            Log.e(TAG, "Error restarting database", e);
         }
     }
 
     public static void clearCache() {
-        try {
-            ActiveAndroid.clearCache();
-        } catch (Exception e) {
-            Log.e(TAG, "Error clearing active android cache: " + e);
-        }
+        // ActiveAndroid's entity cache was removed with the Room migration; no-op kept for callers.
     }
 
     public static boolean isLANConnected() {

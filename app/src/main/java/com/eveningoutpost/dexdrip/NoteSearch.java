@@ -8,7 +8,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -28,10 +27,10 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.activeandroid.Cache;
-import com.activeandroid.util.SQLiteUtils;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.utils.ListActivityWithMenu;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -115,7 +114,7 @@ public class NoteSearch extends ListActivityWithMenu {
                                 public void onClick(DialogInterface dialog, int whichButton) {
                                     sResult.note = treatmentText.getText().toString().trim();
                                     resultListAdapter.notifyDataSetChanged();
-                                    SQLiteUtils.execSql("update Treatments set notes = ? where uuid = ?", new String[]{sResult.note, sResult.uuid});
+                                    AppDatabase.getInstance(xdrip.getAppContext()).treatmentsDao().updateNotes(sResult.note, sResult.uuid);
                                 }
                             })
                             .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
@@ -162,8 +161,6 @@ public class NoteSearch extends ListActivityWithMenu {
         resultListAdapter.clear();
         if (from_interactive) JoH.static_toast_short(getString(R.string.collecting));
 
-        SQLiteDatabase db = Cache.openDatabase();
-
         if (dbCursor != null && !dbCursor.isClosed()) {
             dbCursor.close();
         }
@@ -174,7 +171,7 @@ public class NoteSearch extends ListActivityWithMenu {
         endDate.add(Calendar.DATE, 1);
         long to = endDate.getTimeInMillis();
 
-        dbCursor = db.rawQuery("select timestamp, notes, carbs, insulin, uuid from Treatments where notes IS NOT NULL AND timestamp < " + to + " AND timestamp >= " + from + " ORDER BY timestamp DESC", null);
+        dbCursor = AppDatabase.getInstance(xdrip.getAppContext()).treatmentsDao().notesCursor(to, from);
         dbCursor.moveToFirst();
 
         int i = 0;
@@ -217,8 +214,6 @@ public class NoteSearch extends ListActivityWithMenu {
         resultListAdapter.clear();
         if (from_interactive) JoH.static_toast_short(getString(R.string.searching));
 
-        SQLiteDatabase db = Cache.openDatabase();
-
         if (dbCursor != null && !dbCursor.isClosed()) {
             dbCursor.close();
         }
@@ -233,7 +228,7 @@ public class NoteSearch extends ListActivityWithMenu {
         long to = endDate.getTimeInMillis();
 
 
-        dbCursor = db.rawQuery("select timestamp, notes, carbs, insulin, uuid from Treatments where notes IS NOT NULL AND timestamp < ? AND timestamp >= ? AND notes like ? ORDER BY timestamp DESC", new String[]{Long.toString(to), Long.toString(from), "%" + searchTerm + "%"});
+        dbCursor = AppDatabase.getInstance(xdrip.getAppContext()).treatmentsDao().notesSearchCursor(to, from, "%" + searchTerm + "%");
         dbCursor.moveToFirst();
 
         int i = 0;

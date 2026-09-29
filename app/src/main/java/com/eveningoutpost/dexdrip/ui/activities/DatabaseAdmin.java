@@ -1,12 +1,12 @@
 package com.eveningoutpost.dexdrip.ui.activities;
 
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import androidx.databinding.ObservableField;
 import android.os.Bundle;
 
-import com.activeandroid.Cache;
 import com.eveningoutpost.dexdrip.BaseAppCompatActivity;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
@@ -106,11 +106,7 @@ public class DatabaseAdmin extends BaseAppCompatActivity {
     // executes some SQL and returns all the results as a string list
     private synchronized List<String> executeSQL(final String query) {
         final List<String> results = new ArrayList<>();
-        final SQLiteDatabase db = Cache.openDatabase();
-        final boolean transaction = !query.equals("vacuum");
-        if (transaction) db.beginTransaction();
-        try {
-            final Cursor cursor = db.rawQuery(query, null);
+        try (Cursor cursor = AppDatabase.getInstance(xdrip.getAppContext()).query(query, null)) {
             Log.d(TAG, "Got query results: " + query + " " + cursor.getCount());
 
             while (cursor.moveToNext()) {
@@ -119,11 +115,6 @@ public class DatabaseAdmin extends BaseAppCompatActivity {
                     results.add(cursor.getString(c));
                 }
             }
-            cursor.close();
-
-            if (transaction) db.setTransactionSuccessful();
-        } finally {
-            if (transaction) db.endTransaction();
         }
         return results;
     }

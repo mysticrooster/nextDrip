@@ -89,4 +89,7 @@ public interface CalibrationDao {
 
     @Query("SELECT * FROM Calibration WHERE timestamp > :timestamp ORDER BY timestamp DESC")
     List<Calibration> future(double timestamp);
+
+    @Query("SELECT timestamp, bg FROM Calibration WHERE timestamp >= :from ORDER BY timestamp ASC")
+    android.database.Cursor exportCursor(long from);
 }

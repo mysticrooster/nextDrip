@@ -2,16 +2,14 @@ package com.eveningoutpost.dexdrip.utils;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.format.DateFormat;
 import android.widget.Toast;
 
-import com.activeandroid.ActiveAndroid;
-import com.activeandroid.Cache;
-import com.activeandroid.Configuration;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.LegacyDataImporter;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
@@ -53,7 +51,7 @@ public class DatabaseUtil {
 
     public static long getDataBaseSizeInBytes() {
         try {
-            final String databaseName = new Configuration.Builder(xdrip.getAppContext()).create().getDatabaseName();
+            final String databaseName = LegacyDataImporter.LEGACY_DB_NAME;
             final File currentDB = xdrip.getAppContext().getDatabasePath(databaseName);
             return currentDB.length();
         } catch (Exception e) {
@@ -78,7 +76,7 @@ public class DatabaseUtil {
 
         try {
 
-            final String databaseName = new Configuration.Builder(context).create().getDatabaseName();
+            final String databaseName = LegacyDataImporter.LEGACY_DB_NAME;
 
             final String dir = getExternalDir();
             makeSureDirectoryExists(dir);
@@ -151,7 +149,7 @@ public class DatabaseUtil {
 
         try {
 
-            final String databaseName = new Configuration.Builder(context).create().getDatabaseName();
+            final String databaseName = LegacyDataImporter.LEGACY_DB_NAME;
 
             final String dir = getExternalDir();
             makeSureDirectoryExists(dir);
@@ -245,7 +243,7 @@ public class DatabaseUtil {
                 //add Treatment and BGlucose Header
                 printStream.println("DAY;TIME;UDT_CGMS;BG_LEVEL;CH_GR;BOLUS;REMARK");
 
-                SQLiteDatabase db = Cache.openDatabase();
+                final AppDatabase appDatabase = AppDatabase.getInstance(xdrip.getAppContext());
 
                 // Set all needed Vars
                 double value;
@@ -261,48 +259,51 @@ public class DatabaseUtil {
                 Date date = new Date();
 
                 //Extract CGMS-Values
-                Cursor cur = db.query("bgreadings", new String[]{"timestamp", "calculated_value"}, "timestamp >= " + from, null, null, null, "timestamp ASC");//KS
-                if (cur.moveToFirst()) {
-                    do {
-                        timestamp = cur.getLong(0);
-                        value = cur.getDouble(1);
-                        if (value > 13) {
-                            date.setTime(timestamp);
-                            printStream.println(df.format(date) + Math.round(value) + ";;;;");
-                        }
-                    } while (cur.moveToNext());
+                try (Cursor cur = appDatabase.bgReadingDao().exportCursor(from)) {
+                    if (cur.moveToFirst()) {
+                        do {
+                            timestamp = cur.getLong(0);
+                            value = cur.getDouble(1);
+                            if (value > 13) {
+                                date.setTime(timestamp);
+                                printStream.println(df.format(date) + Math.round(value) + ";;;;");
+                            }
+                        } while (cur.moveToNext());
+                    }
                 }
 
                 //Extract Calibration-BG-Values
-                cur = db.query("Calibration", new String[]{"timestamp", "bg"}, "timestamp >= " + from, null, null, null, "timestamp ASC");
-                if (cur.moveToFirst()) {
-                    do {
-                        timestamp = cur.getLong(0);
-                        value = cur.getDouble(1);
-                        if (value > 0) {
-                            date.setTime(timestamp);
-                            printStream.println(df.format(date) + ";" + Math.round(value) + ";;;");
-                        }
-                    } while (cur.moveToNext());
+                try (Cursor cur = appDatabase.calibrationDao().exportCursor(from)) {
+                    if (cur.moveToFirst()) {
+                        do {
+                            timestamp = cur.getLong(0);
+                            value = cur.getDouble(1);
+                            if (value > 0) {
+                                date.setTime(timestamp);
+                                printStream.println(df.format(date) + ";" + Math.round(value) + ";;;");
+                            }
+                        } while (cur.moveToNext());
+                    }
                 }
 
                 //Extract Treatment-Values
-                cur = db.query("Treatments", new String[]{"timestamp", "carbs", "insulin", "notes"}, "timestamp >= " + from, null, null, null, "timestamp ASC");
-                if (cur.moveToFirst()) {
-                    do {
-                        timestamp = cur.getLong(0);
-                        valueCHO = cur.getString(1);
-                        valueIE = cur.getString(2);
-                        notes = cur.getString(3);
-                        if (notes == null) notes = "";
-                        if (valueIE.equals("0")) valueIE = "";
-                        if (valueCHO.equals("0")) valueCHO = "";
-                        notes= notes.replaceAll("\n","||"); //convert linefeed to SiDiary conform expression
-                        if (!valueIE.equals("") || !valueCHO.equals("") || !notes.equals("")) {
-                            date.setTime(timestamp);
-                            printStream.println(df.format(date) + ";;" + valueCHO + ";" + valueIE + ";" + notes);
-                        }
-                    } while (cur.moveToNext());
+                try (Cursor cur = appDatabase.treatmentsDao().exportCursor(from)) {
+                    if (cur.moveToFirst()) {
+                        do {
+                            timestamp = cur.getLong(0);
+                            valueCHO = cur.getString(1);
+                            valueIE = cur.getString(2);
+                            notes = cur.getString(3);
+                            if (notes == null) notes = "";
+                            if (valueIE.equals("0")) valueIE = "";
+                            if (valueCHO.equals("0")) valueCHO = "";
+                            notes= notes.replaceAll("\n","||"); //convert linefeed to SiDiary conform expression
+                            if (!valueIE.equals("") || !valueCHO.equals("") || !notes.equals("")) {
+                                date.setTime(timestamp);
+                                printStream.println(df.format(date) + ";;" + valueCHO + ";" + valueIE + ";" + notes);
+                            }
+                        } while (cur.moveToNext());
+                    }
                 }
 
                 printStream.flush();
@@ -340,7 +341,7 @@ public class DatabaseUtil {
         String returnString = "";
 
         try {
-            String databaseName = new Configuration.Builder(context).create().getDatabaseName();
+            String databaseName = LegacyDataImporter.LEGACY_DB_NAME;
             File currentDB = context.getDatabasePath(databaseName);
             File currentDBold = context.getDatabasePath(databaseName + ".old");
             File currentDBtmp = context.getDatabasePath(databaseName + ".tmp");
@@ -367,9 +368,6 @@ public class DatabaseUtil {
                 dst = destStream.getChannel();
                 dst.transferFrom(src, 0, src.size());
                 destStream.flush();
-                // Close all active db connections before database import.
-                ActiveAndroid.clearCache();
-                ActiveAndroid.dispose();
                 currentDB.renameTo(currentDBold);
                 currentDBtmp.renameTo(currentDB);
                 currentDBold.delete();

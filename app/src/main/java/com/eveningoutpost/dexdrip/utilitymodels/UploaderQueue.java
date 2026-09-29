@@ -1,17 +1,15 @@
 package com.eveningoutpost.dexdrip.utilitymodels;
 
-import android.database.Cursor;
-import android.provider.BaseColumns;
 import android.util.Log;
 import android.util.LongSparseArray;
 
-import com.activeandroid.Cache;
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
-import com.activeandroid.util.SQLiteUtils;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.UploaderQueueDao;
 import com.eveningoutpost.dexdrip.models.BgReading;
 import com.eveningoutpost.dexdrip.models.BloodTest;
 import com.eveningoutpost.dexdrip.models.Calibration;
@@ -22,6 +20,7 @@ import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.tidepool.TidepoolEntry;
 import com.eveningoutpost.dexdrip.tidepool.TidepoolStatus;
 import com.eveningoutpost.dexdrip.tidepool.TidepoolUploader;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
@@ -39,28 +38,19 @@ import static com.eveningoutpost.dexdrip.services.SyncService.startSyncService;
  * Created by jamorham on 15/11/2016.
  */
 
-@Table(name = "UploaderQueue", id = BaseColumns._ID)
-public class UploaderQueue extends Model {
+@Entity(tableName = "UploaderQueue",
+        indices = {
+                @Index("action"),
+                @Index("otype"),
+                @Index("timestamp"),
+                @Index("bitfield_complete"),
+                @Index("bitfield_wanted")
+        })
+public class UploaderQueue {
     private static final boolean d = false;
     private final static String TAG = "UploaderQueue";
-    private final static String[] schema = {
-            "CREATE TABLE UploaderQueue (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-            "ALTER TABLE UploaderQueue ADD COLUMN timestamp INTEGER;",
-            "ALTER TABLE UploaderQueue ADD COLUMN action TEXT;",
-            "ALTER TABLE UploaderQueue ADD COLUMN otype TEXT;",
-            "ALTER TABLE UploaderQueue ADD COLUMN reference_id INTEGER;",
-            "ALTER TABLE UploaderQueue ADD COLUMN reference_uuid TEXT;",
-            "ALTER TABLE UploaderQueue ADD COLUMN bitfield_wanted INTEGER;",
-            "ALTER TABLE UploaderQueue ADD COLUMN bitfield_complete INTEGER;",
-
-            "CREATE INDEX index_UploaderQueue_action on UploaderQueue(action);",
-            "CREATE INDEX index_UploaderQueue_otype on UploaderQueue(otype);",
-            "CREATE INDEX index_UploaderQueue_timestamp on UploaderQueue(timestamp);",
-            "CREATE INDEX index_UploaderQueue_complete on UploaderQueue(bitfield_complete);",
-            "CREATE INDEX index_UploaderQueue_wanted on UploaderQueue(bitfield_wanted);"};
 
     // table creation
-    private static boolean patched = false;
     private static long last_cleanup = 0;
     private static long last_new_entry = 0;
     private static long last_query = 0;
@@ -96,39 +86,42 @@ public class UploaderQueue extends Model {
     //...
 
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "timestamp", index = true)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "action", index = true)
+    @ColumnInfo(name = "action")
     public String action;
 
     @Expose
-    @Column(name = "otype", index = true)
+    @ColumnInfo(name = "otype")
     public String type;
 
     @Expose
-    @Column(name = "reference_id")
+    @ColumnInfo(name = "reference_id")
     public long reference_id;
 
     @Expose
-    @Column(name = "reference_uuid")
+    @ColumnInfo(name = "reference_uuid")
     public String reference_uuid;
 
     @Expose
-    @Column(name = "bitfield_wanted", index = true)
+    @ColumnInfo(name = "bitfield_wanted")
     public long bitfield_wanted;
 
     @Expose
-    @Column(name = "bitfield_complete", index = true)
+    @ColumnInfo(name = "bitfield_complete")
     public long bitfield_complete;
 
     //////////////////////////////////////////
 
     // patches and saves
     public Long saveit() {
-        fixUpTable();
         return save();
     }
 
@@ -248,32 +241,19 @@ public class UploaderQueue extends Model {
         if (d) UserError.Log.d(TAG, "get Pending by type: " + className);
         last_query = JoH.tsl();
         try {
-            final String bitfields = Long.toString(bitfield);
-            return new Select()
-                    .from(UploaderQueue.class)
-                    .where("otype = ?", className)
-                    .where("(bitfield_wanted & " + bitfields + ") == " + bitfields)
-                    .where("(bitfield_complete & " + bitfields + ") != " + bitfields)
-                    .orderBy("timestamp asc, _id asc") // would _id asc be sufficient?
-                    .limit(limit)
-                    .execute();
+            return dao().getPendingByType(className, bitfield, limit);
         } catch (android.database.sqlite.SQLiteException e) {
             if (d) UserError.Log.d(TAG, "Exception: " + e.toString());
-            fixUpTable();
             return new ArrayList<UploaderQueue>();
         }
     }
 
 
     /**
-     * Primary key of an object being queued. ActiveAndroid models expose getId(); models already
-     * migrated to Room expose their key as a public long _id field.
+     * Primary key of an object being queued. All data models expose their key as a public
+     * long _id field.
      */
     private static long referenceId(Object obj) {
-        if (obj instanceof Model) {
-            final Long id = ((Model) obj).getId();
-            return id != null ? id : -1;
-        }
         try {
             return obj.getClass().getField("_id").getLong(obj);
         } catch (Exception e) {
@@ -283,78 +263,27 @@ public class UploaderQueue extends Model {
     }
 
 
-    private static int getLegacyCount(Class which, Boolean rest, Boolean mongo, Boolean and) {
-        try {
-            String where = "";
-            if (rest != null) where += " success = " + (rest ? "1 " : "0 ");
-            if (and != null) where += (and ? " and " : " or ");
-            if (mongo != null) where += " mongo_success = " + (mongo ? "1 " : "0 ");
-            final String query = new Select("COUNT(*) as total").from(which).toSql();
-            final Cursor resultCursor = Cache.openDatabase().rawQuery(query + ((where.length() > 0) ? " where " + where : ""), null);
-            if (resultCursor.moveToNext()) {
-                final int total = resultCursor.getInt(0);
-                resultCursor.close();
-                return total;
-            } else {
-                return 0;
-            }
-
-        } catch (Exception e) {
-            Log.d(TAG, "Got exception getting count: " + e);
-            return -1;
-        }
-    }
-    private static int getCount(String where) {
-        try {
-            final String query = new Select("COUNT(*) as total").from(UploaderQueue.class).toSql();
-            final Cursor resultCursor = Cache.openDatabase().rawQuery(query + where, null);
-            if (resultCursor.moveToNext()) {
-                final int total = resultCursor.getInt(0);
-                resultCursor.close();
-                return total;
-            } else {
-                return 0;
-            }
-
-        } catch (Exception e) {
-            Log.d(TAG, "Got exception getting count: " + e);
-            return 0;
-        }
-    }
-
     private static List<String> getClasses() {
-        fixUpTable();
-        final ArrayList<String> results = new ArrayList<>();
-        final String query = new Select("distinct otype as otypes").from(UploaderQueue.class).toSql();
-        final Cursor resultCursor = Cache.openDatabase().rawQuery(query, null);
-        while (resultCursor.moveToNext()) {
-            results.add(resultCursor.getString(0));
-        }
-        resultCursor.close();
-        return results;
+        return dao().distinctTypes();
     }
 
 
     public static int getQueueSizeByType(String className, long bitfield, boolean completed) {
-        fixUpTable();
         if (d) UserError.Log.d(TAG, "get Pending count by type: " + className);
         try {
-            final String bitfields = Long.toString(bitfield);
-            return getCount(" where otype = '" + className + "'" + " and (bitfield_wanted & " + bitfields + ") == " + bitfields + " and (bitfield_complete & " + bitfields + ") " + (completed ? "== " : "!= ") + bitfields);
+            return completed
+                    ? dao().countCompletedByType(className, bitfield)
+                    : dao().countPendingByType(className, bitfield);
         } catch (android.database.sqlite.SQLiteException e) {
             if (d) UserError.Log.d(TAG, "Exception: " + e.toString());
-            fixUpTable();
             return 0;
         }
     }
 
 
     public static void emptyQueue() {
-        fixUpTable();
         try {
-            new Delete()
-                    .from(UploaderQueue.class)
-                    .execute();
+            dao().deleteAll();
             last_cleanup = JoH.tsl();
             JoH.static_toast_long("Uploader queue emptied!");
         } catch (Exception e) {
@@ -365,39 +294,17 @@ public class UploaderQueue extends Model {
 
     public static void cleanQueue() {
         // delete all completed records > 24 hours old
-        fixUpTable();
         try {
-            new Delete()
-                    .from(UploaderQueue.class)
-                    .where("timestamp < ?", JoH.tsl() - 86400000L)
-                    .where("bitfield_wanted == bitfield_complete")
-                    .execute();
+            dao().deleteCompletedOlderThan(JoH.tsl() - 86400000L);
 
             // delete everything > 7 days old
-            new Delete()
-                    .from(UploaderQueue.class)
-                    .where("timestamp < ?", JoH.tsl() - 86400000L * 7L)
-                    .execute();
+            dao().deleteOlderThan(JoH.tsl() - 86400000L * 7L);
         } catch (Exception e) {
             UserError.Log.d(TAG, "Exception cleaning uploader queue: " + e);
         }
         last_cleanup = JoH.tsl();
     }
 
-
-    private static void fixUpTable() {
-        if (patched) return;
-
-        for (String patch : schema) {
-            try {
-                SQLiteUtils.execSql(patch);
-            } catch (Exception e) {
-                if (d)
-                    UserError.Log.d(TAG, "Patch: " + patch + " generated exception as it should: " + e.toString());
-            }
-        }
-        patched = true;
-    }
 
     public static String getCircuitName(long i) {
         try {
@@ -568,5 +475,29 @@ public class UploaderQueue extends Model {
             startSyncService(100);
             JoH.static_toast_short("Refreshing Status");
         }
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    /** Mirrors the ActiveAndroid Model.getId() used by callers. */
+    public Long getId() {
+        return _id;
+    }
+
+    private static UploaderQueueDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).uploaderQueueDao();
     }
 }

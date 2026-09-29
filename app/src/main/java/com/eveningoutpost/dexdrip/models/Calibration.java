@@ -12,7 +12,6 @@ import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-import com.activeandroid.ActiveAndroid;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.R;
@@ -652,7 +651,6 @@ public class Calibration {
             double w;
 
             final SlopeParameters sParams = getSlopeParameters();
-            ActiveAndroid.clearCache();
             List<Calibration> calibrations = allForSensorInLastFourDays(); //5 days was a bit much, dropped this to 4
 
             if (calibrations == null) {
@@ -664,16 +662,13 @@ public class Calibration {
             // less than 5 calibrations in last 4 days? cast the net wider if in extended mode
             final int ccount = calibrations.size();
             if ((ccount < 5) && extended) {
-                ActiveAndroid.clearCache();
                 calibrations = allForSensorLimited(5);
                 if (calibrations.size() > ccount) {
                     Home.toaststaticnext("Calibrated using data beyond last 4 days");
                 }
             }
-            ActiveAndroid.clearCache();
             if (calibrations.size() <= 1) {
                 final Calibration calibration = Calibration.last();
-                ActiveAndroid.clearCache();
                 calibration.slope = 1;
                 calibration.intercept = sParams.restrictIntercept(calibration.bg - (calibration.raw_value * calibration.slope));
                 calibration.save();
@@ -691,7 +686,6 @@ public class Calibration {
 
                 final Calibration last_calibration = Calibration.last();
                 if (last_calibration != null) {
-                    ActiveAndroid.clearCache();
                     w = (last_calibration.calculateWeight() * (calibrations.size() * 0.14));
                     l += (w);
                     m += (w * last_calibration.estimate_raw_at_time_of_calibration);
@@ -702,7 +696,6 @@ public class Calibration {
 
                 double d = (l * n) - (m * m);
                 final Calibration calibration = Calibration.last();
-                ActiveAndroid.clearCache();
                 calibration.intercept = sParams.restrictIntercept(((n * p) - (m * q)) / d);
                 calibration.slope = ((l * q) - (m * p)) / d;
                 Log.d(TAG, "Calibration slope debug: slope:" + calibration.slope + " q:" + q + " m:" + m + " p:" + p + " d:" + d);

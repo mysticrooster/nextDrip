@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  *
  * The Room migration uses a separate database file, so each migrated table starts
  * empty. To avoid losing user data, this importer copies the rows for migrated
- * tables the first time the app runs after a table has moved to Room.
+ * tables out of the legacy database.
  *
  * The copy runs entirely inside SQLite: it {@code ATTACH}es the legacy database and
  * issues a single {@code INSERT ... SELECT} per table over the intersection of the
@@ -33,21 +33,47 @@ import java.util.concurrent.TimeUnit;
  *   <li>fast (no per-row Java).</li>
  * </ul>
  *
+ * Two details make it robust enough to be re-run safely:
+ * <ul>
+ *   <li>Room makes primitive columns {@code NOT NULL} while the legacy schema is
+ *       nullable (e.g. columns added via {@code ALTER TABLE}). A plain
+ *       {@code INSERT OR IGNORE ... SELECT} would silently drop those rows, so any
+ *       shared column that is {@code NOT NULL} in Room is copied through
+ *       {@code COALESCE(col, 0)}.</li>
+ *   <li>Rows are only copied when their {@code _id} is not already present, so a
+ *       re-run backfills missing rows without duplicating tables that have no unique
+ *       constraint.</li>
+ * </ul>
+ *
+ * Each table tracks the {@link #CURRENT_IMPORT_GENERATION} it was imported at
+ * (per-table {@link PersistentStore} keys). Bumping {@code CURRENT_IMPORT_GENERATION}
+ * forces every table to be re-imported (idempotently) on the next launch, which is how
+ * a fix to the copy logic can recover rows a previous version dropped. Adding a new
+ * table to {@link #MIGRATED_TABLES} also imports it automatically (its stored
+ * generation starts at 0).
+ *
  * The import is started on a background thread via {@link #importAll(Context)} (called
  * at startup) so it never blocks app startup. Any Room access obtained through
  * {@link AppDatabase#getInstance(Context)} first calls {@link #awaitImportComplete()},
  * so a migrated façade can never read (and then race) a table that is still being
  * copied.
- *
- * Each table is copied at most once, guarded by a {@link PersistentStore} flag, so
- * deleting rows later never re-imports them.
  */
 public final class LegacyDataImporter {
 
     private static final String TAG = "LegacyDataImporter";
 
-    public static final String LEGACY_DB_NAME = "Application.db";
-    public static final String IMPORTED_FLAG_PREFIX = "room_legacy_import_done_";
+    /**
+     * The legacy ActiveAndroid database file name. This must match {@code AA_DB_NAME} in the
+     * manifest (ActiveAndroid does not use its "Application.db" default here).
+     */
+    public static final String LEGACY_DB_NAME = "DexDrip.db";
+    public static final String GENERATION_KEY_PREFIX = "room_legacy_import_gen_";
+
+    /**
+     * Bump this whenever the copy logic changes in a way that should re-run the import
+     * (idempotently) to recover previously dropped rows.
+     */
+    public static final long CURRENT_IMPORT_GENERATION = 2;
 
     private static final String LEGACY_SCHEMA = "legacy";
     private static final int AWAIT_TIMEOUT_SECONDS = 30;
@@ -83,7 +109,9 @@ public final class LegacyDataImporter {
                     "BgReadings",
                     "SensorSendQueue",
                     "CalibrationSendQueue",
-                    "BgSendQueue")));
+                    "BgSendQueue",
+                    "UploaderQueue",
+                    "UserErrors")));
 
     private static final Object stateLock = new Object();
     private static boolean started;
@@ -161,7 +189,9 @@ public final class LegacyDataImporter {
     private static void runImport(Context context) {
         final File legacyFile = context.getDatabasePath(LEGACY_DB_NAME);
         if (legacyFile == null || !legacyFile.exists()) {
-            return; // fresh install: nothing to preserve
+            // Fresh install (or the legacy DB is already gone): nothing to preserve.
+            markAllTablesImported();
+            return;
         }
 
         // Ensure the Room schema exists on disk before we open the file directly.
@@ -195,21 +225,17 @@ public final class LegacyDataImporter {
     }
 
     private static void importTable(SQLiteDatabase room, String table) {
-        final String flag = IMPORTED_FLAG_PREFIX + table;
-        if (PersistentStore.getBoolean(flag)) {
-            return;
+        final String generationKey = GENERATION_KEY_PREFIX + table;
+        if (PersistentStore.getLong(generationKey) >= CURRENT_IMPORT_GENERATION) {
+            return; // already imported at the current generation
         }
         try {
             if (!tableExists(room, table) || !legacyTableExists(room, table)) {
-                markDone(flag, table, "table missing");
-                return;
-            }
-            if (rowCount(room, "main", table) > 0) {
-                markDone(flag, table, "room table already populated");
+                markDone(generationKey, table, "table missing");
                 return;
             }
             if (rowCount(room, LEGACY_SCHEMA, table) == 0) {
-                markDone(flag, table, "no legacy rows");
+                markDone(generationKey, table, "no legacy rows");
                 return;
             }
             final Set<String> columns = sharedColumns(room, table);
@@ -217,24 +243,50 @@ public final class LegacyDataImporter {
                 Log.e(TAG, "No shared columns for " + table + " - skipping to avoid corrupting it");
                 return;
             }
-            final String columnList = joinQuoted(columns);
+            final Set<String> notNull = notNullColumns(room, table);
+            final StringBuilder columnList = new StringBuilder();
+            final StringBuilder selectList = new StringBuilder();
+            for (final String column : columns) {
+                if (columnList.length() > 0) {
+                    columnList.append(", ");
+                    selectList.append(", ");
+                }
+                columnList.append(quote(column));
+                if (notNull.contains(column) && !"_id".equalsIgnoreCase(column)) {
+                    // Room is stricter (NOT NULL) than the legacy schema, which may hold NULL
+                    // (e.g. columns added via ALTER TABLE). Coerce to 0 so the row is not dropped.
+                    selectList.append("COALESCE(").append(quote(column)).append(", 0)");
+                } else {
+                    selectList.append(quote(column));
+                }
+            }
+            final long before = rowCount(room, "main", table);
             room.beginTransaction();
             try {
                 room.execSQL("INSERT OR IGNORE INTO main." + quote(table)
-                        + " (" + columnList + ") SELECT " + columnList
-                        + " FROM " + LEGACY_SCHEMA + "." + quote(table));
+                        + " (" + columnList + ") SELECT " + selectList
+                        + " FROM " + LEGACY_SCHEMA + "." + quote(table)
+                        + " WHERE " + quote("_id") + " NOT IN (SELECT " + quote("_id")
+                        + " FROM main." + quote(table) + ")");
                 room.setTransactionSuccessful();
             } finally {
                 room.endTransaction();
             }
-            markDone(flag, table, "imported " + rowCount(room, "main", table) + " row(s)");
+            final long after = rowCount(room, "main", table);
+            markDone(generationKey, table, "imported " + (after - before) + " row(s), now " + after);
         } catch (Exception e) {
             Log.e(TAG, "Failed importing " + table + ": " + e);
         }
     }
 
-    private static void markDone(String flag, String table, String reason) {
-        PersistentStore.setBoolean(flag, true);
+    private static void markAllTablesImported() {
+        for (final String table : MIGRATED_TABLES) {
+            PersistentStore.setLong(GENERATION_KEY_PREFIX + table, CURRENT_IMPORT_GENERATION);
+        }
+    }
+
+    private static void markDone(String generationKey, String table, String reason) {
+        PersistentStore.setLong(generationKey, CURRENT_IMPORT_GENERATION);
         Log.d(TAG, "Legacy import for " + table + " complete (" + reason + ")");
     }
 
@@ -260,21 +312,26 @@ public final class LegacyDataImporter {
         return columns;
     }
 
+    private static Set<String> notNullColumns(SQLiteDatabase db, String table) {
+        final Set<String> names = new LinkedHashSet<>();
+        try (Cursor cursor = db.rawQuery("PRAGMA main.table_info(" + quote(table) + ")", null)) {
+            final int nameIndex = cursor.getColumnIndex("name");
+            final int notNullIndex = cursor.getColumnIndex("notnull");
+            while (cursor.moveToNext()) {
+                if (cursor.getInt(notNullIndex) != 0) {
+                    names.add(cursor.getString(nameIndex));
+                }
+            }
+        }
+        return names;
+    }
+
     private static Set<String> columnNames(SQLiteDatabase db, String qualifiedTable) {
         final Set<String> names = new LinkedHashSet<>();
         try (Cursor cursor = db.rawQuery("SELECT * FROM " + qualifiedTable + " LIMIT 0", null)) {
             Collections.addAll(names, cursor.getColumnNames());
         }
         return names;
-    }
-
-    private static String joinQuoted(Set<String> columns) {
-        final StringBuilder sb = new StringBuilder();
-        for (final String column : columns) {
-            if (sb.length() > 0) sb.append(", ");
-            sb.append(quote(column));
-        }
-        return sb.toString();
     }
 
     private static String quote(String identifier) {
@@ -290,18 +347,18 @@ public final class LegacyDataImporter {
     }
 
     /**
-     * Clears the per-table import flags so the next {@link #importAll(Context)} re-copies every
-     * migrated table. Called when Room recreates its database (destructive migration), and by tests.
+     * Clears the per-table import generations so the next {@link #importAll(Context)} re-copies
+     * every migrated table. Called when Room recreates its database (destructive migration), and
+     * by tests.
      */
-    public static void clearImportFlags() {
+    public static void clearImportState() {
         for (final String table : MIGRATED_TABLES) {
-            PersistentStore.removeItem(IMPORTED_FLAG_PREFIX + table);
+            PersistentStore.removeItem(GENERATION_KEY_PREFIX + table);
         }
     }
 
     /**
-     * Resets the import state (started/running latch + per-table flags). Only for use from tests
-     * that need a clean slate.
+     * Resets the import thread state so tests can start a clean import. Only for use from tests.
      */
     static void resetForTesting() {
         synchronized (stateLock) {
@@ -309,6 +366,6 @@ public final class LegacyDataImporter {
             running = false;
             latch = new CountDownLatch(1);
         }
-        clearImportFlags();
+        clearImportState();
     }
 }

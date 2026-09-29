@@ -35,7 +35,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 
 | Aspect | Value |
 | --- | --- |
-| ORM | `thread-safe-active-android-3.1.1` (local AAR) |
+| ORM | **retired** — ActiveAndroid AAR, `initialize()`, ContentProvider and `@Table`/`Model` usage all removed |
 | Table (`@Table`) classes | **29** |
 | Files using ActiveAndroid | **64** |
 | Static query sites (`Select`/`Update`/`Delete`/`Insert`/`save`) | **~478** |
@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **26** of 28 — all FK-free leaves **and the FK spine** (`Sensor`→`Calibration`→`BgReading`) + the queues (`SensorSendQueue`, `CalibrationSendQueue`, `BgSendQueue`). Remaining: `UserError`, `UploaderQueue`. `Libre2Sensors` is a `@DatabaseView`. |
+| Migrated tables | **28 of 28** + `Libre2Sensors` as a `@DatabaseView` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -165,33 +165,37 @@ com.eveningoutpost.dexdrip
   by ActiveAndroid) and whose other tables Room does not know about — opening the
   shared file would fail schema validation.
 - **Data preservation (`LegacyDataImporter`).** Because Room starts empty, a
-  one-time importer copies the legacy rows across the first time the app runs after
-  a table has moved. It is kicked off from `IdempotentMigrations.performAll()`.
-  - Mechanism: `ATTACH DATABASE <Application.db> AS legacy`, then one
-    `INSERT OR IGNORE INTO main.T (<shared cols>) SELECT <shared cols> FROM legacy.T`
-    per table, over the **intersection** of the two tables' columns. This is immune
-    to column-order differences and to legacy-only/room-only columns, and is atomic
-    per table (one statement). No per-row Java.
-  - **Threading:** `importAll()` runs the copy on a dedicated background thread
-    (`legacy-data-import`) so it never blocks app startup. `AppDatabase.getInstance()`
-    first calls `LegacyDataImporter.awaitImportComplete()`, so any migrated façade is
-    gated behind the copy and can never read — then race — a table mid-import. The
-    await is bounded (30s) so a stuck copy cannot hang the app forever. The importer
-    itself uses the non-gating `AppDatabase.buildInstance()` so it never waits on its
-    own import.
-  - Guards: copies only when the Room table is empty *and* the legacy table has rows;
-    marks a per-table `PersistentStore` flag (`room_legacy_import_done_<table>`) so
-    later deletions never re-import; `INSERT OR IGNORE` avoids PK clashes.
-  - Adding an entity is a two-step chore: register it in `@Database` **and** add its
-    table name to `LegacyDataImporter.MIGRATED_TABLES`. A unit test
-    (`AppDatabaseImportListTest`) fails if the two drift apart.
-  - After the last table has moved and ActiveAndroid is removed, the importer and its
-    flags can be deleted (the copy has already happened on every device).
+   one-time importer copies the legacy rows across the first time the app runs after
+   a table has moved. It is kicked off from `IdempotentMigrations.performAll()`.
+   - Source: the legacy database is **`DexDrip.db`** (the manifest's `AA_DB_NAME`), not
+     ActiveAndroid's `Application.db` default.
+   - Mechanism: `ATTACH DATABASE <DexDrip.db> AS legacy`, then one
+     `INSERT OR IGNORE INTO main.T (<cols>) SELECT <exprs> FROM legacy.T WHERE _id NOT IN
+     (SELECT _id FROM main.T)` per table, over the **intersection** of the two tables' columns.
+     Immune to column-order differences and legacy-only/room-only columns; atomic per table.
+   - **`NOT NULL` coercion:** Room makes primitive columns `NOT NULL` while the legacy schema is
+     nullable (e.g. columns added later via `ALTER TABLE`). Any shared column that is `NOT NULL`
+     in Room is copied through `COALESCE(col, 0)`, otherwise `INSERT OR IGNORE` would silently
+     drop those rows (this caused old readings to go missing).
+   - **Idempotent re-runs:** rows are only copied when their `_id` is absent, so the copy can be
+     re-run to backfill rows without duplicating tables that lack a unique constraint.
+   - **Import generation:** each table stores the `CURRENT_IMPORT_GENERATION` it was imported at.
+     Bumping `CURRENT_IMPORT_GENERATION` re-runs the copy (idempotently) for every table — this is
+     how a fix to the copy logic recovers rows a previous version dropped. Adding a new table to
+     `MIGRATED_TABLES` imports it automatically (its stored generation starts at 0).
+   - **Threading:** `importAll()` runs the copy on a dedicated background thread
+     (`legacy-data-import`) so it never blocks app startup. `AppDatabase.getInstance()`
+     first calls `LegacyDataImporter.awaitImportComplete()`, so any migrated façade is
+     gated behind the copy and can never read — then race — a table mid-import. The
+     await is bounded (30s) so a stuck copy cannot hang the app forever. Best-effort logging
+     (`UserError`) uses the non-gating `AppDatabase.getInstanceWithoutImportWait()`.
+   - Adding an entity is a two-step chore: register it in `@Database` **and** add its
+     table name to `LegacyDataImporter.MIGRATED_TABLES`. A unit test
+     (`AppDatabaseImportListTest`) fails if the two drift apart.
+   - After ActiveAndroid is fully retired, the importer and its generations can be deleted
+     (the copy has already happened on every device).
 - Table/column names still match ActiveAndroid exactly (`@Entity(tableName = …)`,
-  `@ColumnInfo(name = …)`), so the two schemas stay aligned and an eventual
-  switch-over/copy is mechanical.
-- Remove the ActiveAndroid `ContentProvider` and `initialize()` call only once
-  the last table has moved.
+  `@ColumnInfo(name = …)`), so the two schemas stay aligned and any later copy is mechanical.
 - `@Database(exportSchema = false)` for now; schema export should be enabled when
   the first real `Migration` is needed.
 
@@ -393,6 +397,31 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     before saving (equivalent filtering, since `lastValid()` excludes `slope == 0` too).
   - Bumped `@Database` to `version = 7`.
   - Full suite (921 tests) + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `UploaderQueue`, `UserError` (28/28); ActiveAndroid retired.**
+  - `UploaderQueue`: Room @Entity + DAO (bitfield queries in SQL, distinct types, cleanup);
+    dropped the hand-written schema/raw-SQL counts.
+  - `UserError` (`UserErrors`): Room @Entity + DAO (`severity IN (:levels)`). Its writes are
+    **best-effort and non-gating** (`AppDatabase.getInstanceWithoutImportWait`) so logging can
+    never block or crash on the legacy import.
+  - With no `@Table` classes left, ActiveAndroid is retired: removed the AAR dependency, the
+    `initialize()`/`clearCache()` calls, the manifest ContentProvider + `AA_*` meta-data, and the
+    dead `PlusModel`/`SqliteRejigger`. `JoH.fullDatabaseReset()` now reopens the Room DB.
+  - **Legacy DB name fixed:** it is `DexDrip.db` (`AA_DB_NAME`), not ActiveAndroid's
+    `Application.db` default. This was a real data-loss bug — the importer never found the file.
+  - **Importer hardened** (see below): `COALESCE` for NOT-NULL columns + `_id`-based idempotency +
+    a per-table import generation (`CURRENT_IMPORT_GENERATION = 2`) that re-runs the copy to
+    recover rows an earlier version dropped. This backfills the missing old readings.
+  - **Backup** (`Backup.doCompleteBackup`) and DB size now include `xdrip-room.db`; note
+    `DatabaseUtil.saveSql/loadSql` still handle only the legacy DB (advanced raw-DB tool).
+  - Re-pointed the remaining raw-SQL callers at DAOs: `NoteSearch`, `tables/SensorDataTable`,
+    `DatabaseAdmin`, `DatabaseUtil.saveCSV`.
+  - Bumped `@Database` to `version = 9`. Full suite + `assembleFastDebug` (R8) pass.
+
+> ⚠️ **One-time dev caveat:** upgrading from an intermediate build to `version = 9` recreates
+> `xdrip-room.db` (schema change) and re-imports from `DexDrip.db`. Rows written to Room *after* a
+> table had already moved (e.g. BgReadings collected while running the spine build) are not in the
+> legacy DB and are not recovered by this path. A production release should ship a single
+> `@Database` version + a real `Migration` so no wipe is needed.
 
 ---
 

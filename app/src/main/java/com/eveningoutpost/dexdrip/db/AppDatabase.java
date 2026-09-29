@@ -37,6 +37,8 @@ import com.eveningoutpost.dexdrip.db.dao.ReminderDao;
 import com.eveningoutpost.dexdrip.db.dao.StepCounterDao;
 import com.eveningoutpost.dexdrip.db.dao.TreatmentsDao;
 import com.eveningoutpost.dexdrip.db.dao.TransmitterDataDao;
+import com.eveningoutpost.dexdrip.db.dao.UploaderQueueDao;
+import com.eveningoutpost.dexdrip.db.dao.UserErrorDao;
 import com.eveningoutpost.dexdrip.db.dao.UserNotificationDao;
 import com.eveningoutpost.dexdrip.models.APStatus;
 import com.eveningoutpost.dexdrip.models.Accuracy;
@@ -60,13 +62,15 @@ import com.eveningoutpost.dexdrip.models.Sensor;
 import com.eveningoutpost.dexdrip.models.StepCounter;
 import com.eveningoutpost.dexdrip.models.Treatments;
 import com.eveningoutpost.dexdrip.models.TransmitterData;
+import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.models.UserNotification;
 import com.eveningoutpost.dexdrip.sharemodels.models.ShareGlucose;
 import com.eveningoutpost.dexdrip.utilitymodels.BgSendQueue;
 import com.eveningoutpost.dexdrip.utilitymodels.CalibrationSendQueue;
 import com.eveningoutpost.dexdrip.utilitymodels.SensorSendQueue;
+import com.eveningoutpost.dexdrip.utilitymodels.UploaderQueue;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class, Sensor.class, Calibration.class, BgReading.class, SensorSendQueue.class, CalibrationSendQueue.class, BgSendQueue.class}, views = {Libre2Sensor.class}, version = 7, exportSchema = false)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class, Sensor.class, Calibration.class, BgReading.class, SensorSendQueue.class, CalibrationSendQueue.class, BgSendQueue.class, UploaderQueue.class, UserError.class}, views = {Libre2Sensor.class}, version = 9, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
@@ -124,12 +128,24 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public abstract BgSendQueueDao bgSendQueueDao();
 
+    public abstract UploaderQueueDao uploaderQueueDao();
+
+    public abstract UserErrorDao userErrorDao();
+
     public abstract MetaDao metaDao();
 
     public static AppDatabase getInstance(Context context) {
         // Wait for the one-time legacy import so a migrated façade can never read
         // (and then race) a table that is still being copied from ActiveAndroid.
         LegacyDataImporter.awaitImportComplete();
+        return buildInstance(context);
+    }
+
+    /**
+     * Like {@link #getInstance(Context)} but never waits for the legacy import. Used by
+     * best-effort logging ({@code UserError}) so a log call can never block on the import.
+     */
+    public static AppDatabase getInstanceWithoutImportWait(Context context) {
         return buildInstance(context);
     }
 
@@ -158,7 +174,7 @@ public abstract class AppDatabase extends RoomDatabase {
             // changed entity set self-heal instead of crashing (see the version-bump rule too).
             Log.w(TAG, "Recreating Room database after schema mismatch: " + e.getMessage());
             deleteDatabaseFiles(context);
-            LegacyDataImporter.clearImportFlags();
+            LegacyDataImporter.clearImportState();
             return openOnce(context);
         }
     }
@@ -175,7 +191,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     public void onDestructiveMigration(@NonNull SupportSQLiteDatabase db) {
                         // Room recreated the DB; let the legacy importer refill the
                         // migrated tables from ActiveAndroid's Application.db again.
-                        LegacyDataImporter.clearImportFlags();
+                        LegacyDataImporter.clearImportState();
                     }
                 })
                 .build();
@@ -197,6 +213,15 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public static void setInstanceForTesting(AppDatabase database) {
         INSTANCE = database;
+    }
+
+    /** Closes and reopens the database, e.g. after the underlying file was replaced. */
+    public static synchronized void resetAndReopen(Context context) {
+        if (INSTANCE != null) {
+            INSTANCE.close();
+            INSTANCE = null;
+        }
+        buildInstance(context);
     }
 
     public static synchronized void resetForTesting() {

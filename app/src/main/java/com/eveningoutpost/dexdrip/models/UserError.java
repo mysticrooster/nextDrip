@@ -1,19 +1,22 @@
 package com.eveningoutpost.dexdrip.models;
 
 import android.os.AsyncTask;
-import android.provider.BaseColumns;
 
-import com.activeandroid.Cache;
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.UserErrorDao;
 import com.eveningoutpost.dexdrip.receiver.InfoContentProvider;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.annotations.Expose;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
@@ -23,28 +26,36 @@ import java.util.List;
  * Created by Emma Black on 8/3/15.
  */
 
-@Table(name = "UserErrors", id = BaseColumns._ID)
-public class UserError extends Model {
+@Entity(tableName = "UserErrors",
+        indices = {
+                @Index("severity"),
+                @Index("timestamp")
+        })
+public class UserError {
 
     private final static String TAG = UserError.class.getSimpleName();
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "shortError")
+    @ColumnInfo(name = "shortError")
     public String shortError; // Short error message to be displayed on table
 
     @Expose
-    @Column(name = "message")
+    @ColumnInfo(name = "message")
     public String message; // Additional text when error is expanded
 
     @Expose
-    @Column(name = "severity", index = true)
+    @ColumnInfo(name = "severity")
     public int severity; // int between 1 and 3, 3 being most severe
 
     // 5 = internal lower level user events
     // 6 = higher granularity user events
 
     @Expose
-    @Column(name = "timestamp", index = true)
+    @ColumnInfo(name = "timestamp")
     public long timestamp; // Time the error was raised
 
     //todo: rather than include multiples of the same error, should we have a "Count" and just increase that on duplicates?
@@ -57,6 +68,7 @@ public class UserError extends Model {
     public UserError() {
     }
 
+    @androidx.room.Ignore
     public UserError(int severity, String shortError, String message) {
         this.severity = severity;
         this.shortError = shortError;
@@ -80,6 +92,7 @@ public class UserError extends Model {
         }*/
     }
 
+    @androidx.room.Ignore
     public UserError(String shortError, String message) {
         this(2, shortError, message);
     }
@@ -117,146 +130,101 @@ public class UserError extends Model {
 
     // used in unit testing
     public static void cleanup(long timestamp) {
-        List<UserError> userErrors = new Select()
-                .from(UserError.class)
-                .where("timestamp < ?", timestamp)
-                .orderBy("timestamp desc")
-                .execute();
+        final List<UserError> userErrors = dao().olderThan(timestamp);
         if (userErrors != null) Log.d(TAG, "cleanup UserError size=" + userErrors.size());
         new Cleanup().execute(userErrors);
     }
 
-    public static void cleanupByTimeAndClause(final long timestamp, final String clause) {
-        new Delete().from(UserError.class)
-                .where("timestamp < ?", timestamp)
-                .where(clause)
-                .execute();
-    }
-
     public synchronized static void cleanupRaw() {
         final long timestamp = JoH.tsl();
-        cleanupByTimeAndClause(timestamp - Constants.DAY_IN_MS, "severity < 3");
-        cleanupByTimeAndClause(timestamp - Constants.DAY_IN_MS * 3, "severity = 3");
-        cleanupByTimeAndClause(timestamp - Constants.DAY_IN_MS * 7, "severity > 3");
-        Cache.clear();
+        dao().deleteLow(timestamp - Constants.DAY_IN_MS);        // severity < 3
+        dao().deleteHigh(timestamp - Constants.DAY_IN_MS * 3);   // severity = 3
+        dao().deleteEvents(timestamp - Constants.DAY_IN_MS * 7); // severity > 3
     }
 
 
     public static List<UserError> all() {
-        return new Select()
-                .from(UserError.class)
-                .orderBy("timestamp desc")
-                .execute();
+        return dao().all();
     }
 
     public static List<UserError> deletable() {
-        List<UserError> userErrors = new Select()
-                .from(UserError.class)
-                .where("severity < ?", 3)
-                .where("timestamp < ?", (new Date().getTime() - 1000 * 60 * 60 * 24))
-                .orderBy("timestamp desc")
-                .execute();
-        List<UserError> highErrors = new Select()
-                .from(UserError.class)
-                .where("severity = ?", 3)
-                .where("timestamp < ?", (new Date().getTime() - 1000 * 60 * 60 * 24 * 3))
-                .orderBy("timestamp desc")
-                .execute();
-        List<UserError> events = new Select()
-                .from(UserError.class)
-                .where("severity > ?", 3)
-                .where("timestamp < ?", (new Date().getTime() - 1000 * 60 * 60 * 24 * 7))
-                .orderBy("timestamp desc")
-                .execute();
-        userErrors.addAll(highErrors);
-        userErrors.addAll(events);
+        final long now = new Date().getTime();
+        final List<UserError> userErrors = new ArrayList<>(dao().deletableLow(now - 1000 * 60 * 60 * 24));
+        userErrors.addAll(dao().deletableHigh(now - 1000 * 60 * 60 * 24 * 3));
+        userErrors.addAll(dao().deletableEvents(now - 1000 * 60 * 60 * 24 * 7));
         return userErrors;
     }
 
     public static List<UserError> bySeverity(Integer[] levels) {
-        String levelsString = " ";
-        for (int level : levels) {
-            levelsString += level + ",";
-        }
-        Log.d("UserError", "severity in (" + levelsString.substring(0, levelsString.length() - 1) + ")");
-        return new Select()
-                .from(UserError.class)
-                .where("severity in (" + levelsString.substring(0, levelsString.length() - 1) + ")")
-                .orderBy("timestamp desc")
-                .limit(10000)//too many data can kill akp
-                .execute();
+        return dao().bySeverity(Arrays.asList(levels));
     }
 
     public static List<UserError> bySeverityNewerThanID(long id, Integer[] levels, int limit) {
-        String levelsString = " ";
-        for (int level : levels) {
-            levelsString += level + ",";
-        }
-        Log.d("UserError", "severity in (" + levelsString.substring(0, levelsString.length() - 1) + ")");
-        return new Select()
-                .from(UserError.class)
-                .where("_ID > ?", id)
-                .where("severity in (" + levelsString.substring(0, levelsString.length() - 1) + ")")
-                .orderBy("timestamp desc")
-                .limit(limit)
-                .execute();
+        return dao().bySeverityNewerThanID(id, Arrays.asList(levels), limit);
     }
 
     public static List<UserError> newerThanID(long id, int limit) {
-        return new Select()
-                .from(UserError.class)
-                .where("_ID > ?", id)
-                .orderBy("timestamp desc")
-                .limit(limit)
-                .execute();
+        return dao().newerThanID(id, limit);
     }
 
     public static List<UserError> olderThanID(long id, int limit) {
-        return new Select()
-                .from(UserError.class)
-                .where("_ID < ?", id)
-                .orderBy("timestamp desc")
-                .limit(limit)
-                .execute();
+        return dao().olderThanID(id, limit);
     }
 
     public static List<UserError> bySeverityOlderThanID(long id, Integer[] levels, int limit) {
-        String levelsString = " ";
-        for (int level : levels) {
-            levelsString += level + ",";
-        }
-        Log.d("UserError", "severity in (" + levelsString.substring(0, levelsString.length() - 1) + ")");
-        return new Select()
-                .from(UserError.class)
-                .where("_ID < ?", id)
-                .where("severity in (" + levelsString.substring(0, levelsString.length() - 1) + ")")
-                .orderBy("timestamp desc")
-                .limit(limit)
-                .execute();
+        return dao().bySeverityOlderThanID(id, Arrays.asList(levels), limit);
     }
 
 
     public static UserError newestBySeverity(int level) {
-        return new Select()
-                .from(UserError.class)
-                .where("severity == "+level)
-                .orderBy("timestamp desc")
-                .limit(1)
-                .executeSingle();
+        return dao().newestBySeverity(level);
     }
 
     public static UserError getForTimestamp(UserError error) {
         try {
-            return new Select()
-                    .from(UserError.class)
-                    .where("timestamp = ?", error.timestamp)
-                    .where("shortError = ?", error.shortError)
-                    .where("message = ?", error.message)
-                    .executeSingle();
+            return dao().getForTimestamp(error.timestamp, error.shortError, error.message);
         } catch (Exception e) {
             Log.e(TAG, "getForTimestamp() Got exception on Select : " + e.toString());
             return null;
         }
+    }
+
+    /**
+     * Best-effort insert-or-update. Logging must never crash or block the caller, so failures are
+     * swallowed (reported to logcat only).
+     */
+    public Long save() {
+        try {
+            if (_id != 0) {
+                dao().update(this);
+            } else {
+                final long id = dao().insert(this);
+                if (id > 0) {
+                    _id = id;
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "Failed to persist UserError: " + e);
+        }
+        return _id;
+    }
+
+    public void delete() {
+        try {
+            dao().delete(this);
+        } catch (Exception e) {
+            android.util.Log.e(TAG, "Failed to delete UserError: " + e);
+        }
+    }
+
+    /** Mirrors the ActiveAndroid Model.getId() used by callers. */
+    public Long getId() {
+        return _id;
+    }
+
+    private static UserErrorDao dao() {
+        // Non-gating: logging must never wait on (or block) the legacy import.
+        return AppDatabase.getInstanceWithoutImportWait(xdrip.getAppContext()).userErrorDao();
     }
 
     private static class Cleanup extends AsyncTask<List<UserError>, Integer, Boolean> {

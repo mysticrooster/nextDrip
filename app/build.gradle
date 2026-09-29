@@ -334,7 +334,6 @@ dependencies {
     implementation 'ar.com.hjg:pngj:2.1.0'
     //implementation 'com.bugfender.sdk:android:0.+'
     // implementation 'com.rarepebble:colorpicker:1.7.0'
-    implementation(name: 'thread-safe-active-android-3.1.1', ext: 'aar')
     implementation(name: 'colorpicker', ext: 'aar')
     implementation(name: 'hellocharts-library-release', ext: 'aar')
     implementation(name: 'search-preference', ext: 'aar')

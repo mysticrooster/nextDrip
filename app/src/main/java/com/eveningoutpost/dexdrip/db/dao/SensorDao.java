@@ -40,4 +40,7 @@ public interface SensorDao {
 
     @Query("SELECT * FROM Sensors")
     List<Sensor> all();
+
+    @Query("SELECT * FROM Sensors ORDER BY _id DESC")
+    android.database.Cursor allCursor();
 }

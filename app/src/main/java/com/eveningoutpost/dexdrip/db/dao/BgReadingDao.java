@@ -152,4 +152,7 @@ public interface BgReadingDao {
     @Query("SELECT calculated_value FROM BgReadings WHERE timestamp >= :from AND timestamp <= :to "
             + "AND calculated_value > :cutoff AND snyced = 0")
     List<Double> statsValues(long from, long to, double cutoff);
+
+    @Query("SELECT timestamp, calculated_value FROM BgReadings WHERE timestamp >= :from ORDER BY timestamp ASC")
+    android.database.Cursor exportCursor(long from);
 }

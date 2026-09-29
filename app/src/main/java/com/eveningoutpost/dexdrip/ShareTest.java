@@ -21,7 +21,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.ReadDataShare;
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.records.CalRecord;
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.records.EGVRecord;

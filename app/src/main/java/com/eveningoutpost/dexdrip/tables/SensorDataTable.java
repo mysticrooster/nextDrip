@@ -9,8 +9,9 @@ import android.widget.SimpleCursorAdapter;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.activeandroid.Cache;
 import com.eveningoutpost.dexdrip.BaseListActivity;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.eveningoutpost.dexdrip.NavigationDrawerFragment;
 import com.eveningoutpost.dexdrip.R;
 
@@ -45,7 +46,7 @@ public class SensorDataTable extends BaseListActivity implements NavigationDrawe
     }
 
     private void getData() {
-        Cursor cursor = Cache.openDatabase().rawQuery("Select * from Sensors order by _ID desc", null);
+        Cursor cursor = AppDatabase.getInstance(xdrip.getAppContext()).sensorDao().allCursor();
 
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,
                 R.layout.raw_data_list_item,

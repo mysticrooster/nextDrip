@@ -42,7 +42,7 @@ Local and unmaintained AARs that should not survive the migration.
 
 | Dependency | Notes | Recommendation | Effort | Status |
 | --- | --- | --- | --- | --- |
-| `thread-safe-active-android` (ActiveAndroid ORM) | 41 files (`BgReading`, `Calibration`, …) | → Room (see §5) | **High** | In scope |
+| `thread-safe-active-android` (ActiveAndroid ORM) | removed — all 28 tables on Room | migrated (see §5) | **High** | **Done** |
 | `amazfitcommunication-master` AAR | companion device | review / remove if unused | Low | Not started |
 | `appauth-release` AAR | OAuth | keep (external SDK) | — | Keep |
 | `ns-sdk-full-release` AAR | Nightscout SDK (follower/download) | → port AndroidAPS `core/nssdk` (see §6) | High | In scope (deferred) |
@@ -90,11 +90,12 @@ data backbone of the app (29 `@Table` classes, 64 files, ~478 query sites).
 
 **Detailed plan:** [`ActiveAndroid_to_Room.md`](./ActiveAndroid_to_Room.md).
 
-- **Status (2026-09-28):** nearly complete. Room 2.8.5 + `db/AppDatabase` + background
-  `LegacyDataImporter` (no user data lost) in place. Migrated 26 of 28 tables (plus
-  `Libre2Sensors` as a `@DatabaseView`): all the FK-free leaves, the FK spine
-  (`Sensor`→`Calibration`→`BgReading`), and the queues — façades preserved, tests
-  green. Remaining: `UserError`, `UploaderQueue`.
+- **Status (2026-09-28):** **complete.** All 28 tables (plus `Libre2Sensors` as a
+  `@DatabaseView`) now use Room behind their existing façades, and ActiveAndroid is fully
+  retired (AAR, `initialize()`, ContentProvider, and `@Table`/`Model` usage removed).
+  A generation-based `LegacyDataImporter` copies legacy rows out of `DexDrip.db` (with
+  `NOT NULL` coercion so nullable legacy columns are not dropped) and can be re-run to
+  backfill rows; `Backup` includes `xdrip-room.db`. Façades preserved, tests green.
 
 - **Why now:** the Compose migration will consume `BgReading`/`Calibration`/`Treatment`
   data heavily (Home, charts, stats). A clean, observable data layer (`Room` +
