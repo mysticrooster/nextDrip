@@ -17,15 +17,16 @@ part of the Jetpack Compose migration and the broader modernization of xDrip+.
 ## 1. Dependency Migration Register — Compose targets
 
 View-based / XML libraries that Compose replaces. These are retired incrementally as
-screens migrate.
+screens migrate. The settings/secondary-views phases are planned in
+[`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md).
 
 | Dependency | Usage | Replace with | Track / Phase | Effort | Status |
 | --- | --- | --- | --- | --- | --- |
 | `hellocharts` (local AAR) | 17 files | [Vico](https://github.com/patrykandpatrick/vico) | Compose / Phase 3 | High | Not started |
-| `colorpicker` AAR (`com.rarepebble.colorpicker`) | 3 files + prefs XML | Compose-native color picker | Compose / Phase 4 | Low | Not started |
-| `search-preference` (local AAR) | 1 file | Compose search/settings UI | Compose / Phase 4 | Low | Not started |
+| `colorpicker` AAR (`com.rarepebble.colorpicker`) | 3 files + prefs XML | Compose-native color picker | Compose / Phase 4 | Low | Planned (settings plan) |
+| `search-preference` (local AAR) | 1 file | Compose search/settings UI | Compose / Phase 4 | Low | Planned (settings plan) |
 | `com.github.amlcurran.showcaseview` | 13 files | Compose tooltips/coach-marks (or drop) | Compose / Phase 2–5 | Medium | Not started |
-| `androidx.preference` | settings screens | Compose settings | Compose / Phase 4 | Medium | Not started |
+| `androidx.preference` | settings screens | Compose settings | Compose / Phase 4 | Medium | Planned (settings plan) |
 | `androidx.recyclerview` | 8 files | `LazyColumn` / `LazyRow` | Compose / cross-cutting | Medium | Not started |
 | `androidx.cardview` | legacy layouts | `Card` / `Surface` | Compose / cross-cutting | Low | Not started |
 | `androidx.constraintlayout` | 9 layouts | Compose layouts | Compose / cross-cutting | Medium | Not started |

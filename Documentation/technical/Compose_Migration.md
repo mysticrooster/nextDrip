@@ -56,8 +56,8 @@ medical app of this size. The migration is **incremental and hybrid**:
 | 1 | Theme (dynamic color) + interop patterns + drawer content migration | **Done** |
 | 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **In progress** (state extracted, rendering deferred) |
 | 3 | Charts → Vico (line graphs; basal column editor last) | Planned |
-| 4 | Settings / preferences (`android.preference` → `androidx.preference` → Compose) | Planned |
-| 5 | Long tail: simple CRUD screens; low-touch screens stay legacy | Planned |
+| 4 | Settings → Compose (see [`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)) | Planned (review) |
+| 5 | Secondary views → Compose (long tail; see the same plan) | Planned (review) |
 
 ### Parallel modernization tracks (own backlog, not UI phases)
 
