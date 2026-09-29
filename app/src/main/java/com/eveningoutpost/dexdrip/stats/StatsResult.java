@@ -5,10 +5,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.activeandroid.Cache;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.text.DecimalFormat;
 
@@ -189,16 +191,8 @@ public class StatsResult {
 
     public int getTotal_steps() {
         if (total_steps < 0) {
-            Cursor cursor = Cache.openDatabase().rawQuery("select sum(t.metric)\n" +
-                    "from PebbleMovement t\n" +
-                    "inner join (\n" +
-                    "    select metric, max(timestamp) as MaxDate\n" +
-                    "    from PebbleMovement\n" +
-                    "    group by date(timestamp/1000,'unixepoch','localtime') \n" +
-                    ") tm on t.metric = tm.metric and t.timestamp = tm.MaxDate  where timestamp >= " + from + " AND timestamp <= " + to, null);
-            cursor.moveToFirst();
-            total_steps = cursor.getInt(0);
-            cursor.close();
+            final Integer sum = AppDatabase.getInstance(xdrip.getAppContext()).stepCounterDao().totalStepsBetween(from, to);
+            total_steps = sum != null ? sum : 0;
         }
         return total_steps;
     }

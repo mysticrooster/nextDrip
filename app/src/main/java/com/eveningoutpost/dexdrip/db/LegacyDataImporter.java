@@ -59,7 +59,11 @@ public final class LegacyDataImporter {
     public static final Set<String> MIGRATED_TABLES = Collections.unmodifiableSet(
             new LinkedHashSet<>(Arrays.asList(
                     "CalibrationRequest",
-                    "ActiveBgAlert")));
+                    "ActiveBgAlert",
+                    "PenData",
+                    "AlertType",
+                    "HeartRate",
+                    "PebbleMovement")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

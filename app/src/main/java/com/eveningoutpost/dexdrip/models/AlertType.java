@@ -3,17 +3,19 @@ package com.eveningoutpost.dexdrip.models;
 import android.content.Context;
 import android.content.SharedPreferences;
 import androidx.preference.PreferenceManager;
-import android.provider.BaseColumns;
 
-import com.activeandroid.util.SQLiteUtils;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
+
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.AlertTypeDao;
 import com.eveningoutpost.dexdrip.models.UserError.Log;
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.services.ActivityRecognizedService;
 import com.eveningoutpost.dexdrip.utilitymodels.AlertPlayer;
 import com.eveningoutpost.dexdrip.utilitymodels.Notifications;
+import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,123 +33,100 @@ import lombok.val;
 /**
  * Created by Emma Black on 1/14/15.
  */
-@Table(name = "AlertType", id = BaseColumns._ID)
-public class AlertType extends Model {
+@Entity(tableName = "AlertType",
+        indices = {@Index("uuid")})
+public class AlertType {
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
     @Expose
-    @Column(name = "name")
+    @ColumnInfo(name = "name")
     public String name;
 
     @Expose
-    @Column(name = "active")
+    @ColumnInfo(name = "active")
     public boolean active;
 
     @Expose
-    @Column(name = "volume")
+    @ColumnInfo(name = "volume")
     public int volume;
 
     @Expose
-    @Column(name = "vibrate")
+    @ColumnInfo(name = "vibrate")
     public boolean vibrate;
 
     @Expose
-    @Column(name = "light")
+    @ColumnInfo(name = "light")
     public boolean light;
 
     @Expose
-    @Column(name = "override_silent_mode")
+    @ColumnInfo(name = "override_silent_mode")
     public boolean override_silent_mode;
 
     @Expose
-    @Column(name = "force_speaker")
+    @ColumnInfo(name = "force_speaker")
     public boolean force_speaker;
 
     @Expose
-    @Column(name = "predictive")
+    @ColumnInfo(name = "predictive")
     public boolean predictive;
 
     @Expose
-    @Column(name = "time_until_threshold_crossed")
+    @ColumnInfo(name = "time_until_threshold_crossed")
     public double time_until_threshold_crossed;
 
     // If it is not above, then it must be below.
     @Expose
-    @Column(name = "above")
+    @ColumnInfo(name = "above")
     public boolean above;
 
     @Expose
-    @Column(name = "threshold")
+    @ColumnInfo(name = "threshold")
     public double threshold;
 
     @Expose
-    @Column(name = "all_day")
+    @ColumnInfo(name = "all_day")
     public boolean all_day;
 
     @Expose
-    @Column(name = "start_time_minutes")
+    @ColumnInfo(name = "start_time_minutes")
     public int start_time_minutes;  // This have probable be in minutes from start of day. this is not time...
 
     @Expose
-    @Column(name = "end_time_minutes")
+    @ColumnInfo(name = "end_time_minutes")
     public int end_time_minutes;
 
     @Expose
-    @Column(name = "minutes_between") //??? what is the difference between minutes_between and default_snooze ???
+    @ColumnInfo(name = "minutes_between") //??? what is the difference between minutes_between and default_snooze ???
     public int minutes_between; // The idea here was if ignored it will go off again each x minutes, snooze would be if it was aknowledged and dismissed it will go off again in y minutes
     // that said, Im okay with doing away with the minutes between and just doing it at a set 5 mins like dex
 
     @Expose
-    @Column(name = "default_snooze")
+    @ColumnInfo(name = "default_snooze")
     public int default_snooze;
 
     @Expose
-    @Column(name = "text") // ??? what's that? is it different from name?
+    @ColumnInfo(name = "text") // ??? what's that? is it different from name?
     public String text; // I figured if we wanted some special text, Its
 
     @Expose
-    @Column(name = "mp3_file")
+    @ColumnInfo(name = "mp3_file")
     public String mp3_file;
 
     @Expose
-    @Column(name = "uuid", index = true)
+    @ColumnInfo(name = "uuid")
     public String uuid;
 
     public final static String LOW_ALERT_55 = "c5f1999c-4ec5-449e-adad-3980b172b920";
     private final static String TAG = Notifications.class.getSimpleName();
     private final static String TAG_ALERT = "AlertBg";
-    private static boolean patched = false;
-
-    // This shouldn't be needed but it seems it is
-    public static void fixUpTable() {
-        if (patched) return;
-        String[] patchup = {
-                "ALTER TABLE AlertType ADD COLUMN volume INTEGER;",
-                "ALTER TABLE AlertType ADD COLUMN light INTEGER;",
-                "ALTER TABLE AlertType ADD COLUMN predictive INTEGER;",
-                "ALTER TABLE AlertType ADD COLUMN text TEXT;",
-                "ALTER TABLE AlertType ADD COLUMN force_speaker INTEGER;",
-                "ALTER TABLE AlertType ADD COLUMN time_until_threshold_crossed REAL;"
-              };
-
-        for (String patch : patchup) {
-            try {
-                SQLiteUtils.execSql(patch);
-                Log.e(TAG, "Processed patch should not have succeeded!!: " + patch);
-            } catch (Exception e) {
-                // Log.d(TAG, "Patch: " + patch + " generated exception as it should: " + e.toString());
-            }
-        }
-        patched = true;
-    }
-
 
 
     public static AlertType get_alert(String uuid) {
 
-        return new Select()
-        .from(AlertType.class)
-        .where("uuid = ? ", uuid)
-        .executeSingle();
+        return dao().getByUuid(uuid);
     }
 
     /*
@@ -199,12 +178,7 @@ public class AlertType extends Model {
             Log.i("NOTIFICATIONS", "get_highest_active_alert_helper: Low alerts are currently disabled!! Skipping low alerts");
 
         } else {
-            List<AlertType> lowAlerts  = new Select()
-                    .from(AlertType.class)
-                    .where("threshold >= ?", bg-offset)
-                    .where("above = ?", false)
-                    .orderBy("threshold asc")
-                    .execute();
+            List<AlertType> lowAlerts  = dao().lowAlerts(bg - offset);
 
             for (AlertType lowAlert : lowAlerts) {
                 if(lowAlert.should_alarm(bg-offset)) {
@@ -219,12 +193,7 @@ public class AlertType extends Model {
             Log.i("NOTIFICATIONS", "get_highest_active_alert_helper: High alerts are currently disabled!! Skipping high alerts");
             ;
         } else {
-            List<AlertType> HighAlerts  = new Select()
-                    .from(AlertType.class)
-                    .where("threshold <= ?", bg)
-                    .where("above = ?", true)
-                    .orderBy("threshold desc")
-                    .execute();
+            List<AlertType> HighAlerts  = dao().highAlerts(bg);
 
             for (AlertType HighAlert : HighAlerts) {
                 //Log.e(TAG, "Testing high alert " + HighAlert.toString());
@@ -273,13 +242,7 @@ public class AlertType extends Model {
     }
 
     public static void remove_all() {
-        List<AlertType> Alerts  = new Select()
-        .from(AlertType.class)
-        .execute();
-
-        for (AlertType alert : Alerts) {
-            alert.delete();
-        }
+        dao().deleteAll();
         ActiveBgAlert.ClearData();
     }
 
@@ -313,7 +276,7 @@ public class AlertType extends Model {
         at.force_speaker = force_speaker;
         at.default_snooze = snooze;
         at.vibrate = vibrate;
-        at.save();
+        dao().insert(at);
     }
 
     public static void update_alert(
@@ -331,8 +294,6 @@ public class AlertType extends Model {
             int snooze,
             boolean vibrate,
             boolean active) {
-
-        fixUpTable();
 
         final AlertType at = get_alert(uuid);
         if (at == null) {
@@ -353,12 +314,12 @@ public class AlertType extends Model {
         at.force_speaker = force_speaker;
         at.default_snooze = snooze;
         at.vibrate = vibrate;
-        at.save();
+        dao().update(at);
     }
     public static void remove_alert(String uuid) {
         AlertType alert = get_alert(uuid);
 		if(alert != null) {
-	        alert.delete();
+	        dao().delete(alert);
         }
     }
 
@@ -385,9 +346,7 @@ public class AlertType extends Model {
     }
 
     public static void print_all() {
-        List<AlertType> Alerts  = new Select()
-            .from(AlertType.class)
-            .execute();
+        List<AlertType> Alerts  = dao().getAll();
 
         Log.d(TAG,"List of all alerts");
         for (AlertType alert : Alerts) {
@@ -407,28 +366,11 @@ public class AlertType extends Model {
     }
 
     public static List<AlertType> getAllActive() {
-        List<AlertType> alerts  = new Select()
-                .from(AlertType.class)
-                .where("active = ?", true)
-                .execute();
-
-        return alerts;
+        return dao().getAllActive();
     }
 
     public static List<AlertType> getAll(boolean above) {
-        String order;
-        if (above) {
-            order = "threshold asc";
-        } else {
-            order = "threshold desc";
-        }
-        List<AlertType> alerts  = new Select()
-            .from(AlertType.class)
-            .where("above = ?", above)
-            .orderBy(order)
-            .execute();
-
-        return alerts;
+        return above ? dao().getAllAbove() : dao().getAllBelow();
     }
 
     public static boolean activeLowAlertExists() {
@@ -500,9 +442,9 @@ public class AlertType extends Model {
         Log.d(TAG, "al2 = " + al2.toString());
 
         Log.d(TAG, "HigherAlert(a1, a2) = a1?" +  (HigherAlert(a1,a2) == a2));
-        Log.d(TAG, "HigherAlert(al1, al2) = al1?" +  (HigherAlert(al1,al2) == al2));
-        Log.d(TAG, "HigherAlert(a1, al1) = al1?" +  (HigherAlert(a1,al1) == al1));
-        Log.d(TAG, "HigherAlert(al1, a2) = al1?" +  (HigherAlert(al1,a2) == al1));
+        Log.d(TAG, "HigherAlert(al1, al2) = al1?" + (HigherAlert(al1,al2) == al2));
+        Log.d(TAG, "HigherAlert(a1, al1) = al1?" + (HigherAlert(a1,al1) == al1));
+        Log.d(TAG, "HigherAlert(al1, a2) = al1?" + (HigherAlert(al1,a2) == al1));
 
         // Make sure we do not influance on real data...
         remove_all();
@@ -631,9 +573,7 @@ public class AlertType extends Model {
     // Convert all settings to a string and save it in the references. This is needed to allow it's backup. 
     public static boolean toSettings(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        List<AlertType> alerts  = new Select()
-            .from(AlertType.class)
-            .execute();
+        List<AlertType> alerts  = dao().getAll();
 
         Gson gson = new GsonBuilder()
                 .excludeFieldsWithoutExposeAnnotation()
@@ -668,12 +608,7 @@ public class AlertType extends Model {
         Log.i(TAG, "read successfuly " + newAlerts.length);
         // Now delete all existing alerts if we managed to unpack the json
         try {
-            List<AlertType> alerts = new Select()
-                    .from(AlertType.class)
-                    .execute();
-            for (AlertType alert : alerts) {
-                alert.delete();
-            }
+            dao().deleteAll();
         } catch (NullPointerException e) {
             Log.e(TAG, "Got null pointer exception: " + e);
         }
@@ -681,7 +616,7 @@ public class AlertType extends Model {
         try {
             for (AlertType alert : newAlerts) {
                 Log.e(TAG, "Saving alert " + alert.name);
-                alert.save();
+                dao().insert(alert);
             }
         } catch (NullPointerException e) {
             Log.e(TAG, "Got null pointer exception 2: " + e);
@@ -691,5 +626,9 @@ public class AlertType extends Model {
         return true;
 
     }
-    
+
+    private static AlertTypeDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).alertTypeDao();
+    }
+
 }

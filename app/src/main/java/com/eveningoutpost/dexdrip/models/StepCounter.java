@@ -1,14 +1,14 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
-import com.activeandroid.util.SQLiteUtils;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.StepCounterDao;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
@@ -23,33 +23,47 @@ import lombok.val;
  */
 
 
-@Table(name = "PebbleMovement", id = BaseColumns._ID)
-public class StepCounter extends Model {
+@Entity(tableName = "PebbleMovement",
+        indices = {
+                @Index("source"),
+                @Index(value = "timestamp", unique = true)
+        })
+public class StepCounter {
 
-    private static boolean patched = false;
     private final static String TAG = "StepCounter";
     private final static boolean d = false;
 
     private static final int ABSOLUTE_MASK = 1;
 
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "timestamp", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "metric")
+    @ColumnInfo(name = "metric")
     public int metric;
 
     @Expose
-    @Column(name = "source")
+    @ColumnInfo(name = "source")
     public int source;
 
 
     // patches and saves
     public Long saveit() {
         try {
-            fixUpTable();
-            return save();
+            if (_id != 0) {
+                dao().update(this);
+            } else {
+                final long id = dao().insertIgnoringConflicts(this);
+                if (id > 0) {
+                    _id = id;
+                }
+            }
+            return _id;
         } catch (Exception e) {
             return null;
         }
@@ -69,10 +83,7 @@ public class StepCounter extends Model {
     // static methods
 
     public static StepCounter getForTimestamp(final long timestamp) {
-        return new Select()
-                .from(StepCounter.class)
-                .where("timestamp = ?", timestamp)
-                .executeSingle();
+        return dao().getForTimestamp(timestamp);
     }
 
 
@@ -110,15 +121,7 @@ public class StepCounter extends Model {
     }
 
     public static StepCounter last() {
-        try {
-            return new Select()
-                    .from(StepCounter.class)
-                    .orderBy("timestamp desc")
-                    .executeSingle();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().last();
     }
 
     public static int getDailyTotal() {
@@ -150,18 +153,7 @@ public class StepCounter extends Model {
     }
 
     public static List<StepCounter> latestForGraph(int number, long startTime, long endTime) {
-        try {
-            return new Select()
-                    .from(StepCounter.class)
-                    .where("timestamp >= " + Math.max(startTime, 0))
-                    .where("timestamp <= " + endTime)
-                    .orderBy("timestamp asc") // warn asc!
-                    .limit(number)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return new ArrayList<>();
-        }
+        return dao().latestForGraph(Math.max(startTime, 0), endTime, number);
     }
 
     // expects pre-sorted in asc order?
@@ -189,33 +181,13 @@ public class StepCounter extends Model {
     }
 
     public static List<StepCounter> cleanup(int retention_days) {
-        return new Delete()
-                .from(StepCounter.class)
-                .where("timestamp < ?", JoH.tsl() - (retention_days * 86400000L))
-                .execute();
+        final int deleted = dao().cleanup(JoH.tsl() - (retention_days * 86400000L));
+        UserError.Log.d(TAG, "StepCounter cleanup removed " + deleted + " record(s)");
+        return new ArrayList<>();
     }
 
-
-    // create the table ourselves without worrying about model versioning and downgrading
-    private static void fixUpTable() {
-        if (patched) return;
-        String[] patchup = {
-                "CREATE TABLE PebbleMovement (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-                "ALTER TABLE PebbleMovement ADD COLUMN timestamp INTEGER;",
-                "ALTER TABLE PebbleMovement ADD COLUMN metric INTEGER;",
-                "ALTER TABLE PebbleMovement ADD COLUMN source INTEGER;",
-                "CREATE INDEX index_PebbleMovement_source on PebbleMovement(source);",
-                "CREATE UNIQUE INDEX index_PebbleMovement_timestamp on PebbleMovement(timestamp);"};
-
-        for (String patch : patchup) {
-            try {
-                SQLiteUtils.execSql(patch);
-                //  UserError.Log.e(TAG, "Processed patch should not have succeeded!!: " + patch);
-            } catch (Exception e) {
-                //  UserError.Log.d(TAG, "Patch: " + patch + " generated exception as it should: " + e.toString());
-            }
-        }
-        patched = true;
+    private static StepCounterDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).stepCounterDao();
     }
 }
 

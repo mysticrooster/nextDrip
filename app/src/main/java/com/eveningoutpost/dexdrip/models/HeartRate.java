@@ -1,14 +1,14 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.Model;
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Delete;
-import com.activeandroid.query.Select;
-import com.activeandroid.util.SQLiteUtils;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.HeartRateDao;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
@@ -21,34 +21,30 @@ import java.util.List;
  */
 
 
-@Table(name = "HeartRate", id = BaseColumns._ID)
-public class HeartRate extends Model {
+@Entity(tableName = "HeartRate",
+        indices = {@Index(value = "timestamp", unique = true)})
+public class HeartRate {
 
     private final static String TAG = "HeartRate";
-    private static boolean patched = false;
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
+
     @Expose
-    @Column(name = "timestamp", unique = true, onUniqueConflicts = Column.ConflictAction.IGNORE)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "bpm")
+    @ColumnInfo(name = "bpm")
     public int bpm;
 
     @Expose
-    @Column(name = "accuracy")
+    @ColumnInfo(name = "accuracy")
     public int accuracy;
 
     public static HeartRate last() {
-        try {
-            return new Select()
-                    .from(HeartRate.class)
-                    .where("timestamp >= " + (JoH.tsl() - Constants.DAY_IN_MS))
-                    .orderBy("timestamp desc")
-                    .executeSingle();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
+        return dao().last(JoH.tsl() - Constants.DAY_IN_MS);
     }
 
     public static void create(long timestamp, int bpm, int accuracy) {
@@ -70,52 +66,26 @@ public class HeartRate extends Model {
     // TODO efficient record creation?
 
     public static List<HeartRate> latestForGraph(int number, long startTime, long endTime) {
-        try {
-            return new Select()
-                    .from(HeartRate.class)
-                    .where("timestamp >= " + Math.max(startTime, 0))
-                    .where("timestamp <= " + endTime)
-                    .orderBy("timestamp asc") // warn asc!
-                    .limit(number)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return new ArrayList<>();
-        }
+        return dao().latestForGraph(Math.max(startTime, 0), endTime, number);
     }
 
     public static List<HeartRate> cleanup(int retention_days) {
-        return new Delete()
-                .from(HeartRate.class)
-                .where("timestamp < ?", JoH.tsl() - (retention_days * 86400000L))
-                .execute();
-    }
-
-    // create the table ourselves without worrying about model versioning and downgrading
-    private static void fixUpTable() {
-        if (patched) return;
-        String[] patchup = {
-                "CREATE TABLE HeartRate (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-                "ALTER TABLE HeartRate ADD COLUMN timestamp INTEGER;",
-                "ALTER TABLE HeartRate ADD COLUMN bpm INTEGER;",
-                "ALTER TABLE HeartRate ADD COLUMN accuracy INTEGER;",
-                "CREATE UNIQUE INDEX index_HeartRate_timestamp on HeartRate(timestamp);"};
-
-        for (String patch : patchup) {
-            try {
-                SQLiteUtils.execSql(patch);
-                //  UserError.Log.e(TAG, "Processed patch should not have succeeded!!: " + patch);
-            } catch (Exception e) {
-                //  UserError.Log.d(TAG, "Patch: " + patch + " generated exception as it should: " + e.toString());
-            }
-        }
-        patched = true;
+        final int deleted = dao().cleanup(JoH.tsl() - (retention_days * 86400000L));
+        UserError.Log.d(TAG, "HeartRate cleanup removed " + deleted + " record(s)");
+        return new ArrayList<>();
     }
 
     // patches and saves
     public Long saveit() {
-        fixUpTable();
-        return save();
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insertIgnoringConflicts(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
     }
 
     // TODO cache gson statically
@@ -125,7 +95,8 @@ public class HeartRate extends Model {
                 .create();
         return gson.toJson(this);
     }
+
+    private static HeartRateDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).heartRateDao();
+    }
 }
-
-
-

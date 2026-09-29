@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **2** — `CalibrationRequest`, `ActiveBgAlert` |
+| Migrated tables | **6** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -126,6 +126,12 @@ com.eveningoutpost.dexdrip
    `SensorSendQueue→Sensor`, `CalibrationSendQueue→Calibration`, `BgSendQueue→BgReading`.
    A dependent cannot move before its target (or must temporarily store the FK as a
    raw id column and load the object through the target's façade).
+9. **Watch for raw SQL outside the façades.** Some callers bypass the model and hit
+   the table directly via `Cache.openDatabase().rawQuery(...)` against ActiveAndroid's
+   database (e.g. `StatsResult.getTotal_steps()` reads `PebbleMovement`). Those break
+   when the table moves to Room and must be re-pointed at a DAO query.
+10. **Table name ≠ class name.** Use the `@Table(name=…)` value, not the class name,
+    in `MIGRATED_TABLES` (e.g. `StepCounter` → `PebbleMovement`).
 
 ### Database & migration (the hard part)
 
@@ -243,6 +249,17 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
     background+await, idempotency, no-overwrite, missing-legacy-db,
     legacy-only-column) — all green.
   - Full `testFastDebugUnitTest` + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — FK-free leaves, batch 1 (6/29 total).**
+  - Migrated `PenData` (BLOB `byte[]`, unique indexes, external instance `save()`
+    preserved), `AlertType` (persistent user config; dropped `fixUpTable`),
+    `HeartRate` and `StepCounter` (table `PebbleMovement`; kept the instance
+    `saveit()` used by Gson/watch callers).
+  - Removed the now-dead `PenData.updateDB()` and `AlertType.fixUpTable()` calls
+    from `IdempotentMigrations`.
+  - Re-pointed the one raw-SQL caller of a migrated table
+    (`StatsResult.getTotal_steps`) at a new `StepCounterDao.totalStepsBetween`.
+  - Added tests `PenDataTest`, `AlertTypeTest`, `HeartRateTest`, `StepCounterTest`;
+    full suite (888 tests) + `assembleFastDebug` (R8) pass.
 
 ---
 

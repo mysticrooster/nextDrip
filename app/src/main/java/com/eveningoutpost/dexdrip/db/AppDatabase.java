@@ -7,12 +7,20 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 import com.eveningoutpost.dexdrip.db.dao.ActiveBgAlertDao;
+import com.eveningoutpost.dexdrip.db.dao.AlertTypeDao;
 import com.eveningoutpost.dexdrip.db.dao.CalibrationRequestDao;
+import com.eveningoutpost.dexdrip.db.dao.HeartRateDao;
 import com.eveningoutpost.dexdrip.db.dao.MetaDao;
+import com.eveningoutpost.dexdrip.db.dao.PenDataDao;
+import com.eveningoutpost.dexdrip.db.dao.StepCounterDao;
 import com.eveningoutpost.dexdrip.models.ActiveBgAlert;
+import com.eveningoutpost.dexdrip.models.AlertType;
 import com.eveningoutpost.dexdrip.models.CalibrationRequest;
+import com.eveningoutpost.dexdrip.models.HeartRate;
+import com.eveningoutpost.dexdrip.models.PenData;
+import com.eveningoutpost.dexdrip.models.StepCounter;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class}, version = 1, exportSchema = false)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
@@ -22,6 +30,14 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CalibrationRequestDao calibrationRequestDao();
 
     public abstract ActiveBgAlertDao activeBgAlertDao();
+
+    public abstract PenDataDao penDataDao();
+
+    public abstract AlertTypeDao alertTypeDao();
+
+    public abstract HeartRateDao heartRateDao();
+
+    public abstract StepCounterDao stepCounterDao();
 
     public abstract MetaDao metaDao();
 
