@@ -45,7 +45,7 @@ Local and unmaintained AARs that should not survive the migration.
 | `thread-safe-active-android` (ActiveAndroid ORM) | 41 files (`BgReading`, `Calibration`, …) | → Room (see §5) | **High** | In scope |
 | `amazfitcommunication-master` AAR | companion device | review / remove if unused | Low | Not started |
 | `appauth-release` AAR | OAuth | keep (external SDK) | — | Keep |
-| `ns-sdk-full-release` AAR | Nightscout SDK | keep (external SDK) | — | Keep |
+| `ns-sdk-full-release` AAR | Nightscout SDK (follower/download) | → port AndroidAPS `core/nssdk` (see §6) | High | In scope (deferred) |
 
 ---
 
@@ -56,7 +56,7 @@ Modernization that is not Compose-specific but is part of the overall cleanup.
 | Item | Usage | Recommendation | Effort | Status |
 | --- | --- | --- | --- | --- |
 | RxJava 1 (`io.reactivex:rxjava:1.3.3`) | 6 files | → coroutines (already a dependency) | Low | **Done** (→ `java.util.function.Consumer`) |
-| joda-time (`net.danlew:android.joda`) | 1 file | → `java.time` (minSdk 26) | Low | **Done** (own code migrated; dep kept for Nightscout SDK) |
+| joda-time (`net.danlew:android.joda`) | 1 file | → `java.time` (minSdk 26) | Low | **Done** (own code migrated; joda-time kept — Nightscout SDK, incl. the planned AndroidAPS port, uses it) |
 | `com.evernote:android-job` | 3 files | → WorkManager (already present) | Low | **Done** |
 | Dagger `2.25.4` | DI | → Hilt (or modern Dagger) | Medium | Not started |
 | Lombok | pervasive | → Kotlin data classes (long-term, optional) | **High** | Not started |
@@ -100,6 +100,34 @@ data backbone of the app (41 model files). Migrating to Room:
   (existing `*Test` classes are the baseline) before switching any model's storage.
 - **Track:** framework modernization, parallel to the Compose phases. Own its own
   backlog, do not block Phase 1–2 on it.
+
+---
+
+## 6. Nightscout SDK → port from AndroidAPS (in scope, deferred)
+
+The follower/download path uses `ns-sdk-full-release.aar`, an unmaintained
+`info.nightscout.sdk` build. [AndroidAPS](https://github.com/nightscout/AndroidAPS)
+maintains a modernized fork — `core/nssdk` — as a self-contained, Retrofit-based
+module.
+
+- **What we get:** Nightscout **v3** API coverage (`status`, `lastModified`,
+  `entries`, `treatments`, `devicestatus`, `food`, `profile`), **Access Token**
+  auth (`NSAuthInterceptor` + `NightscoutAuthRefreshService`), and a clean
+  local-model / remote-model / mapper separation.
+- **Stack:** Retrofit 2 + OkHttp + Gson + Kotlin coroutines (optionally RxJava 3).
+  xDrip already ships Retrofit 2.9.0, OkHttp 5.3.2, Gson, and Kotlin coroutines,
+  so only the API definition, models, mappers, and auth flow need porting.
+- **Approach:** port `NightscoutRemoteService`, the `remotemodel`/`localmodel`/
+  `mapper` classes, and the auth flow into a new `nightscout` package, replacing
+  `ns-sdk-full-release.aar`. Start with the follower read paths (`entries`,
+  `treatments`, `devicestatus`, `status`, `lastModified`), then add write paths
+  if needed. Note xDrip already has a *separate* uploader
+  (`com.github.nightscout:android-uploader`).
+- **License:** both projects are GPLv3, so reuse is compatible.
+- **joda-time note:** AndroidAPS's SDK also uses joda-time, so joda-time stays on
+  the classpath regardless of this port (intentionally retained — see §3).
+- **Track:** framework modernization, parallel to the Compose phases. Deferred;
+  own backlog.
 
 ---
 
