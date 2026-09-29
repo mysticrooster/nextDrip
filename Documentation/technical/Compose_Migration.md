@@ -26,6 +26,14 @@ so that the work can continue incrementally and consistently.
 The single most complex screen is `Home.java` (~3,800 LOC) which owns the main
 dashboard, charts, and most of the shared state.
 
+### Where we are now
+
+Foundation and Phase 1 are done; the app is on **AGP 9.4.1 / Gradle 9.7.1**,
+`targetSdk 34`, builds minified for `debug` and `release` (R8 fixed), and is
+verified running on the emulator (including background collection restarts).
+Phase 2 has its component library seeded and the header state extracted, but the
+header *rendering* was reverted to the original design pending a proper redesign.
+
 ---
 
 ## Strategy: Incremental Hybrid
@@ -44,12 +52,31 @@ medical app of this size. The migration is **incremental and hybrid**:
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| 0 | Foundation: dependency upgrades, Compose setup, `targetSdk` bump | **Done** |
-| 1 | Theme foundation (dynamic color) + interop patterns + drawer content migration | **Done** |
-| 2 | Home / dashboard (component library + slice-by-slice migration; charts wrapped via `AndroidView`) | **In progress** |
-| 3 | Charts to Vico (line graphs), basal column editor last | Planned |
-| 4 | Settings / preferences screens | Planned |
+| 0 | Foundation: dependency upgrades, Compose setup, `targetSdk 34` + AGP 9.4.1 upgrade + runtime correctness sweep | **Done** |
+| 1 | Theme (dynamic color) + interop patterns + drawer content migration | **Done** |
+| 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **In progress** (state extracted, rendering deferred) |
+| 3 | Charts → Vico (line graphs; basal column editor last) | Planned |
+| 4 | Settings / preferences (`android.preference` → `androidx.preference` → Compose) | Planned |
 | 5 | Long tail: simple CRUD screens; low-touch screens stay legacy | Planned |
+
+### Parallel modernization tracks (own backlog, not UI phases)
+
+These are large enough to run independently of the Compose phases:
+
+| Track | Why it matters | Status |
+| --- | --- | --- |
+| ActiveAndroid → Room | Data foundation for Home/charts (`BgReading`/`Calibration`/`Treatment`). A Room + `Flow` source makes Compose slices much simpler. Recommended **before** the deep Home slices. | In scope |
+| Nightscout SDK → port AndroidAPS `core/nssdk` | Replaces the unmaintained `ns-sdk-full-release.aar` with Nightscout v3 + Access Token support. | Deferred |
+| Dagger → Hilt | Modern DI for new ViewModels. | Not started |
+| Lombok reduction | Long-term, optional. | Not started |
+| Wear module | Old support libs; does not build under AGP 9. | Not started |
+
+### Structural conventions
+
+- **State extraction first.** Every migrated slice extracts a `ViewModel`/state
+  holder before rendering (proven pattern: `NavDrawerMenuState`, `HomeGlucoseState`).
+- **Compose over composition.** Prefer thin delegate-based bridges when a legacy
+  collection/view must be touched (as in `PrefsView*`).
 
 ---
 
@@ -200,7 +227,7 @@ component:
   notification-listener, `AlwaysOnDisplayService` accessibility) per the
   Android 12 guidance.
 
-### 8. `targetSdk` 34 runtime corrections (done)
+### 7. `targetSdk` 34 runtime corrections (done)
 
 Beyond the manifest `android:exported` work, bumping to 34 surfaced several
 runtime requirements that crash on startup:
@@ -229,7 +256,7 @@ runtime requirements that crash on startup:
   `startForegroundService` call sites are also wrapped so they log instead of
   crashing when the allow-list is absent.
 
-### 7. Theme & color system (Phase 1)
+### 8. Theme & color system (Phase 1)
 
 Two-layer color model:
 
