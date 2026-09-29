@@ -22,7 +22,7 @@ screens migrate. The settings/secondary-views phases are planned in
 
 | Dependency | Usage | Replace with | Track / Phase | Effort | Status |
 | --- | --- | --- | --- | --- | --- |
-| `hellocharts` (local AAR) | 17 files | [Vico](https://github.com/patrykandpatrick/vico) | Compose / Phase 3 | High | Not started |
+| `hellocharts` (local AAR) | 17 files | [Vico](https://github.com/patrykandpatrick/vico) | Compose / Phase 3 | High | Not started — Home pan clamped horizontal by `ui/chart/Horizontal*LineChartView` stopgaps (delete with Vico) |
 | `colorpicker` AAR (`com.rarepebble.colorpicker`) | 3 files + prefs XML | Compose-native color picker | Compose / Phase 4 | Low | Partial — Compose picker added (`ThemeEditorScreen`/`SettingsColorRow`); AAR remains for the legacy color page + `NumberWallPreview` until migrated |
 | `search-preference` (local AAR) | 1 file | Compose search/settings UI | Compose / Phase 4 | Low | Partial — root search over migrated settings added; AAR remains for the legacy settings until retired |
 | `com.github.amlcurran.showcaseview` | 13 files | Compose tooltips/coach-marks (or drop) | Compose / Phase 2–5 | Medium | Not started |

@@ -34,10 +34,11 @@ verified running on the emulator (including background collection restarts).
 Phase 2 has its component library seeded and the header state extracted, but the
 header *rendering* was reverted to the original design pending a proper redesign.
 
-**Phase 4 (settings) has started:** a Compose settings host
+**Phase 4 (settings) is in progress:** a Compose settings host
 (`ui/settings/SettingsActivity`) with a hand-rolled row library
-(`ui/settings/SettingsComponents.kt`) renders the **General** and **Alarms and Alerts**
-categories (incl. a Compose color picker, ringtone/time rows and root search) and links through
+(`ui/settings/SettingsComponents.kt`) renders the **General**, **Alarms and Alerts**,
+**Data Source** and **Data Sync** categories plus a **Theme editor** (Compose colour picker,
+ringtone/time/slider rows, root search), and links through
 to the legacy settings activity for everything else. The theme now provides the app's data colors
 (`LocalXdripColors`) to Compose (see
 [`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)). The
@@ -66,7 +67,7 @@ medical app of this size. The migration is **incremental and hybrid**:
 | 1 | Theme (dynamic color) + interop patterns + drawer content migration | **Done** |
 | 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **In progress** (state extracted, rendering deferred) |
 | 3 | Charts → Vico (line graphs; basal column editor last) | Planned |
-| 4 | Settings → Compose (see [`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)) | Planned (review) |
+| 4 | Settings → Compose (see [`Settings_And_Secondary_Views_Compose.md`](./Settings_And_Secondary_Views_Compose.md)) | **In progress** (General, Alarms & Alerts, Data Source, Data Sync, Theme done; S5a/S5b remain) |
 | 5 | Secondary views → Compose (long tail; see the same plan) | Planned (review) |
 
 ### Parallel modernization tracks (own backlog, not UI phases)
@@ -330,6 +331,9 @@ Highlights:
   notification permission, scoped storage) is built but not yet device-tested.
 - **`hellocharts` is a dead dependency** — do not let `AndroidView` wrapping
   become permanent.
+- **Home chart pan is clamped to horizontal** by `ui/chart/HorizontalLineChartView` /
+  `HorizontalPreviewLineChartView` (hello-charts' `ZoomType` limits zoom only, not pan). These
+  are stopgaps to delete when Phase 3 replaces the chart with Vico.
 - **Data Binding remains in use** across most screens until migrated; the
   `PrefsView*` composition bridge will be removable once those bindings are gone.
 - **Dynamic color fallback**: Android < 12 devices use the brand fallback scheme;
