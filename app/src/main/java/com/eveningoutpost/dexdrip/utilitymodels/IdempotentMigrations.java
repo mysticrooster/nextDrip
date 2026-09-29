@@ -18,7 +18,6 @@ import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.Libre2RawValue;
 import com.eveningoutpost.dexdrip.models.Libre2Sensor;
 import com.eveningoutpost.dexdrip.models.LibreBlock;
-import com.eveningoutpost.dexdrip.models.LibreData;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.SnoozeActivity;
 import com.eveningoutpost.dexdrip.stats.FirstPageFragment;
@@ -49,7 +48,6 @@ public class IdempotentMigrations {
         migrateToNewStyleRestUris();
         BgReading.updateDB();
         LibreBlock.updateDB();
-        LibreData.updateDB();
         DesertSync.updateDB();
         Libre2RawValue.updateDB();
         Libre2Sensor.updateDB();

@@ -70,7 +70,9 @@ public final class LegacyDataImporter {
                     "ShareGlucose",
                     "Notifications",
                     "Prediction",
-                    "APStatus")));
+                    "APStatus",
+                    "Accuracy",
+                    "LibreData")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

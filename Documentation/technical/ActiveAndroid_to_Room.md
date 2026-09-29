@@ -44,7 +44,7 @@ planned, sequenced, and tracked independently of the Compose UI phases.
 | Serialization | Models are also Gson `@Expose`d (JSON ↔ DB model is entangled) |
 | Foreign keys | `Model` fields with `onDelete = CASCADE` (e.g. `BgReading.sensor`, `.calibration`) |
 | Room dependency | **Present** (`androidx.room:room-runtime`/`room-ktx`/`room-compiler` 2.8.5) |
-| Migrated tables | **13** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus` |
+| Migrated tables | **15** — `CalibrationRequest`, `ActiveBgAlert`, `PenData`, `AlertType`, `HeartRate`, `PebbleMovement`, `TransmitterData`, `ActiveBluetoothDevice`, `Reminder`, `ShareGlucose`, `Notifications`, `Prediction`, `APStatus`, `Accuracy`, `LibreData` |
 | Existing tests | `CalibrationTest`, `TreatmentsTest`, `SensorTest`, … (parity baseline) |
 
 ### Package structure
@@ -308,6 +308,12 @@ unmigrated models still use ActiveAndroid and migrated models keep their façade
   - Dropped the manual `updateDB` schemas and their `IdempotentMigrations` calls;
     removed `APStatus.updateDB()` from `UploadChunkTest`.
   - Added `PredictionTest`. Full suite + `assembleFastDebug` (R8) pass.
+- **2026-09-28 — `Accuracy`, `LibreData` (15/29).**
+  - `Accuracy`: Room @Entity + DAO (the precise-timestamp query and the ordered graph
+    query). Kept instance `save()`; dropped the manual schema.
+  - `LibreData`: Room @Entity (no DAO — only `updateDB()` referenced it; that call is
+    gone from `IdempotentMigrations`).
+  - Added `AccuracyTest`. Full suite + `assembleFastDebug` (R8) pass.
 
 ---
 

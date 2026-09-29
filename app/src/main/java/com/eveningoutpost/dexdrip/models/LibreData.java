@@ -1,38 +1,37 @@
 package com.eveningoutpost.dexdrip.models;
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
 import com.google.gson.annotations.Expose;
 
 /**
  * Created by jamorham on 19/10/2017.
  */
 
-@Table(name = "LibreData", id = BaseColumns._ID)
-public class LibreData extends PlusModel {
+@Entity(tableName = "LibreData",
+        indices = {
+                @Index("timestamp")
+        })
+public class LibreData {
     private static final String TAG = "LibreData";
-    static final String[] schema = {
-            "CREATE TABLE LibreData (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-            "ALTER TABLE LibreData ADD COLUMN timestamp INTEGER;",
-            "ALTER TABLE LibreData ADD COLUMN temperature REAL;",
-            "ALTER TABLE LibreData ADD COLUMN temperatureraw INTEGER;",
 
-            "CREATE INDEX index_LibreData_timestamp on LibreData(timestamp);"
-    };
-
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
     @Expose
-    @Column(name = "timestamp", index = true)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "temperature")
+    @ColumnInfo(name = "temperature")
     public double temperature;
 
     @Expose
-    @Column(name = "temperatureraw")
+    @ColumnInfo(name = "temperatureraw")
     public long temperatureraw;
 
 
@@ -46,9 +45,5 @@ public class LibreData extends PlusModel {
     }
 
     private static final boolean d = false;
-
-    public static void updateDB() {
-        fixUpTable(schema, false);
-    }
 
 }

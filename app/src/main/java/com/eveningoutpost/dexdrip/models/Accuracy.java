@@ -5,14 +5,17 @@ package com.eveningoutpost.dexdrip.models;
  */
 
 
-import android.provider.BaseColumns;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.Index;
+import androidx.room.PrimaryKey;
 
-import com.activeandroid.annotation.Column;
-import com.activeandroid.annotation.Table;
-import com.activeandroid.query.Select;
 import com.eveningoutpost.dexdrip.BestGlucose;
+import com.eveningoutpost.dexdrip.db.AppDatabase;
+import com.eveningoutpost.dexdrip.db.dao.AccuracyDao;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
+import com.eveningoutpost.dexdrip.xdrip;
 import com.google.gson.annotations.Expose;
 
 import java.util.ArrayList;
@@ -20,54 +23,48 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Table(name = "Accuracy", id = BaseColumns._ID)
-public class Accuracy extends PlusModel {
+@Entity(tableName = "Accuracy",
+        indices = {
+                @Index("timestamp"),
+                @Index("bgtimestamp")
+        })
+public class Accuracy {
     private static final String TAG = "Accuracy";
-    private static boolean patched = false;
-    static final String[] schema = {
-            "CREATE TABLE Accuracy (_id INTEGER PRIMARY KEY AUTOINCREMENT);",
-            "ALTER TABLE Accuracy ADD COLUMN timestamp INTEGER;",
-            "ALTER TABLE Accuracy ADD COLUMN bg REAL;",
-            "ALTER TABLE Accuracy ADD COLUMN bgtimestamp INTEGER;",
-            "ALTER TABLE Accuracy ADD COLUMN bgsource TEXT;",
-            "ALTER TABLE Accuracy ADD COLUMN plugin TEXT;",
-            "ALTER TABLE Accuracy ADD COLUMN calculated REAL;",
-            "ALTER TABLE Accuracy ADD COLUMN lag INTEGER;",
-            "ALTER TABLE Accuracy ADD COLUMN difference REAL;",
-            "CREATE INDEX index_Accuracy_timestamp on Accuracy(timestamp);",
-            "CREATE INDEX index_Accuracy_bgtimestamp on Accuracy(bgtimestamp);"
-    };
+
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "_id")
+    public long _id;
 
     @Expose
-    @Column(name = "timestamp", index = true)
+    @ColumnInfo(name = "timestamp")
     public long timestamp;
 
     @Expose
-    @Column(name = "bg")
+    @ColumnInfo(name = "bg")
     public double bg;
 
     @Expose
-    @Column(name = "bgtimestamp", index = true)
+    @ColumnInfo(name = "bgtimestamp")
     public long bgtimestamp;
 
     @Expose
-    @Column(name = "bgsource")
+    @ColumnInfo(name = "bgsource")
     public String bgsource;
 
     @Expose
-    @Column(name = "plugin")
+    @ColumnInfo(name = "plugin")
     public String plugin;
 
     @Expose
-    @Column(name = "calculated")
+    @ColumnInfo(name = "calculated")
     public double calculated;
 
     @Expose
-    @Column(name = "lag")
+    @ColumnInfo(name = "lag")
     public boolean lag;
 
     @Expose
-    @Column(name = "difference")
+    @ColumnInfo(name = "difference")
     public double difference;
 
     private static final boolean d = false;
@@ -83,7 +80,6 @@ public class Accuracy extends PlusModel {
 
     public static Accuracy create(BloodTest bloodTest, BgReading bgReading, String plugin) {
         if ((bloodTest == null) || (bgReading == null)) return null;
-        patched = fixUpTable(schema, patched);
         if (getForPreciseTimestamp(bgReading.timestamp, Constants.MINUTE_IN_MS, plugin) != null) {
             UserError.Log.d(TAG, "Duplicate accuracy timestamp for: " + JoH.dateTimeText(bgReading.timestamp));
             return null;
@@ -102,14 +98,7 @@ public class Accuracy extends PlusModel {
     }
 
     static Accuracy getForPreciseTimestamp(double timestamp, double precision, String plugin) {
-        patched = fixUpTable(schema, patched);
-        final Accuracy accuracy = new Select()
-                .from(Accuracy.class)
-                .where("timestamp <= ?", (timestamp + precision))
-                .where("timestamp >= ?", (timestamp - precision))
-                .where("plugin = ?", plugin)
-                .orderBy("abs(timestamp - " + timestamp + ") asc")
-                .executeSingle();
+        final Accuracy accuracy = dao().getForPreciseTimestamp(timestamp - precision, timestamp + precision, timestamp, plugin);
         if (accuracy != null && Math.abs(accuracy.timestamp - timestamp) < precision) {
             return accuracy;
         }
@@ -117,18 +106,7 @@ public class Accuracy extends PlusModel {
     }
 
     public static List<Accuracy> latestForGraph(int number, long startTime, long endTime) {
-        try {
-            return new Select()
-                    .from(Accuracy.class)
-                    .where("timestamp >= " + Math.max(startTime, 0))
-                    .where("timestamp <= " + endTime)
-                    .orderBy("timestamp desc, _id asc")
-                    .limit(number)
-                    .execute();
-        } catch (android.database.sqlite.SQLiteException e) {
-            patched = fixUpTable(schema, patched);
-            return new ArrayList<>();
-        }
+        return dao().latestForGraph(Math.max(startTime, 0), endTime, number);
     }
 
     public static String evaluateAccuracy(long period) {
@@ -188,6 +166,25 @@ public class Accuracy extends PlusModel {
             }
         }
         return symbol + (!domgdl ? JoH.qs(mean * Constants.MGDL_TO_MMOLL, 2) + " mmol" : JoH.qs(mean, 1) + " mgdl");
+    }
+
+    /**
+     * Insert-or-update, mirroring the ActiveAndroid Model.save() used before the Room migration.
+     */
+    public Long save() {
+        if (_id != 0) {
+            dao().update(this);
+        } else {
+            final long id = dao().insert(this);
+            if (id > 0) {
+                _id = id;
+            }
+        }
+        return _id;
+    }
+
+    private static AccuracyDao dao() {
+        return AppDatabase.getInstance(xdrip.getAppContext()).accuracyDao();
     }
 
 }
