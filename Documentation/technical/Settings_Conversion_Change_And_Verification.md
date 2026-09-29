@@ -16,8 +16,8 @@ Everything the legacy settings screen does, split into the plan's tracks:
 | --- | --- | --- | --- | --- | --- |
 | S1 | General + License | `pref_general.xml`, `pref_license.xml` | 3 | 4 | **Done** |
 | S2 | Alarms & Alerts | `pref_notifications.xml` | 12 | 54 | **Done** |
-| S3 | Data Source | `pref_data_source.xml` | 7 | 59 | Todo |
-| S4 | Data Sync | `pref_data_sync.xml` | 16 | 67 | Todo |
+| S3 | Data Source | `pref_data_source.xml` | 7 | 59 | **Done** |
+| S4 | Data Sync | `pref_data_sync.xml` | 16 | 67 | **Done** |
 | S5a | Advanced Settings | `pref_advanced_settings.xml` | 24 | 232 | Todo |
 | S5b | xDrip+ Options | `xdrip_plus_prefs.xml` | 23 | 157 | Todo |
 | S6 | Retire legacy settings | `Preferences.java`, XMLs, libs | — | — | Todo |
@@ -25,8 +25,10 @@ Everything the legacy settings screen does, split into the plan's tracks:
 
 Already in Compose: **General** (units, high/low, license), **Alarms & Alerts** (+ all sub-screens
 incl. suppress/channels/ascending/persistent-high/forecast-low/sensor-expiry/calibration/other),
-**Theme editor**, and a **root search** over migrated destinations. Everything else still opens the
-legacy activity via "Classic settings".
+**Data Source** (+ web-follower/NFC/NS-follow/G5-debug sub-screens), **Data Sync** (+ REST/Mongo/
+Influx/dexcom-share/Tidepool/web-deposit/NightLite/Nocturne/meters), **Theme editor**, and a
+**root search** over migrated destinations. Everything else still opens the legacy activity via
+"Classic settings".
 
 > All work preserves the **non-negotiable invariant**: pref **keys and types never change**
 > (read app-wide via `Pref`), so existing installs and backups keep working.
@@ -244,9 +246,11 @@ Status legend: **Ready** = do it now for migrated screens; **Pending** = blocked
 
 ## 4. Checklist tracking
 
-- [ ] Cross-cutting blocks (§2.1 items 1–9)
-- [ ] S3 Data Source
-- [ ] S4 Data Sync
+- [x] Cross-cutting blocks (§2.1 items 1–9) — visibility model, dependency, summaries/validation,
+      colour/sound/time/slider rows, side effects for migrated categories done; deep links,
+      leaf-level search, chart-preview row, global listeners, icons remain.
+- [x] S3 Data Source
+- [x] S4 Data Sync
 - [ ] S5a Advanced Settings
 - [ ] S5b xDrip+ Options
 - [ ] S6 Retire legacy
