@@ -55,12 +55,12 @@ Modernization that is not Compose-specific but is part of the overall cleanup.
 
 | Item | Usage | Recommendation | Effort | Status |
 | --- | --- | --- | --- | --- |
-| RxJava 1 (`io.reactivex:rxjava:1.3.3`) | 6 files | → coroutines (already a dependency) | Low | Not started |
-| joda-time (`net.danlew:android.joda`) | 1 file | → `java.time` (minSdk 26) | Low | Not started |
+| RxJava 1 (`io.reactivex:rxjava:1.3.3`) | 6 files | → coroutines (already a dependency) | Low | **Done** (→ `java.util.function.Consumer`) |
+| joda-time (`net.danlew:android.joda`) | 1 file | → `java.time` (minSdk 26) | Low | **Done** (own code migrated; dep kept for Nightscout SDK) |
 | `com.evernote:android-job` | 3 files | → WorkManager (already present) | Low | **Done** |
 | Dagger `2.25.4` | DI | → Hilt (or modern Dagger) | Medium | Not started |
 | Lombok | pervasive | → Kotlin data classes (long-term, optional) | **High** | Not started |
-| `android.preference.PreferenceManager` | `ColorCache` defaults | → `androidx.preference` | Low | Not started |
+| `android.preference.PreferenceManager` | `ColorCache` defaults | → `androidx.preference` | Low | **Done** |
 
 ---
 
