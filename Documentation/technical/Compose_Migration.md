@@ -36,10 +36,11 @@ header *rendering* was reverted to the original design pending a proper redesign
 
 **Phase 4 (settings) is in progress:** a Compose settings host
 (`ui/settings/SettingsActivity`) with a hand-rolled row library renders the **General**,
-**Alarms and Alerts**, **Data Source**, **Data Sync** and **Advanced → Other settings** categories
-plus a **Theme editor** (Compose colour picker, ringtone/time/slider rows, root search), and links
-to the legacy settings activity for the rest. The theme now provides the app's data colours
-(`LocalXdripColors`) to Compose. Plan, status board and verification passes live in
+**Alarms and Alerts**, **Data Source**, **Data Sync** and the whole **Advanced** category
+(Other settings and Smart watch features) plus a **Theme editor** (Compose colour picker,
+ringtone/time/slider rows, root search), and links to the legacy settings activity for the rest.
+The theme now provides the app's data colours (`LocalXdripColors`) to Compose. Plan, status board
+and verification passes live in
 [`Settings_Migration.md`](./Settings_Migration.md); the large Advanced phase has its own annex
 [`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md).
 
@@ -81,7 +82,7 @@ The work did **not** follow the nominal 0→5 order. This is the real sequence a
 | 1 | Theme (Material You) + interop patterns + drawer content migration | **Done** |
 | 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **Paused** (state extracted, rendering reverted pending redesign) |
 | 3 | Charts → Vico (line graphs; basal column editor last) | Planned (unblocks Phase 2) |
-| 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **In progress** (S0–S4 done, S5a Other settings done; S5a watches / S5b / S6 remain) |
+| 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **In progress** (S0–S5a done; S5b / S6 remain) |
 | 5 | Secondary views → Compose (long tail; same doc) | Planned |
 
 ### Parallel modernization tracks (own backlog, not UI phases)
@@ -261,7 +262,16 @@ runtime requirements that crash on startup:
 
 - **`registerReceiver` flags** — added `RECEIVER_EXPORTED`/`RECEIVER_NOT_EXPORTED`
   to all context-registered receivers (companion-app receivers exported; system
-  and internal receivers not).
+  and internal receivers not). Two hidden cases were inside dead AARs:
+  - **PebbleKit**: `PebbleKit.registerReceivedDataHandler`/`registerReceivedAckHandler`/
+    `registerReceivedNackHandler`/`registerDataLogReceiver` call the flag-less
+    `Context.registerReceiver`. `PebbleWatchSync` now registers the same PebbleKit receiver classes
+    itself via `ContextCompat.registerReceiver(..., RECEIVER_EXPORTED)` (and unregisters on destroy).
+  - **amazfitcommunication**: `TransporterClassic.get()` registers
+    `com.huami.watch.transport.DataTransportService.Start` on the application context with the
+    flag-less overload. `Amazfitservice` now passes a `ContextWrapper` (`FlaggedReceiverContext`)
+    that forces `Context.RECEIVER_EXPORTED` on the two-arg `registerReceiver` (and returns itself
+    from `getApplicationContext()` so the library's internal call is intercepted).
 - **`PendingIntent` flags** — added `FLAG_IMMUTABLE` everywhere, including a
   `TaskStackBuilder.getPendingIntent` call the initial single-line scan missed.
 - **Foreground-service types** — declared `FOREGROUND_SERVICE_CONNECTED_DEVICE`

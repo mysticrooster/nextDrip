@@ -34,7 +34,7 @@ screens migrate. The settings/secondary-views phases are planned in
 | `androidx.appcompat` / `material` (XML) | 24 / 1 files | Material 3 (retire as screens migrate) | Compose / cross-cutting | High | Not started |
 | `com.journeyapps:zxing-android-embedded` | 10 files | CameraX / ML Kit barcode, or `AndroidView` wrap | Compose / Phase 5 | Medium | Not started |
 | `me.tatarka.bindingcollectionadapter2` + Data Binding | 26 layouts | `ViewModel` / `StateFlow` (retire binding) | Compose / cross-cutting | High | Not started |
-| `com.getpebble:pebblekit` | 7 files | remove (dead watch) | Compose / Phase 5 | Low | Not started |
+| `com.getpebble:pebblekit` | 7 files | remove (dead watch) | Compose / Phase 5 | Low | Not started — settings UI migrated in S5a; AAR removal pending a product decision. Note: its `PebbleKit.register*` receivers called flag-less `Context.registerReceiver` (targetSdk 34 crash) and are now self-registered in `PebbleWatchSync` |
 
 ---
 
@@ -45,7 +45,7 @@ Local and unmaintained AARs that should not survive the migration.
 | Dependency | Notes | Recommendation | Effort | Status |
 | --- | --- | --- | --- | --- |
 | `thread-safe-active-android` (ActiveAndroid ORM) | removed — all 28 tables on Room | migrated (see §5) | **High** | **Done** |
-| `amazfitcommunication-master` AAR | companion device | review / remove if unused | Low | Not started |
+| `amazfitcommunication-master` AAR | companion device | review / remove if unused | Low | Not started — settings UI migrated in S5a; AAR removal pending a product decision. Note: its `TransporterClassic.get` registered a receiver flag-lessly (targetSdk 34 crash), now worked around in `Amazfitservice` via a context wrapper |
 | `appauth-release` AAR | OAuth | keep (external SDK) | — | Keep |
 | `ns-sdk-full-release` AAR | Nightscout SDK (follower/download) | → port AndroidAPS `core/nssdk` (see §6) | High | In scope (deferred) |
 
@@ -144,6 +144,45 @@ module.
   the classpath regardless of this port (intentionally retained — see §3).
 - **Track:** framework modernization, parallel to the Compose phases. Deferred;
   own backlog.
+
+---
+
+## 7. targetSdk 34 runtime-crash audit (peripherals & bundled libraries)
+
+Audit (2026-09-29) of every bundled AAR/jar, the resolved Maven peripheral stack, the
+library modules, and the app's own Bluetooth/watch/CGM code for APIs that crash on
+modern `targetSdk` (flag-less dynamic `registerReceiver`; `PendingIntent` without
+`FLAG_IMMUTABLE`/`FLAG_MUTABLE`; foreground services without a `foregroundServiceType`).
+
+**Fixed in-repo**
+
+| Item | Finding | Fix |
+| --- | --- | --- |
+| `com.getpebble:pebblekit` | `PebbleKit.register*` used flag-less `Context.registerReceiver` | `PebbleWatchSync` self-registers the same receivers via `ContextCompat.registerReceiver(..., RECEIVER_EXPORTED)` |
+| `amazfitcommunication` AAR | `TransporterClassic.get` used flag-less 2-arg `registerReceiver` | `Amazfitservice` passes a `FlaggedReceiverContext` wrapper forcing `RECEIVER_EXPORTED` |
+| FGS types | `ExternalStatusService`, `WifiCollectionService`, `G5CollectionService`, `DexShareCollectionService`, `WebFollowService` had no `android:foregroundServiceType` (Android 14 `MissingForegroundServiceTypeException`) | types added (`dataSync` / `connectedDevice`) in `AndroidManifest.xml`; runtime calls already pass `FOREGROUND_SERVICE_TYPE_MANIFEST` or the manifest type applies |
+
+**Clean (verified, no action):** `appauth`, `barista`, `colorpicker`, `hellocharts`,
+`ns-sdk-full`, `search-preference`, `influxdb-java`, `mongo-java-driver`,
+`usb-serial-for-android`, `xdrip-cloud`; library modules `:libglupro`, `:libkeks`,
+`:ipluginda`, `:localeapi`; app `PendingIntent` call sites (all flagged);
+Nordic BLE / RxAndroidBle / zxing / Joda `registerReceiver` calls (protected
+broadcasts); Sentry system-event breadcrumbs (integration disabled +
+`catch(Throwable)`).
+
+**Open third-party risk — Play Services 15.x `PendingIntent` flags** (not fixable
+without a GMS upgrade; reachable on error-resolution paths, notably on devices with
+missing/outdated Play Services):
+
+| Artifact | Class / method | Pattern |
+| --- | --- | --- |
+| `play-services-wearable:15.0.0` | `com.google.android.gms.wearable.internal.zzhg.connect` | `PendingIntent.getActivity(..., 0)` — no mutable/immutable (narrow: China Wear app branch) |
+| `play-services-base`/`-basement:15.0.1` | `GoogleApiAvailabilityLight.getErrorResolutionPendingIntent`, `GoogleApiActivity.zza`, `GoogleApiManager`, `zzr.zzad` | `getActivity(..., FLAG_UPDATE_CURRENT)` — no mutable/immutable |
+
+Recommendation: upgrade the GMS stack (`play-services-base`/`-basement` ≥ 18.x,
+`play-services-wearable` ≥ 18.x). This is a broader migration because the app pins
+`play-services-auth`/`-location`/`firebase-messaging` at 15.0.0 and newer majors change
+APIs (e.g. `FirebaseInstanceId`); schedule it as its own task rather than a drive-by bump.
 
 ---
 

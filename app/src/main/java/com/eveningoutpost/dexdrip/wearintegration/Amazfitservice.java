@@ -4,8 +4,11 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
@@ -71,6 +74,9 @@ public class Amazfitservice extends Service {
     private String space_mins;
     private double low_occurs_at;
     private Transporter transporter;
+    // Static + strong: the transporter caches itself and holds only a WeakReference to this context,
+    // so it must live as long as the process (like the application context it replaced).
+    private static FlaggedReceiverContext flaggedContext;
     //private Context context;
     DataBundle dataBundle = new DataBundle();
     private HeartRate heartrate;
@@ -78,11 +84,38 @@ public class Amazfitservice extends Service {
     private SharedPreferences prefs;
 
 
+    /**
+     * Context wrapper that forces the export flag on the flag-less dynamic receiver registration used
+     * by the dead Amazfit communication AAR (TransporterClassic), which otherwise throws
+     * SecurityException on targetSdk 34. Exported matches the pre-Android-13 behaviour of dynamic
+     * receivers; the broadcast is sent by the external Huami transport service.
+     */
+    private static class FlaggedReceiverContext extends ContextWrapper {
+        FlaggedReceiverContext(Context base) {
+            super(base);
+        }
+
+        @Override
+        public Context getApplicationContext() {
+            return this;
+        }
+
+        @Override
+        public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                return super.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+            }
+            return super.registerReceiver(receiver, filter);
+        }
+    }
+
+
     @Override
     public void onCreate() {
         super.onCreate();
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        transporter = (TransporterClassic) Transporter.get(getApplicationContext(), "com.eveningoutpost.dexdrip.wearintegration");
+        flaggedContext = new FlaggedReceiverContext(getApplicationContext());
+        transporter = (TransporterClassic) Transporter.get(flaggedContext, "com.eveningoutpost.dexdrip.wearintegration");
         transporter.connectTransportService();
         transporter.addChannelListener(new Transporter.ChannelListener() {
             @Override

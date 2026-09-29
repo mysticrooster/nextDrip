@@ -1,11 +1,15 @@
 package com.eveningoutpost.dexdrip.utilitymodels.pebble;
 
 import android.bluetooth.BluetoothManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+
+import androidx.core.content.ContextCompat;
 
 import com.eveningoutpost.dexdrip.models.HeartRate;
 import com.eveningoutpost.dexdrip.models.JoH;
@@ -18,10 +22,13 @@ import com.eveningoutpost.dexdrip.utilitymodels.BroadcastSnooze;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utils.framework.ForegroundService;
 import com.eveningoutpost.dexdrip.xdrip;
+import com.getpebble.android.kit.Constants;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,6 +66,12 @@ public class PebbleWatchSync extends ForegroundService {
     private static Map<PebbleDisplayType, PebbleDisplayInterface> pebbleDisplays;
 
     private UUID currentWatchFaceUUID;
+
+    /**
+     * Receivers we register ourselves (instead of via the dead PebbleKit helpers) so we can pass the
+     * RECEIVER_EXPORTED flag required by targetSdk 34; kept so they can be unregistered on destroy.
+     */
+    private final List<BroadcastReceiver> registeredReceivers = new ArrayList<>();
 
 
     public static void setPebbleType(int pebbleType) {
@@ -149,6 +162,14 @@ public class PebbleWatchSync extends ForegroundService {
     @Override
     public void onDestroy() {
         Log.d(TAG, "onDestroy called");
+        for (final BroadcastReceiver receiver : registeredReceivers) {
+            try {
+                context.unregisterReceiver(receiver);
+            } catch (final Exception e) {
+                Log.e(TAG, "Error unregistering pebble receiver: " + e);
+            }
+        }
+        registeredReceivers.clear();
         super.onDestroy();
     }
 
@@ -157,33 +178,44 @@ public class PebbleWatchSync extends ForegroundService {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    /**
+     * Registers a Pebble receiver ourselves rather than through {@code PebbleKit.register*}, which
+     * still calls the flag-less {@code Context.registerReceiver} and therefore throws
+     * {@link SecurityException} on targetSdk 34. The Pebble app is a separate process, so the
+     * receiver is exported.
+     */
+    private void registerReceiverCompat(final BroadcastReceiver receiver, final IntentFilter filter) {
+        ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED);
+        registeredReceivers.add(receiver);
+    }
+
     protected void init() {
         Log.i(TAG, "Initialising...");
         Log.i(TAG, "configuring PebbleDataReceiver for: "+currentWatchFaceUUID.toString());
 
 
-        PebbleKit.registerReceivedDataHandler(context, new PebbleKit.PebbleDataReceiver(currentWatchFaceUUID) {
+        registerReceiverCompat(new PebbleKit.PebbleDataReceiver(currentWatchFaceUUID) {
             @Override
             public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
                 getActivePebbleDisplay().receiveData(transactionId, data);
             }
-        });
+        }, new IntentFilter(Constants.INTENT_APP_RECEIVE));
 
-        PebbleKit.registerReceivedAckHandler(context, new PebbleKit.PebbleAckReceiver(currentWatchFaceUUID) {
+        registerReceiverCompat(new PebbleKit.PebbleAckReceiver(currentWatchFaceUUID) {
             @Override
             public void receiveAck(Context context, int transactionId) {
                 getActivePebbleDisplay().receiveAck(transactionId);
             }
-        });
+        }, new IntentFilter(Constants.INTENT_APP_RECEIVE_ACK));
 
-        PebbleKit.registerReceivedNackHandler(context, new PebbleKit.PebbleNackReceiver(currentWatchFaceUUID) {
+        registerReceiverCompat(new PebbleKit.PebbleNackReceiver(currentWatchFaceUUID) {
             @Override
             public void receiveNack(Context context, int transactionId) {
                 getActivePebbleDisplay().receiveNack(transactionId);
             }
-        });
+        }, new IntentFilter(Constants.INTENT_APP_RECEIVE_NACK));
 
-        PebbleKit.registerDataLogReceiver(context, new PebbleKit.PebbleDataLogReceiver(currentWatchFaceUUID) {
+        registerReceiverCompat(new PebbleKit.PebbleDataLogReceiver(currentWatchFaceUUID) {
             @Override
             public void receiveData(Context context, UUID logUuid, Long timestamp,
                                     Long tag, int data) {
@@ -265,18 +297,25 @@ public class PebbleWatchSync extends ForegroundService {
                 if (d) Log.i(TAG, "Session " + tag + " finished!");
             }
 
-        });
+        }, dataLogFilter());
 
         // control app
-        PebbleKit.registerReceivedDataHandler(context, new PebbleKit.PebbleDataReceiver(PEBBLE_CONTROL_APP_UUID) {
+        registerReceiverCompat(new PebbleKit.PebbleDataReceiver(PEBBLE_CONTROL_APP_UUID) {
             @Override
             public void receiveData(final Context context, final int transactionId, final PebbleDictionary data) {
                 getActivePebbleDisplay().receiveAppData(transactionId, data);
             }
-        });
+        }, new IntentFilter(Constants.INTENT_APP_RECEIVE));
 
 
 
+    }
+
+    private static IntentFilter dataLogFilter() {
+        final IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.INTENT_DL_RECEIVE_DATA);
+        filter.addAction(Constants.INTENT_DL_FINISH_SESSION);
+        return filter;
     }
 
     public static void receiveAppData(int transactionId, PebbleDictionary data) {

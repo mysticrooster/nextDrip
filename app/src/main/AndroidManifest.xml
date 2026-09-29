@@ -238,7 +238,8 @@
         <service
             android:name=".services.WifiCollectionService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="connectedDevice" />
         <service android:name=".services.ActivityRecognizedService" />
         <service android:name=".services.BluetoothGlucoseMeter" />
         <service
@@ -266,7 +267,8 @@
         <service
             android:name=".wearintegration.ExternalStatusService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <activity
             android:name=".tables.BgReadingTable"
@@ -516,11 +518,13 @@
         <service
             android:name=".services.DexShareCollectionService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="dataSync" />
         <service
             android:name=".services.G5CollectionService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".services.Ob1G5CollectionService"
             android:enabled="true"
@@ -967,7 +971,9 @@
         <service
             android:name=".watch.thinjam.BlueJayService"
             android:foregroundServiceType="connectedDevice" />
-        <service android:name=".cgm.webfollow.WebFollowService" />
+        <service
+            android:name=".cgm.webfollow.WebFollowService"
+            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>
