@@ -2,38 +2,30 @@ package com.eveningoutpost.dexdrip.cgm.glupro;
 
 import android.os.Bundle;
 
-import com.eveningoutpost.dexdrip.databinding.ActivityGluProBinding;
-import com.eveningoutpost.dexdrip.models.JoH;
+import com.eveningoutpost.dexdrip.BaseAppCompatActivity;
 import com.eveningoutpost.dexdrip.models.UserError;
+import com.eveningoutpost.dexdrip.ui.secondary.GluProScreen;
 import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter;
-import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.utils.LocationHelper;
 
-import lombok.val;
 import lwld.glucose.profile.iface.State;
 
 /**
  * JamOrHam
  * <p>
- * Glucose Profile device selection activity
+ * Glucose Profile device selection activity (Track V pass 3, now Compose).
  */
-public class GluProActivity extends ActivityWithMenu {
+public class GluProActivity extends BaseAppCompatActivity {
 
     private static final String TAG = GluProActivity.class.getSimpleName();
 
     public final ViewModel viewModel = ViewModelProvider.get();
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        val binding = ActivityGluProBinding.inflate(getLayoutInflater());
-        binding.setViewModel(viewModel);
-        viewModel.setActivityCallback(GluProActivity.this::finish);
-        setContentView(binding.getRoot());
-
-        JoH.fixActionBar(this);
+        viewModel.setActivityCallback(this::finish);
+        GluProScreen.installGluPro(this);
     }
 
     @Override
@@ -55,10 +47,4 @@ public class GluProActivity extends ActivityWithMenu {
         viewModel.setActivityCallback(null);
         super.onDestroy();
     }
-
-    @Override
-    public String getMenuName() {
-        return "";
-    }
-
 }
