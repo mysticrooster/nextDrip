@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.R
 import java.util.Calendar
+import kotlin.math.roundToInt
 
 /**
  * Small, hand-rolled settings components used by the Compose settings screens.
@@ -213,6 +214,37 @@ fun SettingsListRow(
             dismissButton = { TextButton(onClick = { showDialog = false }) { Text(stringResource(android.R.string.cancel)) } },
         )
     }
+}
+
+/**
+ * Integer slider row, replacing the legacy `SeekBarPreference` (e.g. Tidepool window latency).
+ */
+@Composable
+fun SettingsSliderRow(
+    title: String,
+    value: Int,
+    onValueChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    valueRange: IntRange = 0..100,
+    subtitle: String? = null,
+    enabled: Boolean = true,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge)
+        subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        Slider(
+            value = value.toFloat(),
+            onValueChange = { onValueChange(it.roundToInt()) },
+            valueRange = valueRange.first.toFloat()..valueRange.last.toFloat(),
+            enabled = enabled,
+        )
+    }
+    HorizontalDivider()
 }
 
 /**

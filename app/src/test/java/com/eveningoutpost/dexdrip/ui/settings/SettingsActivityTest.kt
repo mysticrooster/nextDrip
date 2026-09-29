@@ -135,4 +135,22 @@ class SettingsActivityTest {
 
         composeRule.onNodeWithTag("setting_nfc").assertExists()
     }
+
+    @Test
+    fun dataSyncAutoConfigReachable() {
+        composeRule.onNodeWithTag("setting_data_sync").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_auto_config").performClick()
+
+        composeRule.onNodeWithTag("setting_auto_configure").assertExists()
+    }
+
+    @Test
+    fun webDepositHiddenWithoutEngineeringMode() {
+        Pref.setBoolean("engineering_mode", false)
+
+        composeRule.onNodeWithTag("setting_data_sync").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_cloud_upload").performClick()
+
+        composeRule.onNodeWithText("Web Deposit").assertDoesNotExist()
+    }
 }

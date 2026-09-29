@@ -45,6 +45,20 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.NsFollowDownload -> stringResource(R.string.title_nsfollow_download_treatments)
     SettingsScreen.G5Debug -> stringResource(R.string.g5_debug_settings)
     SettingsScreen.PreemptiveRestart -> stringResource(R.string.title_ob1_g5_preemptive_restart)
+    SettingsScreen.DataSync -> stringResource(R.string.data_sync)
+    SettingsScreen.AutoConfig -> stringResource(R.string.auto_configure_title)
+    SettingsScreen.CloudUpload -> stringResource(R.string.cloud_upload)
+    SettingsScreen.RestApi -> stringResource(R.string.pref_title_api)
+    SettingsScreen.RestApiDownload -> stringResource(R.string.title_cloud_storage_api_download_enable)
+    SettingsScreen.RestApiExtra -> stringResource(R.string.title_rest_api_extra_options)
+    SettingsScreen.Mongo -> stringResource(R.string.pref_title_mongodb)
+    SettingsScreen.Influx -> stringResource(R.string.pref_title_influxdb)
+    SettingsScreen.DexcomUpload -> stringResource(R.string.dexcom_share_server_upload)
+    SettingsScreen.Tidepool -> stringResource(R.string.title_tidepool)
+    SettingsScreen.WebDeposit -> "Web Deposit"
+    SettingsScreen.NightLite -> "NightLite"
+    SettingsScreen.Nocturne -> stringResource(R.string.nocturne)
+    SettingsScreen.GlucoseMeters -> stringResource(R.string.glucose_meters)
 }
 
 @Composable
@@ -73,6 +87,20 @@ internal fun SettingsScreenContent(
         SettingsScreen.NsFollowDownload -> NsFollowDownloadScreen()
         SettingsScreen.G5Debug -> G5DebugScreen(onNavigate)
         SettingsScreen.PreemptiveRestart -> PreemptiveRestartScreen()
+        SettingsScreen.DataSync -> DataSyncScreen(onNavigate)
+        SettingsScreen.AutoConfig -> AutoConfigScreen()
+        SettingsScreen.CloudUpload -> CloudUploadScreen(onNavigate)
+        SettingsScreen.RestApi -> RestApiScreen(onNavigate)
+        SettingsScreen.RestApiDownload -> RestApiDownloadScreen()
+        SettingsScreen.RestApiExtra -> RestApiExtraScreen()
+        SettingsScreen.Mongo -> MongoScreen()
+        SettingsScreen.Influx -> InfluxScreen()
+        SettingsScreen.DexcomUpload -> DexcomUploadScreen()
+        SettingsScreen.Tidepool -> TidepoolScreen()
+        SettingsScreen.WebDeposit -> WebDepositScreen()
+        SettingsScreen.NightLite -> NightLiteScreen()
+        SettingsScreen.Nocturne -> NocturneScreen()
+        SettingsScreen.GlucoseMeters -> GlucoseMetersScreen()
     }
 }
 
@@ -140,6 +168,14 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
             subtitle = context.getString(R.string.how_receive_data),
             onClick = { onNavigate(SettingsScreen.DataSource) },
             modifier = Modifier.testTag("setting_data_source"),
+        )
+    }
+    SettingsCategory(context.getString(R.string.data_sync)) {
+        SettingsActionRow(
+            title = context.getString(R.string.cloud_upload),
+            subtitle = context.getString(R.string.options_for_upload),
+            onClick = { onNavigate(SettingsScreen.DataSync) },
+            modifier = Modifier.testTag("setting_data_sync"),
         )
     }
     SettingsCategory("About") {

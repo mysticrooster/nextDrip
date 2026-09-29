@@ -27,6 +27,20 @@ internal sealed interface SettingsScreen {
     data object NsFollowDownload : SettingsScreen
     data object G5Debug : SettingsScreen
     data object PreemptiveRestart : SettingsScreen
+    data object DataSync : SettingsScreen
+    data object AutoConfig : SettingsScreen
+    data object CloudUpload : SettingsScreen
+    data object RestApi : SettingsScreen
+    data object RestApiDownload : SettingsScreen
+    data object RestApiExtra : SettingsScreen
+    data object Mongo : SettingsScreen
+    data object Influx : SettingsScreen
+    data object DexcomUpload : SettingsScreen
+    data object Tidepool : SettingsScreen
+    data object WebDeposit : SettingsScreen
+    data object NightLite : SettingsScreen
+    data object Nocturne : SettingsScreen
+    data object GlucoseMeters : SettingsScreen
 }
 
 /** A searchable settings destination shown by the root search field. */
@@ -43,6 +57,8 @@ internal val SETTINGS_SEARCH_INDEX = listOf(
     SettingsSearchEntry("Data Source Settings", SettingsScreen.DataSource, listOf("hardware", "collector", "sensor", "dexcom", "libre", "nightscout", "medtrum")),
     SettingsSearchEntry("Web Follower Settings", SettingsScreen.WebFollow, listOf("webfollow", "proxy")),
     SettingsSearchEntry("NFC Scan Features", SettingsScreen.NfcSettings, listOf("nfc", "libre", "scan", "expiry")),
+    SettingsSearchEntry("Data Sync", SettingsScreen.DataSync, listOf("cloud", "upload", "nightscout", "tidepool", "mongodb", "influxdb", "nocturne", "nightlite")),
+    SettingsSearchEntry("Glucose Meters", SettingsScreen.GlucoseMeters, listOf("bluetooth meter", "nfc meter", "calibration meter")),
     SettingsSearchEntry("Alarms and Alerts", SettingsScreen.Notifications, listOf("notifications", "alerts", "sounds")),
     SettingsSearchEntry("Glucose Alerts Settings", SettingsScreen.BgAlerts, listOf("alert profile", "audio focus", "snooze")),
     SettingsSearchEntry("Suppress Alerts if Missed Readings", SettingsScreen.SuppressAlerts, listOf("stale data")),
