@@ -89,6 +89,7 @@ Always run the unit suite + `assembleFastDebug` before committing. There is no k
 | [`Settings_Migration.md`](Documentation/technical/Settings_Migration.md) | living plan | Settings architecture, status board (S0–S6), per-category change lists, **how to port a category**, verification passes A–K |
 | [`Settings_S5a_Advanced.md`](Documentation/technical/Settings_S5a_Advanced.md) | living annex | The large `pref_advanced_settings` phase, section by section |
 | [`ActiveAndroid_to_Room.md`](Documentation/technical/ActiveAndroid_to_Room.md) | record | Room migration why/how/order (complete) + deferred follow-ups |
+| [`Compose_Library_Replacements.md`](Documentation/technical/Compose_Library_Replacements.md) | map | Legacy UI libs/widgets → Compose replacement (hellocharts→Vico, pickers/search, RemoteViews surfaces) |
 | [`Tech_Debt.md`](Documentation/technical/Tech_Debt.md) | register | Dependencies/AARs/frameworks to replace/retire, with status |
 | [`Kotlin_Policy.md`](Documentation/technical/Kotlin_Policy.md) | policy | Java/Kotlin interop rules |
 
@@ -97,13 +98,16 @@ specific features.
 
 ## Current focus
 
-- **Compose Phase 4 — settings.** S0–S5a done: the whole **Advanced** category (`pref_advanced_settings`)
-  is migrated, including **S5a watches** (Wear/Pebble/Amazfit/BlueJay/LeFun/MiBand/Smartwatch
-  sensors). Next: **S5b `xdrip_plus_prefs`**, then **S6** retire the legacy settings subsystem.
-  Track V (secondary views) follows.
+- **Compose Phase 4 — settings.** S0–S5b done: the whole **Advanced** category
+  (`pref_advanced_settings`, incl. watches) and the **xDrip+ Extra Settings** tree
+  (`xdrip_plus_prefs`: display/graph/number-wall/accessibility, copying, update, motion, pens,
+  prediction, sync) are migrated, plus theme-editor colour-group parity with the legacy screen.
+  Next: **S6** retire the legacy settings subsystem (deferred until on-device testing). Track V
+  (secondary views) follows.
 - **Phase 2 (Home)** is paused (header rendering reverted pending redesign); **Phase 3 (charts →
   Vico)** is the unblocker.
-- See `Settings_Migration.md` for the exact status board and the recipe for the next slice.
+- See `Settings_Migration.md` for the exact status board and `Compose_Library_Replacements.md`
+  for the legacy-library/widget replacement map.
 
 ## Gotchas learned so far
 

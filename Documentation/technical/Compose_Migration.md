@@ -36,13 +36,16 @@ header *rendering* was reverted to the original design pending a proper redesign
 
 **Phase 4 (settings) is in progress:** a Compose settings host
 (`ui/settings/SettingsActivity`) with a hand-rolled row library renders the **General**,
-**Alarms and Alerts**, **Data Source**, **Data Sync** and the whole **Advanced** category
-(Other settings and Smart watch features) plus a **Theme editor** (Compose colour picker,
-ringtone/time/slider rows, root search), and links to the legacy settings activity for the rest.
-The theme now provides the app's data colours (`LocalXdripColors`) to Compose. Plan, status board
-and verification passes live in
+**Alarms and Alerts**, **Data Source**, **Data Sync**, the whole **Advanced** category
+(Other settings and Smart watch features), the **Theme editor** (Compose colour picker, ringtone/
+time/slider rows, root search, legacy colour-group parity) and the **xDrip+ Extra Settings** tree
+(Copying, Update, Motion, Pens, Prediction, Sync, Display/graph/number-wall), and links to the
+legacy settings activity for the rest. The theme now provides the app's data colours
+(`LocalXdripColors`) to Compose. Plan, status board and verification passes live in
 [`Settings_Migration.md`](./Settings_Migration.md); the large Advanced phase has its own annex
-[`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md).
+[`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md). Legacy UI libraries/widgets and their
+Compose replacements are catalogued in
+[`Compose_Library_Replacements.md`](./Compose_Library_Replacements.md).
 
 ---
 
@@ -82,7 +85,7 @@ The work did **not** follow the nominal 0→5 order. This is the real sequence a
 | 1 | Theme (Material You) + interop patterns + drawer content migration | **Done** |
 | 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **Paused** (state extracted, rendering reverted pending redesign) |
 | 3 | Charts → Vico (line graphs; basal column editor last) | Planned (unblocks Phase 2) |
-| 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **In progress** (S0–S5a done; S5b / S6 remain) |
+| 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **In progress** (S0–S5b done; S6 remain) |
 | 5 | Secondary views → Compose (long tail; same doc) | Planned |
 
 ### Parallel modernization tracks (own backlog, not UI phases)
@@ -323,12 +326,15 @@ into an override so existing customisations survive the switch to Material You d
 
 The full inventory of dependencies to replace or retire — Compose targets, dead AARs,
 legacy frameworks, and the Wear module — lives in
-[`Tech_Debt.md`](./Tech_Debt.md).
+[`Tech_Debt.md`](./Tech_Debt.md); the per-library **UI replacement map** (legacy lib/widget →
+candidate Compose replacement → files → phase) lives in
+[`Compose_Library_Replacements.md`](./Compose_Library_Replacements.md).
 
 Highlights:
 
 - `hellocharts` → Vico (Phase 3), `colorpicker` / `search-preference` → Compose
-  (Phase 4).
+  (Phase 4). `ExampleChartPreferenceView` is temporarily `AndroidView`-wrapped; the
+  RemoteViews/lockscreen/dream chart surfaces need a non-Compose drawing path (see the map).
 - ActiveAndroid ORM → Room is **done** (all 28 tables + `Libre2Sensors` on Room; ActiveAndroid
   retired). The data layer is now a good foundation for the Home/chart Compose work; a future
   `Flow` pass over the DAOs will make Compose screens reactive (see `Tech_Debt.md` §5).

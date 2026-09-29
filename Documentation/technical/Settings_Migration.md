@@ -111,7 +111,7 @@ cheapest/self-contained → hardware-heavy, deleting the legacy UI only after pa
 | **S3** | `pref_data_source` (collection-type gating, side effects) | **Done** | `c1d090169` |
 | **S4** | `pref_data_sync` | **Done** | `27a344d08` |
 | **S5a** | `pref_advanced_settings` | **Done** — "Other settings" and watches | `274fd4e6e`, watches pass |
-| **S5b** | `xdrip_plus_prefs` | Todo | — |
+| **S5b** | `xdrip_plus_prefs` | **Done** — Extra Settings tree + theme-editor colour parity | this pass |
 | **S6** | Retire legacy settings | Todo | — |
 
 Also landed: a host scroll-reset fix (`274fd4e6e`); long-list dialogs now scroll
@@ -182,9 +182,23 @@ See [`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md). "Other settings" b
 Health Connect, extra status line, calibration, Bluetooth, BlueReader/Libre2, logging, misc) and the
 **watches** branch (Wear/Pebble/Amazfit/BlueJay/LeFun/MiBand/Smartwatch sensors) are migrated.
 
-### S5b — xDrip+ Options (`xdrip_plus_prefs.xml`) — todo
-Display/graph options, number-wall preview, `ExampleChartPreferenceView`; the 34 colours are
-**already served by the Theme editor**.
+### S5b — xDrip+ Extra Settings (`xdrip_plus_prefs.xml`) — done
+The whole tree is now Compose (`ui/settings/XdripPlusScreens.kt`): **Copying** (`DisplayQRCode`,
+`SdcardImportExport`), **Update** (`update_channel` engineering entry swap + title, crashlytics toast,
+telemetry dependency, feedback intent), **Motion** (dependency chain, `SelectAudioDevice` intent;
+mutual exclusion via the host-lifetime `ActivityRecognizedService.prefListener`), **Experimental →
+Pens** (Novopen/InPen/Pendiq, masked `maxLength` fields, `inpen_enabled` BT-location + refresh,
+`inpen_reset`/`numberIconTest` Home extras), **Prediction** (`I_understand` gate, profile editors,
+carb-absorption validation + `Profile.reloadPreferences`/`Home.staticRefreshBGCharts`, adv-predict
+decimals, EULA), **Sync** (key auto-generation + `PlusSyncService` restart, cloud listener,
+remote-snooze + desert-sync sub-screens with the master-IP runtime removal, `disable_all_sync` →
+`hardReset`), and **Display** (font/language incl. `hardReset`, graph display/smoothing/Y-axis,
+`widget_range_lines` → `WidgetUpdateService`, accessibility, number wall incl. the colour rows moved
+here and `TimePickerPrefActivity` seconds-as-String rows, number icon, `show_home_on_boot`).
+**Theme parity (D2):** the theme editor is restructured to the legacy titled colour groups/order with
+`use_flair_colors`, `plugin_plot_on_graph` gating for `color_secondary_glucose_value`, hex for
+`color_basal_tbr` and the `ExampleChartPreferenceView` preview; number-wall colours render on the
+Number Wall screen instead.
 
 ### S6 — Retire legacy settings — todo
 After parity: delete `Preferences.java`/`BasePreferenceActivity`/`TimePreference`/
@@ -202,9 +216,11 @@ Compose host.
 - **Icons**: legacy sub-screens carry `android:icon`; add leading icons to `SettingsActionRow`.
 - **Live pref-change listeners**: the legacy activity registered service/watch/collector listeners
   while open. The collection-method reactions were reproduced **explicitly** in S3; the **watch**
-  listeners (`MiBandEntry`/`LeFunEntry`/`BlueJayEntry`) are now registered for the Compose host
-  lifetime in `SettingsActivity` (S5a watches). Remaining (`xDripCloudListener`, etc.) are still a
-  follow-up for screens where a pref can change while settings is open.
+  listeners (`MiBandEntry`/`LeFunEntry`/`BlueJayEntry`), the **number-wall** listener
+  (`LockScreenWallPaper.PrefListener`), the **motion** listener (`ActivityRecognizedService`), and
+  the **cloud** listener (`use_xdrip_cloud_sync` → `Pusher.requestReconnect()` +
+  `CollectionServiceStarter.restartCollectionServiceBackground()`) are now registered for the
+  Compose host lifetime in `SettingsActivity` (S5a watches, S5b extras).
 - **`summaryOn`/`summaryOff`**: switch state text is currently rendered as a computed `subtitle`.
 
 ---
@@ -231,11 +247,12 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 - **C — Defaults parity.** Untouched install behaves as before. *How:* default-resolution tests +
   the colour migration test. *Ready.*
 - **D — Conditional visibility.** Visible set identical per `DexCollectionType`, engineering,
-  hardware. *How:* parameterised tests over the gates. *S3/S4 done; S5a partial.*
+  hardware. *How:* parameterised tests over the gates. *S3/S4/S5b done; S5a partial.*
 - **E — Side effects.** Changing a setting triggers the same action. *How:* test/verify the
-  documented callbacks. *S3/S4 done; rest pending.*
+  documented callbacks. *S3/S4/S5b done; S5a partial.*
 - **F — Summaries/validation.** `bindPreference*` behaviour reproduced. *Partly ready.*
-- **G — Custom widgets.** Every custom widget has a Compose equivalent + test. *Partly ready.*
+- **G — Custom widgets.** Every custom widget has a Compose equivalent + test. *Partly ready
+  (`ExampleChartPreferenceView` is `AndroidView`-wrapped in the theme editor).*
 - **H — Search parity.** Migrated search matches `search-preference` breadth. *Pending.*
 - **I — Theming.** Material You defaults, overrides win, no literals. *Ready (`ThemeColorTest`).*
 - **J — Legacy interop/retirement.** S6 artefacts deleted, no dangling users. *Pending (S6).*
@@ -251,7 +268,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | S4 Data Sync | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | S5a Other settings | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
 | S5a Watches | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
-| S5b xDrip+ Options | — | — | — | — | — | — | — | — | — |
+| S5b xDrip+ Extra Settings | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 (H = search and J = retirement are app-wide and tracked above.)
 
