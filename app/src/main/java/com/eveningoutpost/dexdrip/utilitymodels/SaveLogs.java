@@ -6,13 +6,12 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.View;
-import android.widget.TextView;
 
 import com.eveningoutpost.dexdrip.BaseAppCompatActivity;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
+import com.eveningoutpost.dexdrip.ui.secondary.SaveLogsScreen;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,44 +28,41 @@ import androidx.core.content.ContextCompat;
 // Navid200
 // July 2024
 
+/**
+ * Save packed logs to storage (Track V V5, now Compose).
+ */
 public class SaveLogs extends BaseAppCompatActivity {
 
     private static final String TAG = "save logs";
     private String LOG_FILE_PATH = "/Download/xDrip-export"; // Path to where we save the log file
     private String LOG_FILE_NAME = "xDrip-log.txt"; // Log file name
     private final static int MY_PERMISSIONS_REQUEST_STORAGE = 104;
-    private String log_data = "";
+    public String logData = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_save_logs);
-
         Intent intent = getIntent();
         if (intent != null) {
             final Bundle bundle = intent.getExtras();
             if (bundle != null) {
                 final String str2 = bundle.getString("generic_text");
                 if (str2 != null) {
-                    log_data = str2;
-                    ((TextView) findViewById(R.id.yourSaveText)).setText(log_data.length() > 300 ? "\n\nAttached " + log_data.length() + " characters of log data. (hidden)\n\n" : log_data);
+                    logData = str2;
                 }
             }
         }
+        SaveLogsScreen.installSaveLogs(this);
     }
 
-    public void closeActivity(View myview) {
-        finish();
-    }
-
-    public void saveLogs(View myview) {
-        if (saveLogsToStorage(log_data)) {
+    public void saveLogs() {
+        if (saveLogsToStorage(logData)) {
             UserError.Log.e(TAG, "Saved log file to " + pathPlusFileName);
         } else {
             UserError.Log.e(TAG, "Could not write log file");
         }
-        log_data = "";
-        closeActivity(null); // Let's close the menu
+        logData = "";
+        finish(); // Let's close the menu
     }
 
     String pathPlusFileName;
@@ -96,7 +92,7 @@ public class SaveLogs extends BaseAppCompatActivity {
 
     public static boolean isStorageWritable(Activity context, int request_code) { // Get write permission if not & return false.  Return true if yes and not tied up.
         if (ContextCompat.checkSelfPermission(context,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(context,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
@@ -109,4 +105,3 @@ public class SaveLogs extends BaseAppCompatActivity {
     }
 
 }
-
