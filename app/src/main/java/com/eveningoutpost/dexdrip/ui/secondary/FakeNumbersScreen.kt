@@ -3,6 +3,7 @@
 package com.eveningoutpost.dexdrip.ui.secondary
 
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Row
@@ -24,12 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.Home
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.models.ActiveBgAlert
 import com.eveningoutpost.dexdrip.models.AlertType
 import com.eveningoutpost.dexdrip.models.BgReading
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import java.util.Date
 
 /**
@@ -118,3 +121,16 @@ internal fun FakeNumbersScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun FakeNumbersScreenPreview() {
+    XdripPreview {
+        FakeNumbersScreen(onBack = {}, onLog = { null }, onStartTest = {}, onStartTestAlerts = {})
+    }
+}
+
+// endregion

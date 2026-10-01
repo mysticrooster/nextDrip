@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -23,9 +24,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.NewSensorLocation
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
 internal const val LOCATION_PRIVATE_ID = 200
 internal const val LOCATION_OTHER_ID = 201
@@ -144,3 +147,16 @@ internal fun NewSensorLocationScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NewSensorLocationScreenPreview() {
+    XdripPreview {
+        NewSensorLocationScreen(onSave = {}, onCancel = {})
+    }
+}
+
+// endregion

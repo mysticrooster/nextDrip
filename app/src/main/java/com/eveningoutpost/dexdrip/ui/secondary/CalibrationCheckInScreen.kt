@@ -3,6 +3,7 @@
 package com.eveningoutpost.dexdrip.ui.secondary
 
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,13 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.Home
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.importedlibraries.dexcom.SyncingService
+import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.models.Sensor
 import com.eveningoutpost.dexdrip.models.UserError.Log
-import com.eveningoutpost.dexdrip.models.JoH
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
 /**
  * Track V pass 2 — `CalibrationCheckInActivity`: request a Dexcom receiver calibration check-in.
@@ -69,3 +72,16 @@ internal fun CalibrationCheckInScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun CalibrationCheckInScreenPreview() {
+    XdripPreview {
+        CalibrationCheckInScreen(onBack = {}, onCheckIn = {})
+    }
+}
+
+// endregion

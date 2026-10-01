@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.services.MissedReadingService
@@ -21,6 +23,7 @@ import com.eveningoutpost.dexdrip.ui.settings.SettingsMinutesOfDayRow
 import com.eveningoutpost.dexdrip.ui.settings.SettingsRingtoneRow
 import com.eveningoutpost.dexdrip.ui.settings.SettingsSwitchRow
 import com.eveningoutpost.dexdrip.ui.settings.rememberSettingsState
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 
 /**
@@ -141,3 +144,16 @@ internal fun MissedReadingScreen(onDone: () -> Unit) {
         )
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MissedReadingScreenPreview() {
+    XdripPreview {
+        MissedReadingScreen(onDone = {})
+    }
+}
+
+// endregion

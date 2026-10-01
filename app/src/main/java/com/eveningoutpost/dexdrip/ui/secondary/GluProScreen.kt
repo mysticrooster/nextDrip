@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
@@ -27,12 +28,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
 import androidx.databinding.ObservableList
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.cgm.glupro.GluProActivity
 import com.eveningoutpost.dexdrip.cgm.glupro.ViewModel
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import lwld.glucose.profile.iface.Device
 
 /**
@@ -117,3 +120,16 @@ internal fun GluProScreen(viewModel: ViewModel, onBack: () -> Unit) {
         Spacer(Modifier.width(0.dp))
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun GluProScreenPreview() {
+    XdripPreview {
+        GluProScreen(viewModel = ViewModel(), onBack = {})
+    }
+}
+
+// endregion

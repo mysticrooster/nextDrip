@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import androidx.activity.compose.setContent
@@ -21,9 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.DisplayQRCode
 
@@ -195,3 +198,28 @@ internal fun DisplayQRCodeScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DisplayQRCodeScreenPreview() {
+    XdripPreview {
+        DisplayQRCodeScreen(
+            showQr = true,
+            qrBitmap = null,
+            showGkey = false,
+            desertSync = false,
+            narrative = "Scan this code to share your settings",
+            onSyncSettings = {},
+            onDesertSync = {},
+            onGkey = {},
+            onConnectionSettings = {},
+            onAllSettings = {},
+            onClose = {},
+        )
+    }
+}
+
+// endregion

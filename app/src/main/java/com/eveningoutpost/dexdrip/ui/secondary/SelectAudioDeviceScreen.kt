@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -29,12 +30,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.ui.activities.SelectAudioDevice
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utils.HeadsetStateReceiver
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -148,3 +151,16 @@ internal fun SelectAudioDeviceScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SelectAudioDeviceScreenPreview() {
+    XdripPreview {
+        SelectAudioDeviceScreen(onSave = { _, _ -> }, onCancel = {})
+    }
+}
+
+// endregion

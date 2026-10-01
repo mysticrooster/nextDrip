@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -24,8 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.SendFeedBack
 
 private const val TYPE_UNKNOWN = "Unknown"
@@ -213,3 +216,24 @@ internal fun SendFeedBackScreen(
         )
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SendFeedBackScreenPreview() {
+    XdripPreview {
+        SendFeedBackScreen(
+            initialText = "",
+            initialContact = "",
+            initialType = "question",
+            ratingVisible = true,
+            prepareSend = { _, _ -> SendFeedBack.FeedbackAction.IGNORE },
+            onSubmit = { _, _, _, _ -> },
+            onClose = {},
+        )
+    }
+}
+
+// endregion

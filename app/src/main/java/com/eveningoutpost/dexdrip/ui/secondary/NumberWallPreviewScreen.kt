@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -34,10 +35,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.ui.activities.NumberWallPreview
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewString
 import kotlin.math.roundToInt
@@ -217,3 +220,31 @@ private fun writeSnapped(sprefs: PrefsViewString, key: String, value: Int): Int 
     sprefs.put(key, value.toString())
     return sprefs.get(key)?.toIntOrNull() ?: value
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NumberWallPreviewScreenPreview() {
+    XdripPreview {
+        NumberWallPreviewScreen(
+            bitmap = null,
+            backgroundSet = false,
+            multi = false,
+            width = 100,
+            height = 100,
+            spacer = 10,
+            onWidthChange = {},
+            onHeightChange = {},
+            onSpacerChange = {},
+            onPaletteClick = {},
+            onPaletteLongClick = {},
+            onFolderClick = {},
+            onMultiClick = {},
+            onBack = {},
+        )
+    }
+}
+
+// endregion

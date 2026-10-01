@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
 import androidx.databinding.ObservableList
@@ -44,6 +46,7 @@ import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.eassist.EmergencyAssist
 import com.eveningoutpost.dexdrip.eassist.EmergencyAssistActivity
 import com.eveningoutpost.dexdrip.eassist.EmergencyContact
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import kotlin.math.roundToInt
 
@@ -441,3 +444,39 @@ private fun updateMinutes(key: String, minutes: Int): String {
     Pref.setString(key, effective)
     return effective
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun EmergencyAssistScreenPreview() {
+    XdripPreview {
+        EmergencyAssistScreen(
+            enabled = true,
+            onEnabledChange = {},
+            username = "Alex",
+            onUsernameChange = {},
+            previewText = "Emergency message preview",
+            contacts = listOf(EmergencyContact("Sam", "+15550100")),
+            onAddContact = {},
+            onRemoveContact = {},
+            reasons = listOf(
+                AssistReasonState(
+                    tag = "no_signal",
+                    title = "No signal",
+                    checked = false,
+                    minutes = 20,
+                    minutesText = "20 minutes",
+                    maxMinutes = 120,
+                    onCheckedChange = {},
+                    onMinutesChange = {},
+                ),
+            ),
+            onTest = {},
+            onBack = {},
+        )
+    }
+}
+
+// endregion

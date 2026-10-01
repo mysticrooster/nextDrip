@@ -4,6 +4,7 @@ package com.eveningoutpost.dexdrip.ui.secondary
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,11 +29,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.SnoozeActivity
 import com.eveningoutpost.dexdrip.models.ActiveBgAlert
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import java.text.DateFormat
 import java.util.Date
@@ -319,3 +322,35 @@ private fun enableLabel(context: Context, type: SnoozeActivity.SnoozeType): Stri
     SnoozeActivity.SnoozeType.LOW_ALERTS -> context.getString(R.string.re_enable_low_alerts)
     SnoozeActivity.SnoozeType.HIGH_ALERTS -> context.getString(R.string.re_enable_high_alerts)
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SnoozeScreenPreview() {
+    XdripPreview {
+        SnoozeScreen(
+            state = SnoozeState(
+                status = "No active alert",
+                showSnooze = true,
+                showRemoteSnooze = true,
+                snoozeLabels = listOf("15 minutes", "30 minutes", "1 hour"),
+                selectedIndex = 0,
+                showDisableAll = true,
+                showEnableAll = false,
+                showDisableLow = false,
+                showEnableLow = false,
+                showDisableHigh = false,
+                showEnableHigh = false,
+            ),
+            onSnooze = {},
+            onDisable = { _, _ -> },
+            onClear = {},
+            onRemoteSnooze = {},
+            onBack = {},
+        )
+    }
+}
+
+// endregion
