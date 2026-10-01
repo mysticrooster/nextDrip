@@ -18,9 +18,9 @@ import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.receiver.InfoContentProvider;
+import com.eveningoutpost.dexdrip.ui.secondary.BackupScreen;
 import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
 import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewImpl;
-import com.eveningoutpost.dexdrip.databinding.ActivityBackupPickerBinding;
 import com.eveningoutpost.dexdrip.ui.dialog.GenericConfirmDialog;
 import com.eveningoutpost.dexdrip.xdrip;
 import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
@@ -32,6 +32,9 @@ import lombok.val;
 /**
  * JamOrHam
  * Storage Access Framework and xDrip Drive Manager based backup system
+ *
+ * Track V: rendered in Compose (BackupScreen) with the ViewModel's ObservableFields and
+ * metadata ObservableArrayMap bridged; the activity keeps the SAF/Drive flows and dialogs.
  */
 
 @SuppressWarnings("ConstantConditions")
@@ -40,23 +43,19 @@ public class BackupActivity extends BackupBaseActivity implements BackupStatus {
     private static final int REQUEST_CODE_CHOOSE_FILE = 2008;
     private static final String TAG = BackupActivity.class.getSimpleName();
 
-    private ActivityBackupPickerBinding binding;
+    public final ViewModel viewModel = new ViewModel();
+    public final PrefsViewImpl prefs = new PrefsViewImpl();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityBackupPickerBinding.inflate(getLayoutInflater());
-        binding.setVm(new ViewModel());
-        binding.setMap(binding.getVm().map);
-        binding.setPrefs(new PrefsViewImpl());
-        setContentView(binding.getRoot());
-        JoH.fixActionBar(this);
+        BackupScreen.installBackup(this);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        binding.getVm().readMetaData();
+        viewModel.readMetaData();
 
     }
 
@@ -69,7 +68,7 @@ public class BackupActivity extends BackupBaseActivity implements BackupStatus {
 
             builder.setNegativeButton(R.string.keep_same_account, (dialog, which) -> selectAutomaticFileReal());
             builder.setPositiveButton(R.string.change_account, (dialog, which) -> {
-                binding.getVm().clear();
+                viewModel.clear();
                 signOut(this::selectAutomaticFileReal);
             });
 
@@ -95,7 +94,7 @@ public class BackupActivity extends BackupBaseActivity implements BackupStatus {
                 val file = DriveManager.getInstance().getOrCreateFileSync(Backup.getDefaultFolderName() + "/" + Backup.getDefaultFileName());
                 UserError.Log.d(TAG, "Auto file: " + file.getName() + " " + file.getId());
                 Backup.setXdripManagedBackupUri(file.getId(), file.getName());
-                binding.getVm().readMetaData();
+                viewModel.readMetaData();
             } catch (NullPointerException | IOException e) {
                 UserError.Log.e(TAG, "Failed creating file: " + e);
                 if (e instanceof UserRecoverableAuthIOException) {
@@ -178,7 +177,7 @@ public class BackupActivity extends BackupBaseActivity implements BackupStatus {
                             } else {
                                 status(getString(R.string.backup_failed));
                             }
-                            Inevitable.task("reload meta data", 2000, () -> binding.getVm().readMetaData());
+                            Inevitable.task("reload meta data", 2000, this::readMetaData);
                         } finally {
                             idle.set(true);
                         }
@@ -266,7 +265,7 @@ public class BackupActivity extends BackupBaseActivity implements BackupStatus {
 
     @Override
     public void status(final String msg) {
-        binding.getVm().status.set(msg);
+        viewModel.status.set(msg);
         UserError.Log.d(TAG, "Status: " + msg);
     }
 
@@ -311,7 +310,7 @@ public class BackupActivity extends BackupBaseActivity implements BackupStatus {
         val fileUri = selectedFileUri.toString();
         Backup.setBackupUri(fileUri);
         status(getString(R.string.selected_file_location));
-        binding.getVm().readMetaData();
+        viewModel.readMetaData();
     }
 
     static PendingIntent getStartIntent() {
