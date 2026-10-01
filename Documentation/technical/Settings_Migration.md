@@ -112,6 +112,7 @@ cheapest/self-contained → hardware-heavy, deleting the legacy UI only after pa
 | **S4** | `pref_data_sync` | **Done** | `27a344d08` |
 | **S5a** | `pref_advanced_settings` | **Done** — "Other settings" and watches | `274fd4e6e`, watches pass |
 | **S5b** | `xdrip_plus_prefs` | **Done** — Extra Settings tree + theme-editor colour parity | this pass |
+| **IA** | Settings IA redesign: 9 categories, Home overflow absorbed, per-device screens, theme presets, Home-shelf screen | **Done** — see §12 | this pass |
 | **S6** | Retire legacy settings | Todo | — |
 
 Also landed: a host scroll-reset fix (`274fd4e6e`); long-list dialogs now scroll
@@ -334,6 +335,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | V1 Track V quick wins | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V2 Track V trivial screens | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V3 Track V medium (DB screens) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| IA redesign | ✅ | ✅ | ✅ | ✅ | partial | ✅ | ✅ | ✅ | ✅ |
 | V4 Track V rich Medium | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V5 Track V sensor/calibration forms | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V6 Track V admin quick wins | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -375,3 +377,52 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
   pref XMLs are deleted.
 - `search-preference`/`colorpicker` removed once unused.
 - Pref keys unchanged; backups compatible; full suite + R8 green; manual parity checked.
+
+---
+
+## 12. Settings IA redesign (landed)
+
+Plan: `.kilo/plans/1790818203174-settings-ia-redesign.md`.
+
+### Shape
+
+- `RootScreen` is now **9 user-facing category buttons** (icon + title + chevron) that open a
+  per-category submenu: **General · Alarms & Alerts · Your Data · Profile · Devices · Appearance ·
+  Accessibility · Advanced · About**. The retired umbrellas `Notifications`, `Less common` and the
+  `xDrip+ Extra Settings`/`Other settings` root headings are gone.
+- **Icons** use `androidx.compose.material:material-icons-extended` (already on the Compose BOM;
+  unused icons are R8-stripped). `SettingsActionRow` takes an optional `leadingContent` icon and
+  `SettingsCategoryButton` is the top-level button. Category buttons and the category-submenu rows
+  carry icons; deeper leaf screens can be extended the same way.
+- **Home overflow removed**: `Home.onCreateOptionsMenu` clears the menu and `menu_home.xml` is
+  deleted. Every former three-dots action is now a settings row (Help → About; Reminders/Emergency →
+  Alarms; backup/export/import/QR → Your Data → Backups; watch quick actions → Devices; events log,
+  delete-all-BG, test feature → Advanced; Libre trend → Appearance; check-update/feedback/crowd →
+  About) and the three-dots speak toggle is the Accessibility → Speak readings switch.
+- **New destinations**: 8 category screens (`GeneralCategory` … `AdvancedCategory`), plus
+  `NotificationStyle` (high-priority/public + AOD chip), `Backups`,
+  `About`, `Version`, `HomeScreen`, and per-source `DexcomDevice`, `LibreDevice`, `MedtrumDevice`,
+  `BluetoothBridge`. `DataSource` is now a picker that links to the active source's bounded screen.
+  `NotificationChannels` was folded into `NotificationStyle` (it only held the AOD chip).
+- **Appearance → Home screen** surfaces the `home-shelf-*` shelf toggles through `Pref` (keys
+  unchanged); the long-press popup still works but does not live-update (documented deviation).
+- **Theme presets** (`Material You` = `clearAll`, `Classic xDrip` = seed legacy defaults) are
+  apply-once actions on the theme editor; no new colour keys/source of truth.
+- `SETTINGS_SEARCH_INDEX` regrouped under the new titles, with aliases for the retired umbrella
+  names (`extra settings`, `less common`, `other settings`) and new entries
+  (`Home Screen`, `Notification Style`, `Backups`, `About`, `Version`, per-device).
+
+### Known deviations / follow-ups
+
+- Backup/export on the `Backups` screen uses a permission + background-thread path and then runs the
+  legacy settings-to-SD backup (`SdcardImportExport` `backup=now`); the legacy SiDiary date picker is
+  simplified to "export since last export". "Delete all BG readings" is a confirmed dialog rather
+  than a one-tap action.
+- The now-unreachable former `menu_home.xml` `@android:onClick` handlers were removed from `Home`.
+- The full colour editor is not hidden behind engineering mode (kept always reachable to avoid a
+  customisation regression); presets are additive.
+- Theme preset "High contrast"/"Dark" palettes remain a design decision (plan §10.4).
+- Vestigial shortcut keys (`bg_to_speech_shortcut`, `bg_alerts_from_main_menu`,
+  `plus_show_reminders`) are retained but no longer drive any UI.
+- `upload/pull NS profile` has no backing feature; not added.
+
