@@ -1181,6 +1181,65 @@ public class NightscoutUploader {
                 checkGzipSupport(r);
             }
         }
+
+        postIletDeviceStatus(nightscoutService, apiSecret);
+    }
+
+    /**
+     * Additive pump device status for iLet. Emits reservoir/battery and the
+     * pump's IOB, rate-limited to changes. Battery-only behaviour is unchanged
+     * when iLet is disabled.
+     */
+    private void postIletDeviceStatus(NightscoutService nightscoutService, String apiSecret) {
+        if (!com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
+            return;
+        }
+        try {
+            final JSONObject status = new JSONObject(PumpStatus.toJson());
+            final double reservoir = status.optDouble("reservoir", -1);
+            final double iob = status.optDouble("bolusiob", -1);
+            final double battery = status.optDouble("battery", -1);
+            if (reservoir < 0 && iob < 0 && battery < 0) {
+                return;
+            }
+
+            final int batteryRounded = (int) Math.round(battery);
+            final String fingerprint = JoH.qs(reservoir, 2) + "/" + JoH.qs(iob, 3) + "/" + batteryRounded;
+            if (fingerprint.equals(PersistentStore.getString("last-ilet-ns-device-status"))) {
+                return;
+            }
+
+            final JSONObject json = new JSONObject();
+            json.put("device", "iLet");
+
+            final JSONObject pump = new JSONObject();
+            if (reservoir >= 0) pump.put("reservoir", reservoir);
+            if (battery >= 0) pump.put("battery", batteryRounded);
+            json.put("pump", pump);
+
+            final JSONObject openaps = new JSONObject();
+            final JSONObject iobObj = new JSONObject();
+            if (iob >= 0) iobObj.put("iob", iob);
+            openaps.put("iob", iobObj);
+            json.put("openaps", openaps);
+
+            final JSONObject uploader = new JSONObject();
+            final int phoneBattery = NightscoutBatteryDevice.PHONE.getBatteryLevel(mContext);
+            if (phoneBattery > 0) uploader.put("battery", phoneBattery);
+            json.put("uploader", uploader);
+
+            final RequestBody body = RequestBody.create(json.toString(), MediaType.parse("application/json"));
+            final Response<ResponseBody> r = (apiSecret != null)
+                    ? nightscoutService.uploadDeviceStatus(apiSecret, body).execute()
+                    : nightscoutService.uploadDeviceStatus(body).execute();
+            if (r.isSuccessful()) {
+                PersistentStore.setString("last-ilet-ns-device-status", fingerprint);
+            } else {
+                UserError.Log.d(TAG, "iLet device status upload failed: " + r.code());
+            }
+        } catch (Exception e) {
+            UserError.Log.d(TAG, "iLet device status error: " + e);
+        }
     }
 
 

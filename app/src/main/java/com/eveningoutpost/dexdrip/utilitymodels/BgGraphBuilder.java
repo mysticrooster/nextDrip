@@ -19,6 +19,7 @@ import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.models.APStatus;
 import com.eveningoutpost.dexdrip.models.BgReading;
+import com.eveningoutpost.dexdrip.models.PumpIobReading;
 import com.eveningoutpost.dexdrip.models.BloodTest;
 import com.eveningoutpost.dexdrip.models.Calibration;
 import com.eveningoutpost.dexdrip.models.Forecast;
@@ -790,6 +791,15 @@ public class BgGraphBuilder {
                 lines.add(subLine); // iob line
             }
 
+            // iLet's own pump-IOB line, separate from the treatment-derived IOB.
+            // Off by default so the graph does not show two unexplained IOB traces.
+            if (com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.showPumpIobLine()) {
+                final Line pumpIob = pumpIobLine();
+                if (pumpIob != null) {
+                    lines.add(pumpIob);
+                }
+            }
+
             predictive_end_time = simple ? end_time : ((end_time * FUZZER) + (60000 * 10) + (Constants.HOUR_IN_MS * predictivehours)) / FUZZER; // used first in ideal/highline
 //            predictive_end_time = (new Date().getTime() + (60000 * 10) + (1000 * 60 * 60 * predictivehours)) / FUZZER; // used first in ideal/highline
 
@@ -1053,6 +1063,42 @@ public class BgGraphBuilder {
         lines[1].setPointRadius(pointSize * 3 / 4);
         lines[1].setHasPoints(true);
         return lines;
+    }
+
+    /**
+     * The iLet pump's own IOB estimate over the graph window, drawn as its own
+     * line when {@code show_ilet_pump_iob_line} is set.
+     */
+    public Line pumpIobLine() {
+        try {
+            final long startMs = start_time * FUZZER;
+            final long endMs = end_time * FUZZER;
+            final List<PumpIobReading> records = PumpIobReading.latestForGraph(startMs, endMs, 2000);
+            if (records == null || records.isEmpty()) {
+                return null;
+            }
+            final double scale = 1 * bgScale();
+            final List<PointValue> points = new ArrayList<>();
+            for (final PumpIobReading reading : records) {
+                float yPosition = (float) (reading.iob * scale);
+                yPosition = clampNonGlucoseY(yPosition + windowBottomOffset);
+                points.add(new HPointValue((double) (reading.timestamp / FUZZER), yPosition));
+            }
+            if (points.isEmpty()) {
+                return null;
+            }
+            final Line line = new Line(points);
+            line.setColor(getCol(X.color_treatment_dark));
+            line.setHasLines(true);
+            line.setCubic(false);
+            line.setFilled(false);
+            line.setPointRadius(1);
+            line.setHasPoints(true);
+            return line;
+        } catch (Exception e) {
+            Log.e(TAG, "pumpIobLine failed: " + e);
+            return null;
+        }
     }
 
     public Line[] treatmentValuesLine() {
