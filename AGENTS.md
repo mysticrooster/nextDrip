@@ -104,10 +104,10 @@ specific features.
   prediction, sync) are migrated, plus theme-editor colour-group parity with the legacy screen.
   **Track V pass 1** (settings sub-menu quick wins), **pass 2** (trivial screens: `Agreement`,
   calibration check-in/override, double calibration, daydream settings, health privacy, fake
-  numbers) and **pass 3** (Medium small Data-Binding screens: `MtpConfigureActivity`,
-  `DatabaseAdmin`, `GluProActivity`) are done as in-place Compose (`ui/secondary/`); remaining
-  secondary views (rich `EmergencyAssistActivity`/`BackupActivity`, alert/editor/table/admin) are
-  deferred.
+  numbers), **pass 3** (Medium small Data-Binding screens: `MtpConfigureActivity`,
+  `DatabaseAdmin`, `GluProActivity`) and **pass 4** (rich Medium: `EmergencyAssistActivity`,
+  `BackupActivity`) are done as in-place Compose (`ui/secondary/`); remaining secondary views
+  (alert/editor/table/admin) are deferred.
   Next: **S6** retire the legacy settings subsystem (deferred until on-device testing). Track V
   (secondary views) continues.
 - **Phase 2 (Home)** is paused (header rendering reverted pending redesign); **Phase 3 (charts →

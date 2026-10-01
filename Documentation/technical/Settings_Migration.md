@@ -254,19 +254,23 @@ activity keeps its processors and its `console` `ObservableField`), `GluProActiv
 the shared `ViewModel` is retained and its observable list/boolean bridged into Compose). Layouts
 deleted; `ViewModel`/adapter fields left in place for the service.
 
-**Pass 3 remaining (rich Medium — next batch):** `EmergencyAssistActivity` (contact picker + SMS
-permissions + slider prefs) and `BackupActivity` (`BackupBaseActivity` + Google Drive sign-in + SAF
-file picking) were reclassified as rich, not "small Data-Binding", and deferred.
+**Pass 4 — done (rich Medium).** `EmergencyAssistActivity` — contact picker + SMS/contacts/
+location permission flows kept in the activity; its `PrefsViewImpl`, `EmergencyAssist` model and
+contact `ObservableList` are bridged into Compose, and `PrefsViewStringSnapDefaults` is
+reimplemented as `snapMinutesValue` with identical keys/defaults (lower/upper/inactivity snap to
+60/240/1440; the lowest-alert threshold keeps the legacy no-default behaviour). `BackupActivity` —
+SAF/Google Drive sign-in, the `BackupStatus` sink and the chooser/restore dialogs kept in the
+activity; the `ViewModel`'s `ObservableField`s, metadata `ObservableArrayMap` and the
+automatic-backup prefs are bridged into Compose. Both binding layouts and their item layouts are
+deleted.
 
 **Remaining:** `ErrorsActivity`, `NewSensorLocation`, `StopSensor`, `StartNewSensor`,
 `AddCalibration`, `SnoozeActivity`, `FollowerManagementActivity`, `AlertList` + `EditAlertActivity`,
 `ProfileEditor`, `BasalProfileEditor`, `NumberWallPreview`, `DisplayQRCode`, `SdcardImportExport`,
 `SendFeedBack`, `BTGlucoseMeterActivity`, plus the app-wide/drawer surfaces and the Data-Binding /
 `NanoStatus` group (`EventLogActivity`, `NoteSearch`, `PhoneKeypadInputActivity`, `MegaStatus`,
-`MtpConfigureActivity`, `DatabaseAdmin`, `GluProActivity`, `ThinJamActivity`,
-`EmergencyAssistActivity`, `BackupActivity`). The `PrefsView*` bridge retires once its remaining
-users (`Home`, `BackupActivity`, `EmergencyAssistActivity`, `NumberWallPreview`, `DisplayQRCode`,
-`MtpConfigureActivity`) move.
+`ThinJamActivity`). The `PrefsView*` bridge retires once its remaining users (`Home`,
+`BackupActivity`, `EmergencyAssistActivity`, `NumberWallPreview`, `DisplayQRCode`) move.
 
 
 ---
@@ -308,6 +312,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | V1 Track V quick wins | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V2 Track V trivial screens | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V3 Track V medium (DB screens) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| V4 Track V rich Medium | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 (H = search and J = retirement are app-wide and tracked above.)
 

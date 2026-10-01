@@ -37,6 +37,7 @@ for app widgets. Track V (`Settings_Migration.md` §7) migrates these.
 | **Done — Track V pass 1** | `TimePickerPrefActivity` + `TimePickerFragment` (→ `TimeOfDayDialog`), `LicenseAgreementActivity`, `SelectAudioDevice`, `InsulinProfileEditor`, `MissedReadingActivity`, `NightscoutBackfillActivity`, `DepositActivity` — Compose content in the existing activities, dedicated layouts deleted |
 | **Done — Track V pass 2** | `Agreement`, `CalibrationCheckInActivity`, `CalibrationOverride`, `DoubleCalibrationActivity`, `XDripDreamSettingsActivity`, `HealthPrivacy`, `FakeNumbers` — same in-place Compose, layouts + Data Binding removed |
 | **Done — Track V pass 3 (Medium)** | `MtpConfigureActivity`, `DatabaseAdmin`, `GluProActivity` — Compose UI, `NanoStatus`/`ObservableField`/`ObservableArrayList` bridged into Compose state; layouts deleted (GluPro `item_glupro_device` + `ViewModel` adapter kept for the service) |
+| **Done — Track V pass 4 (rich Medium)** | `EmergencyAssistActivity` (`PrefsViewImpl` + model `ObservableField` + contact `ObservableList` bridged; `PrefsViewStringSnapDefaults` → `snapMinutesValue`; remove-confirm dialog in Compose) and `BackupActivity` (`ViewModel` `ObservableField`s + metadata `ObservableArrayMap` + automatic-backup prefs bridged) — layouts deleted, SAF/Drive/permission flows and dialogs stay in the activities |
 
 ## RemoteViews / Bitmap-only surfaces
 
