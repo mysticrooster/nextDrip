@@ -1,8 +1,10 @@
 package com.eveningoutpost.dexdrip.ui.drawer
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.ui.theme.XdripTheme
 
 /** Java-friendly listener for a drawer item selection. */
@@ -88,3 +92,32 @@ private fun NavDrawerMenuRow(label: String, selected: Boolean, onClick: () -> Un
         )
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 280, heightDp = 400)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 280, heightDp = 400)
+@Composable
+private fun NavDrawerMenuPreview() {
+    XdripPreview {
+        NavDrawerMenu(
+            NavDrawerMenuState().apply {
+                update(listOf("Home", "Settings", "Alerts"), 0, NavDrawerItemListener {})
+            },
+        )
+    }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 280)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 280)
+@Composable
+private fun NavDrawerMenuRowPreview() {
+    XdripPreview {
+        Column {
+            NavDrawerMenuRow(label = "Selected item", selected = true, onClick = {})
+            NavDrawerMenuRow(label = "Another item", selected = false, onClick = {})
+        }
+    }
+}
+
+// endregion
