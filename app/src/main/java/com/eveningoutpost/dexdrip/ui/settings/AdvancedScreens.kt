@@ -95,39 +95,6 @@ internal fun HealthConnectScreen() {
 }
 
 @Composable
-internal fun LessCommonScreen(onNavigate: (SettingsScreen) -> Unit) {
-    val context = LocalContext.current
-    val state = rememberSettingsState()
-    SettingsCategory(context.getString(R.string.less_common_settings)) {
-        SettingsActionRow(title = context.getString(R.string.extra_status_line), onClick = { onNavigate(SettingsScreen.ExtraStatusLine) }, modifier = Modifier.testTag("setting_nav_extra_status_line"))
-        SettingsActionRow(title = context.getString(R.string.advanced_calibration), onClick = { onNavigate(SettingsScreen.CalibrationSettings) })
-        SettingsActionRow(title = context.getString(R.string.bluetooth_settings), onClick = { onNavigate(SettingsScreen.BluetoothSettings) })
-        if (SettingsVisibility.isBlueReader()) {
-            SettingsActionRow(title = context.getString(R.string.advanced_bluereader_settings), onClick = { onNavigate(SettingsScreen.BlueReaderSettings) })
-        }
-        if (SettingsVisibility.isLibreReceiver()) {
-            SettingsActionRow(title = context.getString(R.string.title_advanced_settings_4_Lib2), onClick = { onNavigate(SettingsScreen.Libre2Settings) })
-        }
-        SwitchPref(state, "aggressive_service_restart", context.getString(R.string.aggressive_service_restarts), default = true, subtitle = context.getString(R.string.repeatedly_restart_collection_service))
-        SwitchPref(state, "interpret_raw", context.getString(R.string.interpret_raw), default = false, subtitle = context.getString(R.string.interpret_share_raw))
-        SettingsActionRow(title = context.getString(R.string.extra_logging), onClick = { onNavigate(SettingsScreen.LoggingSettings) })
-        SwitchPref(state, "show_data_tables", context.getString(R.string.show_datatables), default = false, subtitle = context.getString(R.string.show_datatables_in_app_drawer))
-        SwitchPref(state, "display_bridge_battery", context.getString(R.string.display_bridge_battery), default = true, subtitle = context.getString(R.string.summary_Choose_to_display_the_bridge_battery_level))
-        SwitchPref(state, "disable_battery_warning", context.getString(R.string.disable_battery_warning), default = false, subtitle = context.getString(R.string.disable_log_transmitter_battery_warning))
-        SwitchPref(state, "save_db_ondemand", context.getString(R.string.daily_save_db), default = false, subtitle = context.getString(R.string.allow_daily_db_save))
-        EditPref(
-            state,
-            "retention_days_bg_reading",
-            "${context.getString(R.string.title_Glucose_Retention)} (${state.string("retention_days_bg_reading", "180")})",
-            default = "180",
-            numeric = true,
-            subtitle = context.getString(R.string.summary_Erase_data_older_than_this_many_days),
-        )
-        SettingsActionRow(title = context.getString(R.string.title_Other_misc_options), onClick = { onNavigate(SettingsScreen.OtherMiscSettings) })
-    }
-}
-
-@Composable
 internal fun ExtraStatusLineScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
@@ -281,6 +248,20 @@ internal fun OtherMiscSettingsScreen(onNavigate: (SettingsScreen) -> Unit) {
         SwitchPref(state, "libre_one_minute", context.getString(R.string.title_libre_one_minute_interval), default = false, subtitle = context.getString(R.string.summary_libre_one_minute_interval))
         SwitchPref(state, "Eversense_one_minute", "1-min Inter-app broadcast", default = false, subtitle = "Accept data at one-minute intervals from Inter-app broadcast. Reboot your phone for changes to take effect.")
         SwitchPref(state, "allow_testing_with_dead_sensor", context.getString(R.string.title_NOT_FOR_PRODUCTION_USE), default = false, subtitle = context.getString(R.string.summary_allow_testing_with_dead_sensor))
+        SwitchPref(state, "aggressive_service_restart", context.getString(R.string.aggressive_service_restarts), default = true, subtitle = context.getString(R.string.repeatedly_restart_collection_service))
+        SwitchPref(state, "interpret_raw", context.getString(R.string.interpret_raw), default = false, subtitle = context.getString(R.string.interpret_share_raw))
+        SwitchPref(state, "show_data_tables", context.getString(R.string.show_datatables), default = false, subtitle = context.getString(R.string.show_datatables_in_app_drawer))
+        SwitchPref(state, "display_bridge_battery", context.getString(R.string.display_bridge_battery), default = true, subtitle = context.getString(R.string.summary_Choose_to_display_the_bridge_battery_level))
+        SwitchPref(state, "disable_battery_warning", context.getString(R.string.disable_battery_warning), default = false, subtitle = context.getString(R.string.disable_log_transmitter_battery_warning))
+        SwitchPref(state, "save_db_ondemand", context.getString(R.string.daily_save_db), default = false, subtitle = context.getString(R.string.allow_daily_db_save))
+        EditPref(
+            state,
+            "retention_days_bg_reading",
+            "${context.getString(R.string.title_Glucose_Retention)} (${state.string("retention_days_bg_reading", "180")})",
+            default = "180",
+            numeric = true,
+            subtitle = context.getString(R.string.summary_Erase_data_older_than_this_many_days),
+        )
     }
 }
 

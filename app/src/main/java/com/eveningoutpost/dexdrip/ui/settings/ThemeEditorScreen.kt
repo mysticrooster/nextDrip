@@ -22,6 +22,7 @@ import com.eveningoutpost.dexdrip.ui.theme.ThemeColor
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorGroup
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore
 import com.eveningoutpost.dexdrip.ui.theme.currentArgb
+import com.eveningoutpost.dexdrip.ui.theme.legacyColorDefaults
 import com.eveningoutpost.dexdrip.utilitymodels.BgGraphBuilder
 import com.eveningoutpost.dexdrip.utilitymodels.ColorCacheBridge
 import lecho.lib.hellocharts.view.LineChartView
@@ -46,6 +47,24 @@ internal fun ThemeEditorScreen() {
     revision
 
     SettingsCategory(context.getString(R.string.theme_colors)) {
+        SettingsActionRow(
+            title = "Theme preset: Material You",
+            subtitle = "Use the system wallpaper colours (recommended default)",
+            onClick = {
+                ThemeColorStore.clearAll()
+                JoH.static_toast_short(context.getString(R.string.theme_reset_all_done))
+            },
+            modifier = Modifier.testTag("setting_theme_preset_material_you"),
+        )
+        SettingsActionRow(
+            title = "Theme preset: Classic xDrip",
+            subtitle = "Apply the classic xDrip chart colour set",
+            onClick = {
+                applyClassicPreset()
+                JoH.static_toast_short("Classic xDrip colours applied")
+            },
+            modifier = Modifier.testTag("setting_theme_preset_classic"),
+        )
         SettingsActionRow(
             title = context.getString(R.string.theme_reset_all),
             onClick = {
@@ -149,5 +168,17 @@ private fun SettingsExampleChartView() {
                 view
             },
         )
+    }
+}
+
+/**
+ * Apply-once "Classic xDrip" preset: seeds [ThemeColorStore] with the legacy XML defaults for every
+ * data colour. Chrome roles are left to Material You. No new colour keys or sources of truth.
+ */
+private fun applyClassicPreset() {
+    for (color in ThemeColor.entries) {
+        val legacy = color.legacyColor ?: continue
+        val default = legacyColorDefaults[legacy] ?: continue
+        ThemeColorStore.setOverride(color, default)
     }
 }

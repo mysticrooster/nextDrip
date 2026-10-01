@@ -1,6 +1,14 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
 import android.app.Activity
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Bluetooth
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Nfc
+import androidx.compose.material.icons.outlined.RestartAlt
+import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +56,7 @@ internal fun DataSourceScreen(onNavigate: (SettingsScreen) -> Unit) {
             SettingsActionRow(
                 title = "Web Follower Settings",
                 subtitle = "Configuration options for web follower data source",
+                icon = Icons.Outlined.Language,
                 onClick = { onNavigate(SettingsScreen.WebFollow) },
                 modifier = Modifier.testTag("setting_web_follow"),
             )
@@ -55,56 +64,49 @@ internal fun DataSourceScreen(onNavigate: (SettingsScreen) -> Unit) {
 
         if (SettingsVisibility.hasLibre(ct)) {
             SettingsActionRow(
-                title = context.getString(R.string.nfc_scan_features),
+                title = "Libre / NFC",
                 subtitle = context.getString(R.string.nfc_options),
-                onClick = { onNavigate(SettingsScreen.NfcSettings) },
-                modifier = Modifier.testTag("setting_nfc"),
+                icon = Icons.Outlined.Nfc,
+                onClick = { onNavigate(SettingsScreen.LibreDevice) },
+                modifier = Modifier.testTag("setting_libre_device"),
             )
         }
 
-        if (ct == DexCollectionType.DexcomShare) {
-            EditPref(
-                state = state,
-                key = "share_key",
-                title = context.getString(R.string.enter_ten_character_dexcom_receiver_serial),
-                default = "SM00000000",
-                tag = "setting_share_key",
-                onValueChange = {
-                    Pref.removeItem("dexcom_share_session_id")
-                    state.setString("share_key", it)
-                },
-            )
+        if (ct == DexCollectionType.DexcomShare || ct == DexCollectionType.DexcomG5) {
             SettingsActionRow(
-                title = context.getString(R.string.scan_share2_barcode),
-                subtitle = context.getString(R.string.pref_share2_scan_barcode_summary),
-                onClick = { (context as? Activity)?.let { AndroidBarcode(it).scan() } },
-                modifier = Modifier.testTag("setting_scan_share2_barcode"),
+                title = "Dexcom",
+                subtitle = context.getString(R.string.advanced_g5_settings),
+                icon = Icons.Outlined.Sensors,
+                onClick = { onNavigate(SettingsScreen.DexcomDevice) },
+                modifier = Modifier.testTag("setting_dexcom_device"),
             )
         }
 
-        if (ct == DexCollectionType.DexbridgeWixel ||
-            ct == DexCollectionType.WifiDexBridgeWixel ||
-            ct == DexCollectionType.DexcomG5
-        ) {
-            EditPref(
-                state = state,
-                key = "dex_txid",
-                title = context.getString(R.string.dexcom_transmitter_id),
-                subtitle = context.getString(R.string.transmitter_id),
-                default = "ABCDEF",
-                tag = "setting_dex_txid",
+        if (ct == DexCollectionType.DexbridgeWixel || ct == DexCollectionType.WifiDexBridgeWixel) {
+            SettingsActionRow(
+                title = "Bluetooth Bridge",
+                subtitle = "Transmitter id and bridge receiver options",
+                icon = Icons.Outlined.Bluetooth,
+                onClick = { onNavigate(SettingsScreen.BluetoothBridge) },
+                modifier = Modifier.testTag("setting_bluetooth_bridge"),
             )
         }
 
         if (ct == DexCollectionType.Medtrum) {
-            SwitchPref(state, "medtrum_use_native", context.getString(R.string.title_medtrum_use_native), default = true, subtitle = context.getString(R.string.summary_medtrum_use_native))
-            EditPref(state, "medtrum_a_hex", context.getString(R.string.title_medtrum_a_hex), default = "", subtitle = context.getString(R.string.summary_medtrum_a_hex))
+            SettingsActionRow(
+                title = "Medtrum",
+                subtitle = context.getString(R.string.summary_medtrum_use_native),
+                icon = Icons.Outlined.Sensors,
+                onClick = { onNavigate(SettingsScreen.MedtrumDevice) },
+                modifier = Modifier.testTag("setting_medtrum_device"),
+            )
         }
 
         if (ct == DexCollectionType.NSFollow) {
             EditPref(state, "nsfollow_url", context.getString(R.string.title_nsfollow_url), default = "", subtitle = context.getString(R.string.summary_nsfollow_url), tag = "setting_nsfollow_url")
             SettingsActionRow(
                 title = context.getString(R.string.title_nsfollow_download_treatments),
+                icon = Icons.Outlined.Download,
                 onClick = { onNavigate(SettingsScreen.NsFollowDownload) },
                 modifier = Modifier.testTag("setting_nsfollow_download"),
             )
@@ -161,15 +163,6 @@ internal fun DataSourceScreen(onNavigate: (SettingsScreen) -> Unit) {
             SwitchPref(state, "clfollow_download_boluses", context.getString(R.string.title_clfollow_download_boluses), default = true, subtitle = context.getString(R.string.summary_clfollow_download_boluses))
             SwitchPref(state, "clfollow_download_meals", context.getString(R.string.title_clfollow_download_meals), default = true, subtitle = context.getString(R.string.summary_clfollow_download_meals))
             SwitchPref(state, "clfollow_download_notifications", context.getString(R.string.title_clfollow_download_notifications), default = false, subtitle = context.getString(R.string.summary_clfollow_download_notifications))
-        }
-
-        if (ct == DexCollectionType.DexcomG5) {
-            SettingsActionRow(
-                title = context.getString(R.string.g5_debug_settings),
-                subtitle = context.getString(R.string.advanced_g5_settings),
-                onClick = { onNavigate(SettingsScreen.G5Debug) },
-                modifier = Modifier.testTag("setting_g5_debug"),
-            )
         }
 
         if (SettingsVisibility.hasWifi() || state.string("wifi_recievers_addresses", "").trim().isNotEmpty()) {
@@ -339,8 +332,78 @@ internal fun G5DebugScreen(onNavigate: (SettingsScreen) -> Unit) {
         SwitchPref(state, "ob1_special_pairing_workaround", context.getString(R.string.special_pairing_workaround), default = false, subtitle = "Some Samsung devices can have an error where they lose the pairing information. This attempts to work around the issue.")
         EditPref(state, "dex_specified_slot", context.getString(R.string.title_dex_specified_slot), default = "", subtitle = context.getString(R.string.summary_dex_specified_slot), numeric = true, enabled = engineering)
     }
+}
 
-    if (SettingsVisibility.bestCollectorHardwareName() != "G7") {
+@Composable
+internal fun PreemptiveRestartScreen() {
+    val context = LocalContext.current
+    val state = rememberSettingsState()
+    val useTransmitterAlg = state.bool("ob1_g5_use_transmitter_alg", true)
+    val enabled = state.bool("ob1_g5_preemptive_restart", false)
+    SettingsCategory(context.getString(R.string.title_ob1_g5_preemptive_restart)) {
+        SwitchPref(state, "ob1_g5_preemptive_restart", context.getString(R.string.title_ob1_g5_preemptive_restart), default = false, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart), enabled = useTransmitterAlg)
+        SwitchPref(state, "ob1_g5_preemptive_restart_alert", context.getString(R.string.title_ob1_g5_preemptive_restart_alert), default = true, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart_alert), enabled = enabled)
+        SwitchPref(state, "ob1_g5_preemptive_restart_extended_time_travel", context.getString(R.string.title_ob1_g5_preemptive_restart_extended_time_travel), default = false, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart_extended_time_travel), enabled = enabled)
+        SwitchPref(state, "ob1_g5_defer_preemptive_restart_all_firmwares", context.getString(R.string.title_ob1_g5_preemptive_restart_extended_time_travel_all_firmwares), default = false, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart_extended_time_travel_all_firmwares), enabled = enabled)
+    }
+}
+
+/* ------------------------------------------------------ Per-device bounded settings screens */
+
+@Composable
+internal fun DexcomDeviceScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    val state = rememberSettingsState()
+    val ct = SettingsVisibility.collectionType(state)
+
+    SettingsCategory("Dexcom") {
+        if (ct == DexCollectionType.DexcomShare) {
+            EditPref(
+                state = state,
+                key = "share_key",
+                title = context.getString(R.string.enter_ten_character_dexcom_receiver_serial),
+                default = "SM00000000",
+                tag = "setting_share_key",
+                onValueChange = {
+                    Pref.removeItem("dexcom_share_session_id")
+                    state.setString("share_key", it)
+                },
+            )
+            SettingsActionRow(
+                title = context.getString(R.string.scan_share2_barcode),
+                subtitle = context.getString(R.string.pref_share2_scan_barcode_summary),
+                onClick = { (context as? Activity)?.let { AndroidBarcode(it).scan() } },
+                modifier = Modifier.testTag("setting_scan_share2_barcode"),
+            )
+        }
+        if (ct == DexCollectionType.DexcomG5) {
+            EditPref(
+                state = state,
+                key = "dex_txid",
+                title = context.getString(R.string.dexcom_transmitter_id),
+                subtitle = context.getString(R.string.transmitter_id),
+                default = "ABCDEF",
+                tag = "setting_dex_txid",
+            )
+            SettingsActionRow(
+                title = context.getString(R.string.g5_debug_settings),
+                subtitle = context.getString(R.string.advanced_g5_settings),
+                icon = Icons.Outlined.BugReport,
+                onClick = { onNavigate(SettingsScreen.G5Debug) },
+                modifier = Modifier.testTag("setting_g5_debug"),
+            )
+            SettingsActionRow(
+                title = context.getString(R.string.title_ob1_g5_preemptive_restart),
+                subtitle = context.getString(R.string.collection_summary_ob1_g5_preemptive_restart),
+                icon = Icons.Outlined.RestartAlt,
+                onClick = { onNavigate(SettingsScreen.PreemptiveRestart) },
+                enabled = state.bool("ob1_g5_use_transmitter_alg", true),
+                modifier = Modifier.testTag("setting_preemptive_restart"),
+            )
+        }
+    }
+
+    if (ct == DexCollectionType.DexcomG5 && SettingsVisibility.bestCollectorHardwareName() != "G7") {
         SettingsCategory(context.getString(R.string.title_g5g6_battery_options)) {
             SettingsEditTextRow(
                 title = context.getString(R.string.title_g5_battery_warning_level),
@@ -358,15 +421,59 @@ internal fun G5DebugScreen(onNavigate: (SettingsScreen) -> Unit) {
 }
 
 @Composable
-internal fun PreemptiveRestartScreen() {
+internal fun LibreDeviceScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    SettingsCategory("Libre / NFC") {
+        SettingsActionRow(
+            title = context.getString(R.string.nfc_scan_features),
+            subtitle = context.getString(R.string.nfc_options),
+            icon = Icons.Outlined.Nfc,
+            onClick = { onNavigate(SettingsScreen.NfcSettings) },
+            modifier = Modifier.testTag("setting_nfc"),
+        )
+        if (SettingsVisibility.isLibreReceiver()) {
+            SettingsActionRow(
+                title = context.getString(R.string.title_advanced_settings_4_Lib2),
+                onClick = { onNavigate(SettingsScreen.Libre2Settings) },
+                modifier = Modifier.testTag("setting_libre2"),
+            )
+        }
+    }
+}
+
+@Composable
+internal fun MedtrumDeviceScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
-    val useTransmitterAlg = state.bool("ob1_g5_use_transmitter_alg", true)
-    val enabled = state.bool("ob1_g5_preemptive_restart", false)
-    SettingsCategory(context.getString(R.string.title_ob1_g5_preemptive_restart)) {
-        SwitchPref(state, "ob1_g5_preemptive_restart", context.getString(R.string.title_ob1_g5_preemptive_restart), default = false, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart), enabled = useTransmitterAlg)
-        SwitchPref(state, "ob1_g5_preemptive_restart_alert", context.getString(R.string.title_ob1_g5_preemptive_restart_alert), default = true, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart_alert), enabled = enabled)
-        SwitchPref(state, "ob1_g5_preemptive_restart_extended_time_travel", context.getString(R.string.title_ob1_g5_preemptive_restart_extended_time_travel), default = false, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart_extended_time_travel), enabled = enabled)
-        SwitchPref(state, "ob1_g5_defer_preemptive_restart_all_firmwares", context.getString(R.string.title_ob1_g5_preemptive_restart_extended_time_travel_all_firmwares), default = false, subtitle = context.getString(R.string.summary_ob1_g5_preemptive_restart_extended_time_travel_all_firmwares), enabled = enabled)
+    SettingsCategory("Medtrum") {
+        SwitchPref(state, "medtrum_use_native", context.getString(R.string.title_medtrum_use_native), default = true, subtitle = context.getString(R.string.summary_medtrum_use_native))
+        EditPref(state, "medtrum_a_hex", context.getString(R.string.title_medtrum_a_hex), default = "", subtitle = context.getString(R.string.summary_medtrum_a_hex))
+    }
+}
+
+@Composable
+internal fun BluetoothBridgeScreen() {
+    val context = LocalContext.current
+    val state = rememberSettingsState()
+    SettingsCategory("Bluetooth Bridge") {
+        EditPref(
+            state = state,
+            key = "dex_txid",
+            title = context.getString(R.string.dexcom_transmitter_id),
+            subtitle = context.getString(R.string.transmitter_id),
+            default = "ABCDEF",
+            tag = "setting_dex_txid",
+        )
+        // Owned by the Data Source screen when the active collector uses WiFi; only render here
+        // for the Bluetooth-only bridge so the pref is never shown on two screens at once.
+        if (!SettingsVisibility.hasWifi()) {
+            EditPref(
+                state,
+                "wifi_recievers_addresses",
+                context.getString(R.string.list_of_receivers),
+                default = "",
+                tag = "setting_wifi_receivers",
+            )
+        }
     }
 }

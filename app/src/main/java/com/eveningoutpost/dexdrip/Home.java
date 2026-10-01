@@ -1137,32 +1137,6 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
         return Pref.getBoolean("auto_y_pan", true);
     }
 
-    public void cloudBackup(MenuItem x) {
-        JoH.startActivity(BackupActivity.class);
-    }
-
-    public void crowdTranslate(MenuItem x) {
-        val url = "https://crowdin.com/project/xdrip";
-        try {
-            // startActivity(new Intent(this, LanguageEditor.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        } catch (Exception e) {
-            static_toast_long("Unable to open web browser for " + url);
-        }
-    }
-
-    public void testFeature(MenuItem x) {
-        TestFeature.testFeature1();
-    }
-
-    public void viewEventLog(MenuItem x) {
-        startActivity(new Intent(this, EventLogActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("events", ""));
-    }
-
-    public void ShowLibreTrend(MenuItem x) {
-        startActivity(new Intent(this, LibreTrendGraph.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("events", ""));
-    }
-
     private boolean hideTreatmentButtonsIfAllDone() {
 
         // check if any active buttons are visible;
@@ -3255,40 +3229,11 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_home, menu);
-
-        //wear integration
-        if (!Pref.getBoolean("wear_sync", false)) {
-            menu.removeItem(R.id.action_open_watch_settings);
-            menu.removeItem(R.id.action_sync_watch_db);//KS
-        }
-        if (!Pref.getBoolean("wear_sync", false) && !Pref.getBoolean("pref_amazfit_enable_key", false)) {
-            menu.removeItem(R.id.action_resend_last_bg);
-        }
-
-        //speak readings
-        MenuItem menuItem = menu.findItem(R.id.action_toggle_speakreadings);
-        if (Pref.getBoolean("bg_to_speech_shortcut", false)) {
-
-            menuItem.setVisible(true);
-            if (Pref.getBoolean("bg_to_speech", false)) {
-                menuItem.setChecked(true);
-            } else {
-                menuItem.setChecked(false);
-            }
-        } else {
-            menuItem.setVisible(false);
-        }
-
-        boolean got_data = Experience.gotData();
-        menu.findItem(R.id.crowdtranslate).setVisible(got_data);
-
-        menu.findItem(R.id.showreminders).setVisible(Pref.getBoolean("plus_show_reminders", true) && !is_newbie);
-
-        if (!hasLibreblock()) {
-            menu.findItem(R.id.libreLastMinutes).setVisible(false);
-        }
-
+        // The Home overflow menu has been retired: every action now lives in the Compose
+        // settings host (SettingsActivity). Keep the menu empty so the three-dots button
+        // is not shown. The former @android:onClick handler methods are retained below in
+        // case they are invoked from other entry points.
+        menu.clear();
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -3399,129 +3344,6 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
         }
     }
 
-    public void shareMyConfig(MenuItem myitem) {
-        startActivity(new Intent(getApplicationContext(), DisplayQRCode.class));
-    }
-
-    public void exportDatabase(MenuItem myitem) {
-        new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... params) {
-                if (ContextCompat.checkSelfPermission(Home.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
-                        ContextCompat.checkSelfPermission(Home.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(Home.this,
-                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                            0);
-                    return null;
-                } else {
-                    return DatabaseUtil.saveSql(getBaseContext());
-                }
-
-            }
-
-            @Override
-            protected void onPostExecute(String filename) {
-                super.onPostExecute(filename);
-                if (filename != null) {
-
-                    snackBar(R.string.share, getString(R.string.exported_to) + filename, makeSnackBarUriLauncher(Uri.fromFile(new File(filename)), getString(R.string.share_database)), Home.this);
-                    startActivity(new Intent(xdrip.getAppContext(), SdcardImportExport.class).putExtra("backup", "now").setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                    /*    SnackbarManager.show(
-                                Snackbar.with(Home.this)
-                                        .type(SnackbarType.MULTI_LINE)
-                                        .duration(4000)
-                                        .text(getString(R.string.exported_to) + filename) // text to display
-                                        .actionLabel("Share") // action button label
-                                        .actionListener(new SnackbarUriListener(Uri.fromFile(new File(filename)))),
-                                Home.this);*/
-                } else {
-                    Toast.makeText(Home.this, R.string.could_not_export_database, Toast.LENGTH_LONG).show();
-                }
-            }
-        }.execute();
-    }
-
-    public void restoreDatabase(MenuItem myitem) {
-        startActivity(new Intent(this, ImportDatabaseActivity.class));
-    }
-
-    public void exportCSVasSiDiary(MenuItem myitem) {
-        long from = Pref.getLong("sidiary_last_exportdate", 0);
-        final GregorianCalendar date = new GregorianCalendar();
-        final DatePickerFragment datePickerFragment = new DatePickerFragment();
-        if (from > 0) datePickerFragment.setInitiallySelectedDate(from);
-        datePickerFragment.setAllowFuture(false);
-        datePickerFragment.setTitle(getString(R.string.sidiary_date_title));
-        datePickerFragment.setDateCallback(new ProfileAdapter.DatePickerCallbacks() {
-            @Override
-            public void onDateSet(int year, int month, int day) {
-                date.set(year, month, day);
-                date.set(Calendar.HOUR_OF_DAY, 0);
-                date.set(Calendar.MINUTE, 0);
-                date.set(Calendar.SECOND, 0);
-                date.set(Calendar.MILLISECOND, 0);
-                new AsyncTask<Void, Void, String>() {
-                    @Override
-                    protected String doInBackground(Void... params) {
-                        int permissionCheck = ContextCompat.checkSelfPermission(Home.this,
-                                Manifest.permission.READ_EXTERNAL_STORAGE);
-                        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                            ActivityCompat.requestPermissions(Home.this,
-                                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                    0);
-                            return null;
-                        } else {
-                            return DatabaseUtil.saveCSV(getBaseContext(), date.getTimeInMillis());
-                        }
-                    }
-
-                    @Override
-                    protected void onPostExecute(String filename) {
-                        super.onPostExecute(filename);
-                        if (filename != null) {
-                            Pref.setLong("sidiary_last_exportdate", System.currentTimeMillis());
-                            snackBar(R.string.share, getString(R.string.exported_to) + filename, makeSnackBarUriLauncher(Uri.fromFile(new File(filename)), getString(R.string.share_database)), Home.this);
-                        } else {
-                            Toast.makeText(Home.this, gs(R.string.could_not_export_csv_), Toast.LENGTH_LONG).show();
-                        }
-                    }
-                }.execute();
-            }
-        });
-        datePickerFragment.show(getFragmentManager(), "DatePicker");
-    }
-
-    public void settingsSDcardExport(MenuItem myitem) {
-        startActivity(new Intent(getApplicationContext(), SdcardImportExport.class));
-    }
-
-    public void showHelpFromMenu(MenuItem myitem) {
-        startActivity(new Intent(getApplicationContext(), HelpActivity.class));
-    }
-
-    public void showRemindersFromMenu(MenuItem myitem) {
-        startActivity(new Intent(getApplicationContext(), Reminders.class));
-    }
-
-    public void showAssistFromMenu(MenuItem myitem) {
-        startActivity(new Intent(getApplicationContext(), EmergencyAssistActivity.class));
-    }
-
-    public void resendGlucoseToWatch(MenuItem myitem) {
-        WatchUpdaterService.startServiceAndResendData(0);
-        if (Pref.getBooleanDefaultFalse("pref_amazfit_enable_key")) {
-            Amazfitservice.start("xDrip_synced_SGV_data");
-        }
-    }
-
-    public void openSettingsOnWatch(MenuItem myitem) {
-        startService(new Intent(this, WatchUpdaterService.class).setAction(WatchUpdaterService.ACTION_OPEN_SETTINGS));
-    }
-
-    public void resetWearDb(MenuItem myitem) {
-        startService(new Intent(this, WatchUpdaterService.class).setAction(WatchUpdaterService.ACTION_RESET_DB));
-    }
-
     public void undoButtonClick(View myitem) {
         if (UndoRedo.undoNextItem()) staticRefreshBGCharts();
     }
@@ -3603,35 +3425,10 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
         dialog.show();
     }
 
-    public void doBackFillBroadcast(MenuItem myitem) {
-        GcmActivity.syncBGTable2();
-        toast(gs(R.string.starting_sync_to_other_devices));
-    }
-
     public void deleteAllBG(MenuItem myitem) {
         BgReading.deleteALL();
         toast(gs(R.string.deleting_all_bg_readings));
         staticRefreshBGCharts();
-    }
-
-    public void checkForUpdate(MenuItem myitem) {
-        if (JoH.ratelimit("manual-update-check", 5)) {
-            toast(getString(R.string.checking_for_update));
-            UpdateActivity.last_check_time = -1;
-            UpdateActivity.checkForAnUpdate(this, true);
-        }
-    }
-
-    public void toggleSpeakReadings(MenuItem myitem) {
-        Pref.toggleBoolean("bg_to_speech");
-        invalidateOptionsMenu();
-        if (Pref.getBooleanDefaultFalse("bg_to_speech")) {
-            BgToSpeech.testSpeech();
-        }
-    }
-
-    public void sendFeedback(MenuItem myitem) {
-        startActivity(new Intent(getApplicationContext(), SendFeedBack.class));
     }
 
     @Override

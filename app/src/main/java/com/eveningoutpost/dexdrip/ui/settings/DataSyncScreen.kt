@@ -3,6 +3,9 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,20 +36,16 @@ internal fun DataSyncScreen(onNavigate: (SettingsScreen) -> Unit) {
         SettingsActionRow(
             title = context.getString(R.string.auto_configure_title),
             subtitle = context.getString(R.string.prefs_auto_config_summary),
+            icon = Icons.Outlined.QrCodeScanner,
             onClick = { onNavigate(SettingsScreen.AutoConfig) },
             modifier = Modifier.testTag("setting_auto_config"),
         )
         SettingsActionRow(
             title = context.getString(R.string.cloud_upload),
             subtitle = context.getString(R.string.options_for_upload),
+            icon = Icons.Outlined.CloudUpload,
             onClick = { onNavigate(SettingsScreen.CloudUpload) },
             modifier = Modifier.testTag("setting_cloud_upload"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.glucose_meters),
-            subtitle = context.getString(R.string.glucose_meter_options),
-            onClick = { onNavigate(SettingsScreen.GlucoseMeters) },
-            modifier = Modifier.testTag("setting_glucose_meters"),
         )
     }
 }

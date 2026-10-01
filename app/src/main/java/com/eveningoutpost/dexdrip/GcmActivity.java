@@ -548,7 +548,7 @@ public class GcmActivity extends FauxActivity {
         }
     }
 
-    static synchronized void syncBGTable2() {
+    public static synchronized void syncBGTable2() {
         if (!Sensor.isActive()) return;
         new Thread() {
             @Override

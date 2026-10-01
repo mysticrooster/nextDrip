@@ -24,10 +24,7 @@ import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.WidgetUpdateService
 import com.eveningoutpost.dexdrip.models.DesertSync
 import com.eveningoutpost.dexdrip.models.JoH
-import com.eveningoutpost.dexdrip.models.Profile
 import com.eveningoutpost.dexdrip.utilitymodels.ShotStateStore
-import com.eveningoutpost.dexdrip.profileeditor.BasalProfileEditor
-import com.eveningoutpost.dexdrip.profileeditor.ProfileEditor
 import com.eveningoutpost.dexdrip.insulin.InsulinProfileEditor
 import com.eveningoutpost.dexdrip.insulin.inpen.InPenEntry
 import com.eveningoutpost.dexdrip.services.PlusSyncService
@@ -39,7 +36,6 @@ import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore
 import com.eveningoutpost.dexdrip.ui.theme.currentArgb
 import com.eveningoutpost.dexdrip.utilitymodels.ColorCacheBridge
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
-import com.eveningoutpost.dexdrip.utilitymodels.SendFeedBack
 import com.eveningoutpost.dexdrip.utils.DisplayQRCode
 import com.eveningoutpost.dexdrip.utils.LocationHelper
 import com.eveningoutpost.dexdrip.utils.SdcardImportExport
@@ -137,16 +133,6 @@ internal fun UpdateSettingsScreen() {
             subtitle = context.getString(R.string.send_data_to_developers),
             enabled = state.dependentEnabled("enable_crashlytics", true),
             tag = "setting_enable_telemetry",
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.send_feedback_message),
-            subtitle = context.getString(R.string.web_feedback_form_for_sending_messages),
-            onClick = {
-                context.startActivity(
-                    Intent(context, SendFeedBack::class.java).setAction("xdrip_plus_send_developer_feedback")
-                )
-            },
-            modifier = Modifier.testTag("setting_send_feedback"),
         )
     }
 }
@@ -392,73 +378,14 @@ internal fun PendiqScreen() {
 /* ----------------------------------------------------------------------- Slice 6 — Prediction */
 
 @Composable
-internal fun PredictionSettingsScreen(onNavigate: (SettingsScreen) -> Unit) {
+internal fun PredictionSettingsScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     val gate = state.bool("I_understand", false)
 
     SettingsCategory(context.getString(R.string.xdrip_plus_prediction_settings)) {
-        SwitchPref(state, "simulations_enabled", context.getString(R.string.predictive_simulations), default = true, subtitle = context.getString(R.string.display_mathamatical_simulations), enabled = gate)
-        SettingsActionRow(
-            title = context.getString(R.string.title_multiple_insulin_types_settings),
-            subtitle = context.getString(R.string.summary_multiple_insulin_types_settings),
-            enabled = gate,
-            onClick = { onNavigate(SettingsScreen.XdripPlusMultipleInsulin) },
-            modifier = Modifier.testTag("setting_multiple_insulin"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.carb_ratio),
-            subtitle = context.getString(R.string.grams_of_carbohydrate_one_unit_covers),
-            enabled = gate,
-            onClick = { context.startActivity(Intent(context, ProfileEditor::class.java)) },
-            modifier = Modifier.testTag("setting_profile_carb_ratio"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.insulin_sensitivity),
-            subtitle = context.getString(R.string.glucose_drop_for_one_unit),
-            enabled = gate,
-            onClick = { context.startActivity(Intent(context, ProfileEditor::class.java)) },
-            modifier = Modifier.testTag("setting_profile_insulin_sensitivity"),
-        )
-        EditPref(
-            state,
-            "profile_carb_absorption_default",
-            context.getString(R.string.carb_absorption_rate),
-            default = "35",
-            subtitle = context.getString(R.string.linear_model_carbs_absorbed_per_hour),
-            enabled = gate,
-            tag = "setting_profile_carb_absorption",
-            onValueChange = { value ->
-                if (SettingsPrefs.isNumeric(value)) {
-                    state.setString("profile_carb_absorption_default", value)
-                    Profile.reloadPreferences(Pref.getInstance())
-                    Home.staticRefreshBGCharts()
-                }
-            },
-        )
+        SwitchPref(state, "simulations_enabled", context.getString(R.string.predictive_simulations), default = true, subtitle = context.getString(R.string.display_mathamatical_simulations), enabled = gate, tag = "setting_simulations_enabled")
         SwitchPref(state, "predict_use_momentum", context.getString(R.string.use_trend_momentum), default = true, subtitle = context.getString(R.string.calculate_including_glucose_trend), enabled = gate)
-        SettingsActionRow(
-            title = context.getString(R.string.basal_profile_editor),
-            subtitle = context.getString(R.string.graphical_editor_for_pump_basal),
-            enabled = gate,
-            onClick = { context.startActivity(Intent(context, BasalProfileEditor::class.java)) },
-            modifier = Modifier.testTag("setting_basal_profile_editor"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.low_prediction_values),
-            subtitle = context.getString(R.string.deel_settings_for_algs),
-            enabled = gate,
-            onClick = { onNavigate(SettingsScreen.XdripPlusAdvPredict) },
-            modifier = Modifier.testTag("setting_adv_predict"),
-        )
-    }
-    SettingsCategory(context.getString(R.string.eula)) {
-        SettingsActionRow(
-            title = context.getString(R.string.end_user_license_agreement),
-            subtitle = context.getString(R.string.not_for_medical_use),
-            onClick = { context.startActivity(Intent(context, com.eveningoutpost.dexdrip.LicenseAgreementActivity::class.java)) },
-            modifier = Modifier.testTag("setting_prediction_eula"),
-        )
     }
 }
 
@@ -649,11 +576,6 @@ internal fun XdripPlusDisplayScreen(onNavigate: (SettingsScreen) -> Unit) {
             onClick = { onNavigate(SettingsScreen.XdripPlusFont) },
             modifier = Modifier.testTag("setting_display_font"),
         )
-        SettingsActionRow(
-            title = context.getString(R.string.title_language),
-            onClick = { onNavigate(SettingsScreen.XdripPlusLanguage) },
-            modifier = Modifier.testTag("setting_display_language"),
-        )
         SwitchPref(state, "bg_compensate_noise", context.getString(R.string.title_bg_compensate_noise), default = true, subtitle = context.getString(R.string.try_to_work_around_noisy_readings), tag = "setting_bg_compensate_noise")
         if (engineering) {
             SwitchPref(
@@ -681,33 +603,9 @@ internal fun XdripPlusDisplayScreen(onNavigate: (SettingsScreen) -> Unit) {
                 }
             },
         )
-        SettingsActionRow(
-            title = context.getString(R.string.title_xdrip_plus_graph_display_settings),
-            subtitle = context.getString(R.string.summary_xdrip_plus_graph_display_settings),
-            onClick = { onNavigate(SettingsScreen.XdripPlusGraphDisplay) },
-            modifier = Modifier.testTag("setting_graph_display"),
-        )
         SwitchPref(state, "bg_from_filtered", context.getString(R.string.glucose_number_from_filtered), default = false, subtitle = context.getString(R.string.delayed_but_more_stable))
         SwitchPref(state, "show_bwp", context.getString(R.string.show_bolus_wizard_preview), default = false, subtitle = context.getString(R.string.display_calculations), tag = "setting_show_bwp")
         SwitchPref(state, "always_show_bwp", context.getString(R.string.always_show_bolus_wizard_preview), default = false, subtitle = context.getString(R.string.display_calculations_everytime), enabled = bwp)
-        SwitchPref(state, "high_priority_notifications", context.getString(R.string.title_high_priority_notifications), default = true, subtitle = context.getString(R.string.summary_high_priority_notifications))
-        SwitchPref(state, "public_notifications", context.getString(R.string.title_public_notifications), default = false, subtitle = context.getString(R.string.summary_public_notifications))
-        SwitchPref(state, "plus_show_reminders", context.getString(R.string.enable_reminder_features), default = true, subtitle = context.getString(R.string.show_reminder_features))
-        SettingsActionRow(
-            title = context.getString(R.string.title_xdrip_plus_accessibility),
-            onClick = { onNavigate(SettingsScreen.XdripPlusAccessibility) },
-            modifier = Modifier.testTag("setting_accessibility"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.title_xdrip_plus_number_wall),
-            onClick = { onNavigate(SettingsScreen.XdripPlusNumberWall) },
-            modifier = Modifier.testTag("setting_number_wall"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.title_xdrip_plus_number_icon),
-            onClick = { onNavigate(SettingsScreen.XdripPlusNumberIcon) },
-            modifier = Modifier.testTag("setting_number_icon"),
-        )
         SwitchPref(state, "show_home_on_boot", context.getString(R.string.title_show_home_on_boot), default = false, subtitle = context.getString(R.string.summary_show_home_on_boot))
     }
 }

@@ -3,8 +3,64 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.content.Intent
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Accessibility
+import androidx.compose.material.icons.outlined.Alarm
+import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Backup
+import androidx.compose.material.icons.outlined.Bloodtype
+import androidx.compose.material.icons.outlined.Bluetooth
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.Brightness4
+import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.CloudSync
+import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Emergency
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.ListAlt
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.NotificationImportant
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.NotificationsActive
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.QrCode
+import androidx.compose.material.icons.outlined.Restaurant
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.SendToMobile
+import androidx.compose.material.icons.outlined.Sensors
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.ShowChart
+import androidx.compose.material.icons.outlined.Straighten
+import androidx.compose.material.icons.outlined.Style
+import androidx.compose.material.icons.outlined.Subject
+import androidx.compose.material.icons.outlined.Sync
+import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Timeline
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.TrendingDown
+import androidx.compose.material.icons.outlined.TrendingUp
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.material.icons.outlined.Vaccines
+import androidx.compose.material.icons.outlined.VolumeUp
+import androidx.compose.material.icons.outlined.Wallpaper
+import androidx.compose.material.icons.outlined.Watch
+import androidx.compose.material.icons.outlined.WaterDrop
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,21 +74,42 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.AlertList
 import com.eveningoutpost.dexdrip.EditAlertActivity
+import com.eveningoutpost.dexdrip.EventLogActivity
+import com.eveningoutpost.dexdrip.GcmActivity
+import com.eveningoutpost.dexdrip.Home
 import com.eveningoutpost.dexdrip.MissedReadingActivity
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.Reminders
+import com.eveningoutpost.dexdrip.eassist.EmergencyAssistActivity
+import com.eveningoutpost.dexdrip.models.BgReading
 import com.eveningoutpost.dexdrip.models.JoH
+import com.eveningoutpost.dexdrip.models.Profile
 import com.eveningoutpost.dexdrip.models.UserNotification
+import com.eveningoutpost.dexdrip.profileeditor.BasalProfileEditor
+import com.eveningoutpost.dexdrip.profileeditor.ProfileEditor
+import com.eveningoutpost.dexdrip.utilitymodels.Pref
+import com.eveningoutpost.dexdrip.utils.LibreTrendGraph
+import com.eveningoutpost.dexdrip.utils.TestFeature
+import com.eveningoutpost.dexdrip.wearintegration.Amazfitservice
+import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService
 import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
 
 @Composable
 internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.Root -> "Settings"
+    SettingsScreen.GeneralCategory -> stringResource(R.string.general_settings)
+    SettingsScreen.AlarmsCategory -> stringResource(R.string.alarms_and_alerts)
+    SettingsScreen.YourDataCategory -> "Your Data"
+    SettingsScreen.ProfileCategory -> "Profile"
+    SettingsScreen.DevicesCategory -> "Devices"
+    SettingsScreen.AppearanceCategory -> "Appearance"
+    SettingsScreen.AccessibilityCategory -> "Accessibility"
+    SettingsScreen.AdvancedCategory -> "Advanced"
     SettingsScreen.Units -> stringResource(R.string.glucose_units)
     SettingsScreen.Theme -> stringResource(R.string.theme_colors)
-    SettingsScreen.Notifications -> stringResource(R.string.alarms_and_alerts)
+    SettingsScreen.NotificationStyle -> "Notification Style"
     SettingsScreen.BgAlerts -> stringResource(R.string.glucose_alerts_settings)
     SettingsScreen.SuppressAlerts -> stringResource(R.string.suppress_alerts_if_missed_readings)
-    SettingsScreen.NotificationChannels -> stringResource(R.string.title_use_notification_channels)
     SettingsScreen.AscendingVolume -> stringResource(R.string.title_ascending_volume)
     SettingsScreen.PersistentHigh -> stringResource(R.string.persistent_high_alert)
     SettingsScreen.ForecastLow -> stringResource(R.string.forecasted_low_alert)
@@ -40,12 +117,20 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.CalibrationAlerts -> stringResource(R.string.calibration_alerts)
     SettingsScreen.OtherAlerts -> stringResource(R.string.other_alerts)
     SettingsScreen.DataSource -> stringResource(R.string.data_source_settings)
+    SettingsScreen.DexcomDevice -> "Dexcom"
+    SettingsScreen.LibreDevice -> "Libre / NFC"
+    SettingsScreen.MedtrumDevice -> "Medtrum"
+    SettingsScreen.BluetoothBridge -> "Bluetooth Bridge"
     SettingsScreen.WebFollow -> "Web Follower Settings"
     SettingsScreen.NfcSettings -> stringResource(R.string.nfc_scan_features)
     SettingsScreen.NsFollowDownload -> stringResource(R.string.title_nsfollow_download_treatments)
     SettingsScreen.G5Debug -> stringResource(R.string.g5_debug_settings)
     SettingsScreen.PreemptiveRestart -> stringResource(R.string.title_ob1_g5_preemptive_restart)
     SettingsScreen.DataSync -> stringResource(R.string.data_sync)
+    SettingsScreen.Backups -> "Backups"
+    SettingsScreen.About -> "About"
+    SettingsScreen.Version -> "Version"
+    SettingsScreen.HomeScreen -> "Home Screen"
     SettingsScreen.AutoConfig -> stringResource(R.string.auto_configure_title)
     SettingsScreen.CloudUpload -> stringResource(R.string.cloud_upload)
     SettingsScreen.RestApi -> stringResource(R.string.pref_title_api)
@@ -62,7 +147,6 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.SpeakReadings -> stringResource(R.string.speak_readings)
     SettingsScreen.InterApp -> stringResource(R.string.interapp_settings)
     SettingsScreen.HealthConnect -> stringResource(R.string.google_health_connect)
-    SettingsScreen.LessCommon -> stringResource(R.string.less_common_settings)
     SettingsScreen.ExtraStatusLine -> stringResource(R.string.extra_status_line)
     SettingsScreen.CalibrationSettings -> stringResource(R.string.advanced_calibration)
     SettingsScreen.BluetoothSettings -> stringResource(R.string.bluetooth_settings)
@@ -114,12 +198,19 @@ internal fun SettingsScreenContent(
 ) {
     when (screen) {
         SettingsScreen.Root -> RootScreen(onNavigate, onOpenClassic)
+        SettingsScreen.GeneralCategory -> GeneralCategoryScreen(onNavigate)
+        SettingsScreen.AlarmsCategory -> AlarmsCategoryScreen(onNavigate)
+        SettingsScreen.YourDataCategory -> YourDataCategoryScreen(onNavigate)
+        SettingsScreen.ProfileCategory -> ProfileCategoryScreen(onNavigate)
+        SettingsScreen.DevicesCategory -> DevicesCategoryScreen(onNavigate)
+        SettingsScreen.AppearanceCategory -> AppearanceCategoryScreen(onNavigate)
+        SettingsScreen.AccessibilityCategory -> AccessibilityCategoryScreen(onNavigate)
+        SettingsScreen.AdvancedCategory -> AdvancedCategoryScreen(onNavigate)
         SettingsScreen.Units -> UnitsScreen()
         SettingsScreen.Theme -> ThemeEditorScreen()
-        SettingsScreen.Notifications -> NotificationsScreen(onNavigate)
+        SettingsScreen.NotificationStyle -> NotificationStyleScreen()
         SettingsScreen.BgAlerts -> BgAlertsScreen(onNavigate)
         SettingsScreen.SuppressAlerts -> SuppressAlertsScreen()
-        SettingsScreen.NotificationChannels -> NotificationChannelsScreen()
         SettingsScreen.AscendingVolume -> AscendingVolumeScreen()
         SettingsScreen.PersistentHigh -> PersistentHighScreen()
         SettingsScreen.ForecastLow -> ForecastLowScreen()
@@ -127,12 +218,20 @@ internal fun SettingsScreenContent(
         SettingsScreen.CalibrationAlerts -> CalibrationAlertsScreen()
         SettingsScreen.OtherAlerts -> OtherAlertsScreen()
         SettingsScreen.DataSource -> DataSourceScreen(onNavigate)
+        SettingsScreen.DexcomDevice -> DexcomDeviceScreen(onNavigate)
+        SettingsScreen.LibreDevice -> LibreDeviceScreen(onNavigate)
+        SettingsScreen.MedtrumDevice -> MedtrumDeviceScreen()
+        SettingsScreen.BluetoothBridge -> BluetoothBridgeScreen()
         SettingsScreen.WebFollow -> WebFollowScreen()
         SettingsScreen.NfcSettings -> NfcSettingsScreen()
         SettingsScreen.NsFollowDownload -> NsFollowDownloadScreen()
         SettingsScreen.G5Debug -> G5DebugScreen(onNavigate)
         SettingsScreen.PreemptiveRestart -> PreemptiveRestartScreen()
         SettingsScreen.DataSync -> DataSyncScreen(onNavigate)
+        SettingsScreen.Backups -> BackupsScreen()
+        SettingsScreen.About -> AboutScreen(onNavigate, onOpenClassic)
+        SettingsScreen.Version -> VersionScreen()
+        SettingsScreen.HomeScreen -> HomeScreenSettingsScreen()
         SettingsScreen.AutoConfig -> AutoConfigScreen()
         SettingsScreen.CloudUpload -> CloudUploadScreen(onNavigate)
         SettingsScreen.RestApi -> RestApiScreen(onNavigate)
@@ -149,7 +248,6 @@ internal fun SettingsScreenContent(
         SettingsScreen.SpeakReadings -> SpeakReadingsScreen()
         SettingsScreen.InterApp -> InterAppScreen(onNavigate)
         SettingsScreen.HealthConnect -> HealthConnectScreen()
-        SettingsScreen.LessCommon -> LessCommonScreen(onNavigate)
         SettingsScreen.ExtraStatusLine -> ExtraStatusLineScreen()
         SettingsScreen.CalibrationSettings -> CalibrationSettingsScreen()
         SettingsScreen.BluetoothSettings -> BluetoothSettingsScreen()
@@ -185,7 +283,7 @@ internal fun SettingsScreenContent(
         SettingsScreen.XdripPlusNovopen -> NovopenScreen()
         SettingsScreen.XdripPlusInpen -> InpenScreen()
         SettingsScreen.XdripPlusPendiq -> PendiqScreen()
-        SettingsScreen.XdripPlusPrediction -> PredictionSettingsScreen(onNavigate)
+        SettingsScreen.XdripPlusPrediction -> PredictionSettingsScreen()
         SettingsScreen.XdripPlusMultipleInsulin -> MultipleInsulinScreen()
         SettingsScreen.XdripPlusAdvPredict -> AdvPredictScreen()
         SettingsScreen.XdripPlusSync -> SyncSettingsScreen(onNavigate)
@@ -197,7 +295,6 @@ internal fun SettingsScreenContent(
 @Composable
 private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -> Unit) {
     val context = LocalContext.current
-    val state = rememberSettingsState()
     var query by remember { mutableStateOf("") }
 
     OutlinedTextField(
@@ -231,125 +328,536 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
         return
     }
 
+    SettingsCategoryButton(
+        title = context.getString(R.string.general_settings),
+        subtitle = context.getString(R.string.mmol_or_mgdl_high_and_low),
+        icon = Icons.Outlined.Tune,
+        onClick = { onNavigate(SettingsScreen.GeneralCategory) },
+        modifier = Modifier.testTag("setting_category_general"),
+    )
+    SettingsCategoryButton(
+        title = context.getString(R.string.alarms_and_alerts),
+        subtitle = context.getString(R.string.glucose_calibration_and_other_alerts),
+        icon = Icons.Outlined.NotificationsActive,
+        onClick = { onNavigate(SettingsScreen.AlarmsCategory) },
+        modifier = Modifier.testTag("setting_category_alarms"),
+    )
+    SettingsCategoryButton(
+        title = "Your Data",
+        subtitle = "Cloud sync, backups and xDrip+ sync",
+        icon = Icons.Outlined.CloudSync,
+        onClick = { onNavigate(SettingsScreen.YourDataCategory) },
+        modifier = Modifier.testTag("setting_category_data"),
+    )
+    SettingsCategoryButton(
+        title = "Profile",
+        subtitle = "Insulin, carb ratios and prediction",
+        icon = Icons.Outlined.Person,
+        onClick = { onNavigate(SettingsScreen.ProfileCategory) },
+        modifier = Modifier.testTag("setting_category_profile"),
+    )
+    SettingsCategoryButton(
+        title = "Devices",
+        subtitle = "Data sources, meters, pens and watches",
+        icon = Icons.Outlined.Devices,
+        onClick = { onNavigate(SettingsScreen.DevicesCategory) },
+        modifier = Modifier.testTag("setting_category_devices"),
+    )
+    SettingsCategoryButton(
+        title = "Appearance",
+        subtitle = "Theme, display, graph and home screen",
+        icon = Icons.Outlined.Palette,
+        onClick = { onNavigate(SettingsScreen.AppearanceCategory) },
+        modifier = Modifier.testTag("setting_category_appearance"),
+    )
+    SettingsCategoryButton(
+        title = "Accessibility",
+        subtitle = "Spoken readings and always-on display",
+        icon = Icons.Outlined.Accessibility,
+        onClick = { onNavigate(SettingsScreen.AccessibilityCategory) },
+        modifier = Modifier.testTag("setting_category_accessibility"),
+    )
+    SettingsCategoryButton(
+        title = "Advanced",
+        subtitle = "Bluetooth, logging, interop and maintenance",
+        icon = Icons.Outlined.Settings,
+        onClick = { onNavigate(SettingsScreen.AdvancedCategory) },
+        modifier = Modifier.testTag("setting_category_advanced"),
+    )
+    SettingsCategoryButton(
+        title = "About",
+        subtitle = "Version, help, updates and licence",
+        icon = Icons.Outlined.Info,
+        onClick = { onNavigate(SettingsScreen.About) },
+        modifier = Modifier.testTag("setting_category_about"),
+    )
+}
+
+@Composable
+private fun GeneralCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
     SettingsCategory(context.getString(R.string.general_settings)) {
         SettingsActionRow(
             title = context.getString(R.string.glucose_units),
             subtitle = context.getString(R.string.mmol_or_mgdl_high_and_low),
+            icon = Icons.Outlined.Straighten,
             onClick = { onNavigate(SettingsScreen.Units) },
             modifier = Modifier.testTag("setting_glucose_units"),
         )
+    }
+}
+
+@Composable
+private fun AlarmsCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    SettingsCategory(context.getString(R.string.alarms_and_alerts)) {
         SettingsActionRow(
-            title = context.getString(R.string.theme_colors),
-            subtitle = context.getString(R.string.theme_colors_summary),
-            onClick = { onNavigate(SettingsScreen.Theme) },
-            modifier = Modifier.testTag("setting_theme"),
+            title = context.getString(R.string.glucose_level_alerts_list),
+            icon = Icons.Outlined.Notifications,
+            onClick = { context.startActivity(Intent(context, AlertList::class.java)) },
+            modifier = Modifier.testTag("setting_alert_list"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.glucose_alerts_settings),
+            icon = Icons.Outlined.NotificationsActive,
+            onClick = { onNavigate(SettingsScreen.BgAlerts) },
+            modifier = Modifier.testTag("setting_bg_alerts"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.persistent_high_alert),
+            icon = Icons.Outlined.TrendingUp,
+            onClick = { onNavigate(SettingsScreen.PersistentHigh) },
+            modifier = Modifier.testTag("setting_persistent_high"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.forecasted_low_alert),
+            icon = Icons.Outlined.TrendingDown,
+            onClick = { onNavigate(SettingsScreen.ForecastLow) },
+            modifier = Modifier.testTag("setting_forecast_low"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.title_sens_expiry),
+            icon = Icons.Outlined.Timer,
+            onClick = { onNavigate(SettingsScreen.SensorExpiry) },
+            modifier = Modifier.testTag("setting_sensor_expiry"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.calibration_alerts),
+            icon = Icons.Outlined.WaterDrop,
+            onClick = { onNavigate(SettingsScreen.CalibrationAlerts) },
+            modifier = Modifier.testTag("setting_calibration_alerts"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.missed_reading_alert),
+            icon = Icons.Outlined.NotificationImportant,
+            onClick = { context.startActivity(Intent(context, MissedReadingActivity::class.java)) },
+            modifier = Modifier.testTag("setting_missed_reading"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.other_alerts),
+            icon = Icons.Outlined.Campaign,
+            onClick = { onNavigate(SettingsScreen.OtherAlerts) },
+            modifier = Modifier.testTag("setting_other_alerts"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.reminders),
+            icon = Icons.Outlined.Alarm,
+            onClick = { context.startActivity(Intent(context, Reminders::class.java)) },
+            modifier = Modifier.testTag("setting_reminders"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.emergency_messages),
+            icon = Icons.Outlined.Emergency,
+            onClick = { context.startActivity(Intent(context, EmergencyAssistActivity::class.java)) },
+            modifier = Modifier.testTag("setting_emergency_messages"),
+        )
+        SettingsActionRow(
+            title = "Notification Style",
+            icon = Icons.Outlined.Style,
+            onClick = { onNavigate(SettingsScreen.NotificationStyle) },
+            modifier = Modifier.testTag("setting_notification_style"),
         )
     }
-    SettingsCategory(context.getString(R.string.alerts_and_notifications)) {
+}
+
+@Composable
+private fun YourDataCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    val state = rememberSettingsState()
+    val engineering = SettingsVisibility.isEngineeringMode(state)
+    SettingsCategory("Your Data") {
         SettingsActionRow(
-            title = context.getString(R.string.alarms_and_alerts),
-            subtitle = context.getString(R.string.glucose_calibration_and_other_alerts),
-            onClick = { onNavigate(SettingsScreen.Notifications) },
-            modifier = Modifier.testTag("setting_notifications"),
-        )
-    }
-    SettingsCategory(context.getString(R.string.data_source_settings)) {
-        SettingsActionRow(
-            title = context.getString(R.string.hardware_data_source),
-            subtitle = context.getString(R.string.how_receive_data),
-            onClick = { onNavigate(SettingsScreen.DataSource) },
-            modifier = Modifier.testTag("setting_data_source"),
-        )
-    }
-    SettingsCategory(context.getString(R.string.data_sync)) {
-        SettingsActionRow(
-            title = context.getString(R.string.cloud_upload),
+            title = "Cloud sync",
             subtitle = context.getString(R.string.options_for_upload),
+            icon = Icons.Outlined.CloudSync,
             onClick = { onNavigate(SettingsScreen.DataSync) },
-            modifier = Modifier.testTag("setting_data_sync"),
+            modifier = Modifier.testTag("setting_cloud_sync"),
         )
-    }
-    SettingsCategory(context.getString(R.string.smart_watch_features)) {
         SettingsActionRow(
-            title = context.getString(R.string.smart_watch_features),
-            subtitle = context.getString(R.string.pebble_and_android_wear_options),
-            onClick = { onNavigate(SettingsScreen.SmartWatchOptions) },
-            modifier = Modifier.testTag("setting_smart_watch"),
+            title = context.getString(R.string.copying_settings),
+            icon = Icons.Outlined.QrCode,
+            onClick = { onNavigate(SettingsScreen.XdripPlusCopying) },
+            modifier = Modifier.testTag("setting_xdrip_copying"),
         )
-    }
-    SettingsCategory(context.getString(R.string.xdrip_plus_extra_settings)) {
         SettingsActionRow(
-            title = context.getString(R.string.xdrip_plus_display_settings),
-            subtitle = context.getString(R.string.display_customisations),
-            onClick = { onNavigate(SettingsScreen.XdripPlusDisplay) },
-            modifier = Modifier.testTag("setting_xdrip_display"),
+            title = "Backups",
+            subtitle = "Cloud backup, export and import database, share config",
+            icon = Icons.Outlined.Backup,
+            onClick = { onNavigate(SettingsScreen.Backups) },
+            modifier = Modifier.testTag("setting_backups"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_plus_sync_settings),
+            subtitle = context.getString(R.string.settings_for_syncing),
+            icon = Icons.Outlined.Sync,
+            enabled = state.bool("I_understand", false),
+            onClick = { onNavigate(SettingsScreen.XdripPlusSync) },
+            modifier = Modifier.testTag("setting_xdrip_sync"),
+        )
+        if (engineering) {
+            SettingsActionRow(
+                title = context.getString(R.string.send_bg_readings_to_backfill),
+                icon = Icons.Outlined.Upload,
+                onClick = { GcmActivity.syncBGTable2() },
+                modifier = Modifier.testTag("setting_resend_backfill"),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProfileCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    val state = rememberSettingsState()
+    SettingsCategory("Profile") {
+        SettingsActionRow(
+            title = context.getString(R.string.title_multiple_insulin_types_settings),
+            subtitle = context.getString(R.string.summary_multiple_insulin_types_settings),
+            icon = Icons.Outlined.Vaccines,
+            enabled = state.bool("I_understand", false),
+            onClick = { onNavigate(SettingsScreen.XdripPlusMultipleInsulin) },
+            modifier = Modifier.testTag("setting_insulin_types"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.carb_ratio),
+            subtitle = context.getString(R.string.grams_of_carbohydrate_one_unit_covers),
+            icon = Icons.Outlined.Restaurant,
+            enabled = state.bool("I_understand", false),
+            onClick = { context.startActivity(Intent(context, ProfileEditor::class.java)) },
+            modifier = Modifier.testTag("setting_profile_carb_ratio"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.insulin_sensitivity),
+            subtitle = context.getString(R.string.glucose_drop_for_one_unit),
+            icon = Icons.Outlined.MonitorHeart,
+            enabled = state.bool("I_understand", false),
+            onClick = { context.startActivity(Intent(context, ProfileEditor::class.java)) },
+            modifier = Modifier.testTag("setting_profile_insulin_sensitivity"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.basal_profile_editor),
+            subtitle = context.getString(R.string.graphical_editor_for_pump_basal),
+            icon = Icons.Outlined.Schedule,
+            enabled = state.bool("I_understand", false),
+            onClick = { context.startActivity(Intent(context, BasalProfileEditor::class.java)) },
+            modifier = Modifier.testTag("setting_basal_profile_editor"),
+        )
+        EditPref(
+            state = state,
+            key = "profile_carb_absorption_default",
+            title = context.getString(R.string.carb_absorption_rate),
+            default = "35",
+            subtitle = context.getString(R.string.linear_model_carbs_absorbed_per_hour),
+            enabled = state.bool("I_understand", false),
+            tag = "setting_profile_carb_absorption",
+            onValueChange = { value ->
+                if (SettingsPrefs.isNumeric(value)) {
+                    state.setString("profile_carb_absorption_default", value)
+                    Profile.reloadPreferences(Pref.getInstance())
+                    Home.staticRefreshBGCharts()
+                }
+            },
         )
         SettingsActionRow(
             title = context.getString(R.string.xdrip_plus_prediction_settings),
             subtitle = context.getString(R.string.insulin_carb_ratios_etc_for_models),
+            icon = Icons.Outlined.Insights,
             enabled = state.bool("I_understand", false),
             onClick = { onNavigate(SettingsScreen.XdripPlusPrediction) },
             modifier = Modifier.testTag("setting_xdrip_prediction"),
         )
         SettingsActionRow(
-            title = context.getString(R.string.xdrip_plus_sync_settings),
-            subtitle = context.getString(R.string.settings_for_syncing),
+            title = context.getString(R.string.low_prediction_values),
+            subtitle = context.getString(R.string.deel_settings_for_algs),
+            icon = Icons.Outlined.ShowChart,
             enabled = state.bool("I_understand", false),
-            onClick = { onNavigate(SettingsScreen.XdripPlusSync) },
-            modifier = Modifier.testTag("setting_xdrip_sync"),
+            onClick = { onNavigate(SettingsScreen.XdripPlusAdvPredict) },
+            modifier = Modifier.testTag("setting_adv_predict"),
+        )
+    }
+}
+
+@Composable
+private fun DevicesCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    val state = rememberSettingsState()
+    SettingsCategory("Devices") {
+        SettingsActionRow(
+            title = context.getString(R.string.hardware_data_source),
+            subtitle = context.getString(R.string.how_receive_data),
+            icon = Icons.Outlined.Sensors,
+            onClick = { onNavigate(SettingsScreen.DataSource) },
+            modifier = Modifier.testTag("setting_data_source"),
         )
         SettingsActionRow(
-            title = context.getString(R.string.xdrip_motion_tracking),
-            subtitle = context.getString(R.string.movement_detection_and_vehicle_mode),
-            onClick = { onNavigate(SettingsScreen.XdripPlusMotion) },
-            modifier = Modifier.testTag("setting_xdrip_motion"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.xdrip_plus_update_settings),
-            subtitle = context.getString(R.string.automatic_updates_crash_reports_and_feedback),
-            onClick = { onNavigate(SettingsScreen.XdripPlusUpdate) },
-            modifier = Modifier.testTag("setting_xdrip_update"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.copying_settings),
-            onClick = { onNavigate(SettingsScreen.XdripPlusCopying) },
-            modifier = Modifier.testTag("setting_xdrip_copying"),
+            title = context.getString(R.string.glucose_meters),
+            subtitle = context.getString(R.string.glucose_meter_options),
+            icon = Icons.Outlined.Bloodtype,
+            onClick = { onNavigate(SettingsScreen.GlucoseMeters) },
+            modifier = Modifier.testTag("setting_glucose_meters"),
         )
         SettingsActionRow(
             title = context.getString(R.string.insulin_pens),
+            icon = Icons.Outlined.Edit,
             onClick = { onNavigate(SettingsScreen.XdripPlusPens) },
             modifier = Modifier.testTag("setting_xdrip_pens"),
         )
+        SettingsActionRow(
+            title = context.getString(R.string.smart_watch_features),
+            subtitle = context.getString(R.string.pebble_and_android_wear_options),
+            icon = Icons.Outlined.Watch,
+            onClick = { onNavigate(SettingsScreen.SmartWatchOptions) },
+            modifier = Modifier.testTag("setting_smart_watch"),
+        )
+        if (SettingsVisibility.isBlueReader()) {
+            SettingsActionRow(
+                title = context.getString(R.string.advanced_bluereader_settings),
+                icon = Icons.Outlined.Bluetooth,
+                onClick = { onNavigate(SettingsScreen.BlueReaderSettings) },
+                modifier = Modifier.testTag("setting_bluereader"),
+            )
+        }
+        if (SettingsVisibility.isLibreReceiver()) {
+            SettingsActionRow(
+                title = context.getString(R.string.title_advanced_settings_4_Lib2),
+                icon = Icons.Outlined.Sensors,
+                onClick = { onNavigate(SettingsScreen.Libre2Settings) },
+                modifier = Modifier.testTag("setting_libre2"),
+            )
+        }
+        SettingsActionRow(
+            title = context.getString(R.string.action_resend_to_watch),
+            icon = Icons.Outlined.SendToMobile,
+            enabled = state.bool("wear_sync", false) || state.bool("pref_amazfit_enable_key", false),
+            onClick = {
+                WatchUpdaterService.startServiceAndResendData(0)
+                if (state.bool("pref_amazfit_enable_key", false)) {
+                    Amazfitservice.start("xDrip_synced_SGV_data")
+                }
+            },
+            modifier = Modifier.testTag("setting_resend_watch"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.action_open_watch_setting),
+            icon = Icons.Outlined.Watch,
+            enabled = state.bool("wear_sync", false),
+            onClick = {
+                context.startService(
+                    Intent(context, WatchUpdaterService::class.java).setAction(WatchUpdaterService.ACTION_OPEN_SETTINGS)
+                )
+            },
+            modifier = Modifier.testTag("setting_open_watch_settings"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.action_sync_watch_db),
+            icon = Icons.Outlined.Sync,
+            enabled = state.bool("wear_sync", false),
+            onClick = {
+                context.startService(
+                    Intent(context, WatchUpdaterService::class.java).setAction(WatchUpdaterService.ACTION_RESET_DB)
+                )
+            },
+            modifier = Modifier.testTag("setting_sync_watch_db"),
+        )
     }
-    SettingsCategory(context.getString(R.string.other_settings)) {
+}
+
+@Composable
+private fun AppearanceCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    SettingsCategory("Appearance") {
+        SettingsActionRow(
+            title = context.getString(R.string.theme_colors),
+            subtitle = context.getString(R.string.theme_colors_summary),
+            icon = Icons.Outlined.Palette,
+            onClick = { onNavigate(SettingsScreen.Theme) },
+            modifier = Modifier.testTag("setting_theme"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_plus_display_settings),
+            subtitle = context.getString(R.string.display_customisations),
+            icon = Icons.Outlined.TextFields,
+            onClick = { onNavigate(SettingsScreen.XdripPlusDisplay) },
+            modifier = Modifier.testTag("setting_xdrip_display"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.title_language),
+            icon = Icons.Outlined.Language,
+            onClick = { onNavigate(SettingsScreen.XdripPlusLanguage) },
+            modifier = Modifier.testTag("setting_language"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.title_xdrip_plus_graph_display_settings),
+            subtitle = context.getString(R.string.summary_xdrip_plus_graph_display_settings),
+            icon = Icons.Outlined.ShowChart,
+            onClick = { onNavigate(SettingsScreen.XdripPlusGraphDisplay) },
+            modifier = Modifier.testTag("setting_graph_display"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.show_libre_trend),
+            icon = Icons.Outlined.Timeline,
+            onClick = { context.startActivity(Intent(context, LibreTrendGraph::class.java).putExtra("events", "")) },
+            modifier = Modifier.testTag("setting_show_libre_trend"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.extra_status_line),
+            icon = Icons.Outlined.Subject,
+            onClick = { onNavigate(SettingsScreen.ExtraStatusLine) },
+            modifier = Modifier.testTag("setting_nav_extra_status_line"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.title_xdrip_plus_number_wall),
+            icon = Icons.Outlined.Wallpaper,
+            onClick = { onNavigate(SettingsScreen.XdripPlusNumberWall) },
+            modifier = Modifier.testTag("setting_number_wall"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.title_xdrip_plus_number_icon),
+            icon = Icons.Outlined.Apps,
+            onClick = { onNavigate(SettingsScreen.XdripPlusNumberIcon) },
+            modifier = Modifier.testTag("setting_number_icon"),
+        )
+        SettingsActionRow(
+            title = "Home screen",
+            subtitle = "Choose which quick-access buttons and widgets appear on the home screen",
+            icon = Icons.Outlined.Home,
+            onClick = { onNavigate(SettingsScreen.HomeScreen) },
+            modifier = Modifier.testTag("setting_home_screen"),
+        )
+    }
+}
+
+@Composable
+private fun AccessibilityCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    SettingsCategory("Accessibility") {
         SettingsActionRow(
             title = context.getString(R.string.speak_readings),
+            icon = Icons.Outlined.VolumeUp,
             onClick = { onNavigate(SettingsScreen.SpeakReadings) },
             modifier = Modifier.testTag("setting_speak_readings"),
         )
         SettingsActionRow(
+            title = context.getString(R.string.title_xdrip_plus_accessibility),
+            icon = Icons.Outlined.Brightness4,
+            onClick = { onNavigate(SettingsScreen.XdripPlusAccessibility) },
+            modifier = Modifier.testTag("setting_accessibility"),
+        )
+    }
+}
+
+@Composable
+private fun AdvancedCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
+    val context = LocalContext.current
+    val state = rememberSettingsState()
+    val engineering = SettingsVisibility.isEngineeringMode(state)
+    var confirmDeleteBg by remember { mutableStateOf(false) }
+    SettingsCategory("Advanced") {
+        SettingsActionRow(
+            title = context.getString(R.string.bluetooth_settings),
+            icon = Icons.Outlined.Bluetooth,
+            onClick = { onNavigate(SettingsScreen.BluetoothSettings) },
+            modifier = Modifier.testTag("setting_bluetooth"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.view_events_log),
+            icon = Icons.Outlined.ListAlt,
+            onClick = { context.startActivity(Intent(context, EventLogActivity::class.java).putExtra("events", "")) },
+            modifier = Modifier.testTag("setting_events_log"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.extra_logging),
+            icon = Icons.Outlined.BugReport,
+            onClick = { onNavigate(SettingsScreen.LoggingSettings) },
+            modifier = Modifier.testTag("setting_logging"),
+        )
+        SettingsActionRow(
             title = context.getString(R.string.interapp_settings),
+            icon = Icons.Outlined.Android,
             onClick = { onNavigate(SettingsScreen.InterApp) },
             modifier = Modifier.testTag("setting_interapp"),
         )
         SettingsActionRow(
-            title = context.getString(R.string.less_common_settings),
-            onClick = { onNavigate(SettingsScreen.LessCommon) },
-            modifier = Modifier.testTag("setting_less_common"),
+            title = context.getString(R.string.title_Other_misc_options),
+            icon = Icons.Outlined.MoreHoriz,
+            onClick = { onNavigate(SettingsScreen.OtherMiscSettings) },
+            modifier = Modifier.testTag("setting_other_options"),
         )
+        SettingsActionRow(
+            title = context.getString(R.string.advanced_calibration),
+            icon = Icons.Outlined.Tune,
+            onClick = { onNavigate(SettingsScreen.CalibrationSettings) },
+            modifier = Modifier.testTag("setting_calibration"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_motion_tracking),
+            subtitle = context.getString(R.string.movement_detection_and_vehicle_mode),
+            icon = Icons.Outlined.DirectionsCar,
+            onClick = { onNavigate(SettingsScreen.XdripPlusMotion) },
+            modifier = Modifier.testTag("setting_xdrip_motion"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.delete_all_bg_readings),
+            icon = Icons.Outlined.DeleteForever,
+            onClick = { confirmDeleteBg = true },
+            modifier = Modifier.testTag("setting_delete_all_bg"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.xdrip_plus_update_settings),
+            subtitle = context.getString(R.string.automatic_updates_crash_reports_and_feedback),
+            icon = Icons.Outlined.SystemUpdate,
+            onClick = { onNavigate(SettingsScreen.XdripPlusUpdate) },
+            modifier = Modifier.testTag("setting_xdrip_update"),
+        )
+        if (engineering) {
+            SettingsActionRow(
+                title = context.getString(R.string.debugging_test_feature),
+                icon = Icons.Outlined.BugReport,
+                onClick = { TestFeature.testFeature1() },
+                modifier = Modifier.testTag("setting_debugging"),
+            )
+        }
     }
-    SettingsCategory("About") {
-        SettingsActionRow(
-            title = context.getString(R.string.end_user_license_agreement),
-            subtitle = context.getString(R.string.not_for_medical_use),
-            onClick = { context.startActivity(Intent(context, com.eveningoutpost.dexdrip.LicenseAgreementActivity::class.java)) },
-            modifier = Modifier.testTag("setting_license"),
-        )
-        SettingsActionRow(
-            title = "Classic settings",
-            subtitle = "Screens not yet migrated to the new UI",
-            onClick = onOpenClassic,
-            modifier = Modifier.testTag("setting_classic"),
+
+    if (confirmDeleteBg) {
+        AlertDialog(
+            onDismissRequest = { confirmDeleteBg = false },
+            title = { Text(context.getString(R.string.delete_all_bg_readings)) },
+            text = { Text("Delete all glucose readings? This cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmDeleteBg = false
+                        BgReading.deleteALL()
+                        JoH.static_toast_long(context.getString(R.string.deleting_all_bg_readings))
+                        Home.staticRefreshBGCharts()
+                    },
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDeleteBg = false }) { Text("Cancel") }
+            },
+            modifier = Modifier.testTag("setting_delete_all_bg_confirm"),
         )
     }
 }
@@ -393,24 +901,19 @@ private fun UnitsScreen() {
 }
 
 @Composable
-private fun NotificationsScreen(onNavigate: (SettingsScreen) -> Unit) {
+private fun NotificationStyleScreen() {
     val context = LocalContext.current
-    SettingsCategory(context.getString(R.string.alerts_and_notifications)) {
-        SettingsActionRow(
-            title = context.getString(R.string.glucose_level_alerts_list),
-            onClick = { context.startActivity(Intent(context, AlertList::class.java)) },
-            modifier = Modifier.testTag("setting_alert_list"),
+    val state = rememberSettingsState()
+    SettingsCategory("Notification Style") {
+        SwitchPref(state, "high_priority_notifications", context.getString(R.string.title_high_priority_notifications), default = true, subtitle = context.getString(R.string.summary_high_priority_notifications))
+        SwitchPref(state, "public_notifications", context.getString(R.string.title_public_notifications), default = false, subtitle = context.getString(R.string.summary_public_notifications))
+        SwitchPref(
+            state = state,
+            key = "ongoing_notification_aodchipstyle",
+            title = "Use AOD chip style",
+            default = false,
+            subtitle = "Display notification chip and lockscreen notification. Android 16+ only",
         )
-        SettingsActionRow(title = context.getString(R.string.glucose_alerts_settings), onClick = { onNavigate(SettingsScreen.BgAlerts) })
-        SettingsActionRow(title = context.getString(R.string.persistent_high_alert), onClick = { onNavigate(SettingsScreen.PersistentHigh) })
-        SettingsActionRow(title = context.getString(R.string.forecasted_low_alert), onClick = { onNavigate(SettingsScreen.ForecastLow) })
-        SettingsActionRow(title = context.getString(R.string.title_sens_expiry), onClick = { onNavigate(SettingsScreen.SensorExpiry) })
-        SettingsActionRow(title = context.getString(R.string.calibration_alerts), onClick = { onNavigate(SettingsScreen.CalibrationAlerts) })
-        SettingsActionRow(
-            title = context.getString(R.string.missed_reading_alert),
-            onClick = { context.startActivity(Intent(context, MissedReadingActivity::class.java)) },
-        )
-        SettingsActionRow(title = context.getString(R.string.other_alerts), onClick = { onNavigate(SettingsScreen.OtherAlerts) })
     }
 }
 
@@ -446,9 +949,8 @@ private fun BgAlertsScreen(onNavigate: (SettingsScreen) -> Unit) {
         SwitchPref(state, "wake_phone_during_alerts", context.getString(R.string.wake_up_screen), default = false, subtitle = context.getString(R.string.wake_up_screen_summary))
         SwitchPref(state, "flash_torch_alerts_charging", context.getString(R.string.use_camera_light), default = false, subtitle = context.getString(R.string.use_camera_light_summary))
         SwitchPref(state, "bg_alerts_from_main_menu", context.getString(R.string.shortcut_to_bg_alerts), default = false, subtitle = context.getString(R.string.create_shortcut))
-        SettingsActionRow(title = context.getString(R.string.suppress_alerts_if_missed_readings), onClick = { onNavigate(SettingsScreen.SuppressAlerts) })
-        SettingsActionRow(title = context.getString(R.string.title_use_notification_channels), onClick = { onNavigate(SettingsScreen.NotificationChannels) })
-        SettingsActionRow(title = context.getString(R.string.title_ascending_volume), onClick = { onNavigate(SettingsScreen.AscendingVolume) })
+        SettingsActionRow(title = context.getString(R.string.suppress_alerts_if_missed_readings), icon = Icons.Outlined.Block, onClick = { onNavigate(SettingsScreen.SuppressAlerts) })
+        SettingsActionRow(title = context.getString(R.string.title_ascending_volume), icon = Icons.Outlined.VolumeUp, onClick = { onNavigate(SettingsScreen.AscendingVolume) })
     }
 }
 
@@ -467,21 +969,6 @@ private fun SuppressAlertsScreen() {
             numeric = true,
             enabled = state.dependentEnabled("disable_alerts_stale_data", false),
             tag = "setting_stale_minutes",
-        )
-    }
-}
-
-@Composable
-private fun NotificationChannelsScreen() {
-    val context = LocalContext.current
-    val state = rememberSettingsState()
-    SettingsCategory(context.getString(R.string.title_use_notification_channels)) {
-        SwitchPref(
-            state = state,
-            key = "ongoing_notification_aodchipstyle",
-            title = "Use AOD chip style",
-            default = false,
-            subtitle = "Display notification chip and lockscreen notification. Android 16+ only",
         )
     }
 }

@@ -3,6 +3,9 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,36 +60,43 @@ internal fun SmartWatchOptionsScreen(onNavigate: (SettingsScreen) -> Unit) {
     SettingsCategory(context.getString(R.string.smart_watch_features)) {
         SettingsActionRow(
             title = context.getString(R.string.android_wear_integration),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.WearSettings) },
             modifier = Modifier.testTag("setting_watch_wear"),
         )
         SettingsActionRow(
             title = context.getString(R.string.pebble_integration),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.PebbleSettings) },
             modifier = Modifier.testTag("setting_watch_pebble"),
         )
         SettingsActionRow(
             title = context.getString(R.string.amazfit_sync_service),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.AmazfitSettings) },
             modifier = Modifier.testTag("setting_watch_amazfit"),
         )
         SettingsActionRow(
             title = "BlueJay Watch",
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.BlueJaySettings) },
             modifier = Modifier.testTag("setting_watch_bluejay"),
         )
         SettingsActionRow(
             title = context.getString(R.string.title_lefun_band),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.LeFunSettings) },
             modifier = Modifier.testTag("setting_watch_lefun"),
         )
         SettingsActionRow(
             title = context.getString(R.string.title_miband),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.MiBandSettings) },
             modifier = Modifier.testTag("setting_watch_miband"),
         )
         SettingsActionRow(
             title = context.getString(R.string.title_Smartwatch_Sensors),
+            icon = Icons.Outlined.MonitorHeart,
             onClick = { onNavigate(SettingsScreen.SmartwatchSensors) },
             modifier = Modifier.testTag("setting_watch_sensors"),
         )

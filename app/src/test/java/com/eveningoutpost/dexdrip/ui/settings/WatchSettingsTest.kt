@@ -28,6 +28,7 @@ class WatchSettingsTest {
     val composeRule = createAndroidComposeRule<SettingsActivity>()
 
     private fun openWatches() {
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_smart_watch").performScrollTo().performClick()
     }
 
