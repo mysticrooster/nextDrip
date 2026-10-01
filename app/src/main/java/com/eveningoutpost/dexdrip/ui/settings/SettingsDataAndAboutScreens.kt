@@ -4,19 +4,10 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.core.content.ContextCompat
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.Description
@@ -30,6 +21,17 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.outlined.Upload
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import com.eveningoutpost.dexdrip.BuildConfig
 import com.eveningoutpost.dexdrip.HelpActivity
 import com.eveningoutpost.dexdrip.ImportDatabaseActivity
@@ -37,6 +39,7 @@ import com.eveningoutpost.dexdrip.LicenseAgreementActivity
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.cloud.backup.BackupActivity
 import com.eveningoutpost.dexdrip.models.JoH
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utilitymodels.SendFeedBack
 import com.eveningoutpost.dexdrip.utilitymodels.UpdateActivity
@@ -252,3 +255,35 @@ internal fun HomeScreenSettingsScreen() {
         SwitchPref(state, "home-shelf-graphic_trend_arrow", "Show graphical trend arrow", default = false)
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BackupsScreenPreview() {
+    XdripPreview { BackupsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AboutScreenPreview() {
+    XdripPreview { AboutScreen(onNavigate = {}, onOpenClassic = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun VersionScreenPreview() {
+    XdripPreview { VersionScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun HomeScreenSettingsScreenPreview() {
+    XdripPreview { HomeScreenSettingsScreen() }
+}
+
+// endregion

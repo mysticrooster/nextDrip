@@ -1,6 +1,7 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
 import android.app.Activity
+import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bluetooth
 import androidx.compose.material.icons.outlined.BugReport
@@ -13,16 +14,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.GcmActivity
 import com.eveningoutpost.dexdrip.NFCReaderX
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.models.JoH
+import com.eveningoutpost.dexdrip.services.G5BaseService
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.AndroidBarcode
 import com.eveningoutpost.dexdrip.utils.DexCollectionType
 import com.eveningoutpost.dexdrip.utils.SdcardImportExport
-import com.eveningoutpost.dexdrip.services.G5BaseService
 
 /**
  * S3 — Data Source (`pref_data_source.xml`).
@@ -477,3 +480,77 @@ internal fun BluetoothBridgeScreen() {
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DataSourceScreenPreview() {
+    XdripPreview { DataSourceScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun WebFollowScreenPreview() {
+    XdripPreview { WebFollowScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NfcSettingsScreenPreview() {
+    XdripPreview { NfcSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NsFollowDownloadScreenPreview() {
+    XdripPreview { NsFollowDownloadScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun G5DebugScreenPreview() {
+    XdripPreview { G5DebugScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun PreemptiveRestartScreenPreview() {
+    XdripPreview { PreemptiveRestartScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DexcomDeviceScreenPreview() {
+    XdripPreview { DexcomDeviceScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun LibreDeviceScreenPreview() {
+    XdripPreview { LibreDeviceScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MedtrumDeviceScreenPreview() {
+    XdripPreview { MedtrumDeviceScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BluetoothBridgeScreenPreview() {
+    XdripPreview { BluetoothBridgeScreen() }
+}
+
+// endregion

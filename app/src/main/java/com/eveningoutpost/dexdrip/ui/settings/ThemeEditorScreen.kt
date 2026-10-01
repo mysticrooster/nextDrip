@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
+import android.content.res.Configuration
 import android.view.LayoutInflater
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.eveningoutpost.dexdrip.R
@@ -21,6 +23,7 @@ import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColor
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorGroup
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.ui.theme.currentArgb
 import com.eveningoutpost.dexdrip.ui.theme.legacyColorDefaults
 import com.eveningoutpost.dexdrip.utilitymodels.BgGraphBuilder
@@ -182,3 +185,21 @@ private fun applyClassicPreset() {
         ThemeColorStore.setOverride(color, default)
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun ThemeEditorScreenPreview() {
+    XdripPreview { ThemeEditorScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SettingsExampleChartViewPreview() {
+    XdripPreview { SettingsExampleChartView() }
+}
+
+// endregion

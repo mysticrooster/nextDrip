@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.provider.Settings
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
@@ -19,27 +20,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.Home
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.WidgetUpdateService
-import com.eveningoutpost.dexdrip.models.DesertSync
-import com.eveningoutpost.dexdrip.models.JoH
-import com.eveningoutpost.dexdrip.utilitymodels.ShotStateStore
 import com.eveningoutpost.dexdrip.insulin.InsulinProfileEditor
 import com.eveningoutpost.dexdrip.insulin.inpen.InPenEntry
+import com.eveningoutpost.dexdrip.models.DesertSync
+import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.services.PlusSyncService
 import com.eveningoutpost.dexdrip.ui.activities.NumberWallPreview
 import com.eveningoutpost.dexdrip.ui.activities.SelectAudioDevice
 import com.eveningoutpost.dexdrip.ui.activities.TimePickerPrefActivity
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColor
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.ui.theme.currentArgb
 import com.eveningoutpost.dexdrip.utilitymodels.ColorCacheBridge
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
+import com.eveningoutpost.dexdrip.utilitymodels.ShotStateStore
+import com.eveningoutpost.dexdrip.utils.CipherUtils
 import com.eveningoutpost.dexdrip.utils.DisplayQRCode
 import com.eveningoutpost.dexdrip.utils.LocationHelper
 import com.eveningoutpost.dexdrip.utils.SdcardImportExport
-import com.eveningoutpost.dexdrip.utils.CipherUtils
 import com.eveningoutpost.dexdrip.utils.time.TimeRangeUtils
 import com.eveningoutpost.dexdrip.xDripWidget
 
@@ -871,3 +874,161 @@ private fun rememberPrefRevision(keys: Set<String>): Int {
     }
     return revision
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun CopyingSettingsScreenPreview() {
+    XdripPreview { CopyingSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun UpdateSettingsScreenPreview() {
+    XdripPreview { UpdateSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MotionSettingsScreenPreview() {
+    XdripPreview { MotionSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun PensScreenPreview() {
+    XdripPreview { PensScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NovopenScreenPreview() {
+    XdripPreview { NovopenScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun InpenScreenPreview() {
+    XdripPreview { InpenScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun PendiqScreenPreview() {
+    XdripPreview { PendiqScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun PredictionSettingsScreenPreview() {
+    XdripPreview { PredictionSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MultipleInsulinScreenPreview() {
+    XdripPreview { MultipleInsulinScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AdvPredictScreenPreview() {
+    XdripPreview { AdvPredictScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SyncSettingsScreenPreview() {
+    XdripPreview { SyncSettingsScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun RemoteSnoozeScreenPreview() {
+    XdripPreview { RemoteSnoozeScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DesertSyncScreenPreview() {
+    XdripPreview { DesertSyncScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun XdripPlusDisplayScreenPreview() {
+    XdripPreview { XdripPlusDisplayScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun FontSettingsScreenPreview() {
+    XdripPreview { FontSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun LanguageSettingsScreenPreview() {
+    XdripPreview { LanguageSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun GraphDisplayScreenPreview() {
+    XdripPreview { GraphDisplayScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun GraphSmoothingScreenPreview() {
+    XdripPreview { GraphSmoothingScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun YAxisScreenPreview() {
+    XdripPreview { YAxisScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AccessibilityScreenPreview() {
+    XdripPreview { AccessibilityScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NumberWallScreenPreview() {
+    XdripPreview { NumberWallScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NumberIconScreenPreview() {
+    XdripPreview { NumberIconScreen() }
+}
+
+// endregion
