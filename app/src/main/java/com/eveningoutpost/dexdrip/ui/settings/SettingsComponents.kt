@@ -3,6 +3,7 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -55,10 +56,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.EditAlertActivity
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.models.AlertType
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import java.util.Calendar
 import kotlin.math.roundToInt
 
@@ -648,3 +651,216 @@ private fun EditTextDialog(
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
     )
 }
+
+// region Previews
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsCategoryPreview() {
+    XdripPreview {
+        Column {
+            SettingsCategory("Category heading") {
+                SettingsSwitchRow(title = "Enable feature", checked = true, onCheckedChange = {})
+            }
+        }
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsActionRowPreview() {
+    XdripPreview {
+        SettingsActionRow(
+            title = "Open screen",
+            subtitle = "Supporting summary",
+            trailing = "value",
+            icon = Icons.Filled.ChevronRight,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsCategoryButtonPreview() {
+    XdripPreview {
+        SettingsCategoryButton(
+            title = "Devices",
+            subtitle = "Sensors, transmitters and watches",
+            icon = Icons.Filled.ChevronRight,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsSwitchRowPreview() {
+    XdripPreview {
+        SettingsSwitchRow(
+            title = "Enable feature",
+            subtitle = "Summary text",
+            checked = true,
+            onCheckedChange = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsEditTextRowPreview() {
+    XdripPreview {
+        SettingsEditTextRow(
+            title = "Display name",
+            subtitle = "Shown on the graph",
+            value = "Sample value",
+            onValueChange = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsInfoRowPreview() {
+    XdripPreview {
+        SettingsInfoRow(title = "Node id", subtitle = "Read only", value = "abc-123")
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsListRowPreview() {
+    XdripPreview {
+        SettingsListRow(
+            title = "Units",
+            subtitle = "Glucose value units",
+            entries = listOf("mg/dl", "mmol/L"),
+            values = listOf("mgdl", "mmol"),
+            selectedValue = "mgdl",
+            onSelected = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsSliderRowPreview() {
+    XdripPreview {
+        SettingsSliderRow(
+            title = "Window latency",
+            subtitle = "Minutes",
+            value = 40,
+            valueRange = 0..120,
+            onValueChange = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsRingtoneRowPreview() {
+    XdripPreview {
+        SettingsRingtoneRow(
+            title = "Alert sound",
+            subtitle = "Played for high alerts",
+            value = null,
+            onPicked = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsTimeRowPreview() {
+    XdripPreview {
+        SettingsTimeRow(
+            title = "Night mode start",
+            subtitle = "Millis since epoch",
+            valueMillis = 0L,
+            onTimeChanged = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsMinutesOfDayRowPreview() {
+    XdripPreview {
+        SettingsMinutesOfDayRow(
+            title = "Missed reading time",
+            subtitle = "Minutes since midnight",
+            minutes = 90,
+            onTimeChanged = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsColorRowPreview() {
+    XdripPreview {
+        SettingsColorRow(
+            title = "High color",
+            subtitle = "Line color",
+            color = 0xFFFFBB33.toInt(),
+            showHex = true,
+            onReset = {},
+            onColorChanged = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TimeOfDayDialogPreview() {
+    XdripPreview {
+        TimeOfDayDialog(initialMinutes = 90, onDismiss = {}, onConfirm = {})
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ColorPickerDialogPreview() {
+    XdripPreview {
+        ColorPickerDialog(
+            title = "High color",
+            initial = 0xFFFFBB33.toInt(),
+            onDismiss = {},
+            onColorPicked = {},
+            onReset = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun EditTextDialogPreview() {
+    XdripPreview {
+        EditTextDialog(
+            title = "Display name",
+            initial = "Sample value",
+            numeric = false,
+            decimal = false,
+            masked = false,
+            onDismiss = {},
+            onConfirm = {},
+        )
+    }
+}
+
+// endregion
