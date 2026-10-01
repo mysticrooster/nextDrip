@@ -112,4 +112,15 @@ class SettingsIaTest {
 
         assertThat(Pref.getBoolean("home-shelf-chart_preview", false)).isTrue()
     }
+
+    @Test
+    fun iletPumpIsReachableFromDevicesWhenEnabled() {
+        Pref.setBoolean("ilet_enabled", true)
+
+        category("setting_category_devices")
+        composeRule.onNodeWithTag("setting_ilet_pump").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_ilet_enabled").performScrollTo().assertExists()
+        composeRule.onNodeWithTag("setting_ilet_account").performScrollTo().assertExists()
+    }
 }

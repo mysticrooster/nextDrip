@@ -29,6 +29,15 @@ cgm/ilet/
   ILetLoginActivity.kt, IletPrefs.kt, IletScanner.kt
 ```
 
+## Settings placement
+
+The iLet settings are the bounded per-device screen `ILetDevice` (rendered by
+`ILetDeviceScreen()` in `DataSourceScreen.kt`, alongside `DexcomDevice`/`MedtrumDevice`).
+It is reached two ways in the category-based IA: from **Devices → iLet Pump** whenever
+`ilet_enabled` is set (this keeps the account/pump data reachable in pump-only mode, when
+another CGM is the collector), and contextually from **Devices → Data Source → iLet** when
+iLet is the selected collector. The screen is also indexed in the root settings search.
+
 ## Protocol summary
 
 - Credential = `app_uuid` + X25519 private key + 32-byte nonce + 64-byte cloud signature.

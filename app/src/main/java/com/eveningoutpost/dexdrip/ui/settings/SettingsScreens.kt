@@ -82,6 +82,7 @@ import com.eveningoutpost.dexdrip.Home
 import com.eveningoutpost.dexdrip.MissedReadingActivity
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.Reminders
+import com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs
 import com.eveningoutpost.dexdrip.eassist.EmergencyAssistActivity
 import com.eveningoutpost.dexdrip.models.BgReading
 import com.eveningoutpost.dexdrip.models.JoH
@@ -123,6 +124,7 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.DexcomDevice -> "Dexcom"
     SettingsScreen.LibreDevice -> "Libre / NFC"
     SettingsScreen.MedtrumDevice -> "Medtrum"
+    SettingsScreen.ILetDevice -> "iLet"
     SettingsScreen.BluetoothBridge -> "Bluetooth Bridge"
     SettingsScreen.WebFollow -> "Web Follower Settings"
     SettingsScreen.NfcSettings -> stringResource(R.string.nfc_scan_features)
@@ -224,6 +226,7 @@ internal fun SettingsScreenContent(
         SettingsScreen.DexcomDevice -> DexcomDeviceScreen(onNavigate)
         SettingsScreen.LibreDevice -> LibreDeviceScreen(onNavigate)
         SettingsScreen.MedtrumDevice -> MedtrumDeviceScreen()
+        SettingsScreen.ILetDevice -> ILetDeviceScreen()
         SettingsScreen.BluetoothBridge -> BluetoothBridgeScreen()
         SettingsScreen.WebFollow -> WebFollowScreen()
         SettingsScreen.NfcSettings -> NfcSettingsScreen()
@@ -625,6 +628,15 @@ private fun DevicesCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
             onClick = { onNavigate(SettingsScreen.XdripPlusPens) },
             modifier = Modifier.testTag("setting_xdrip_pens"),
         )
+        if (state.bool(IletPrefs.ENABLED, false)) {
+            SettingsActionRow(
+                title = "iLet Pump",
+                subtitle = "Account, pump data and read-only notice",
+                icon = Icons.Outlined.MonitorHeart,
+                onClick = { onNavigate(SettingsScreen.ILetDevice) },
+                modifier = Modifier.testTag("setting_ilet_pump"),
+            )
+        }
         SettingsActionRow(
             title = context.getString(R.string.smart_watch_features),
             subtitle = context.getString(R.string.pebble_and_android_wear_options),
