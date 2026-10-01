@@ -1030,6 +1030,41 @@ public class BgReading implements ShareUploadableBg {
         }
     }
 
+    public static synchronized BgReading bgReadingInsertFromIlet(double calculated_value, final long timestamp, String sourceInfoAppend) {
+
+        if (Double.isNaN(calculated_value) || Double.isInfinite(calculated_value)
+                || calculated_value <= 0 || calculated_value > 600) {
+            Log.e(TAG, "bgReadingInsertFromIlet: ignoring invalid bg reading: " + calculated_value);
+            return null;
+        }
+
+        final Sensor sensor = Sensor.createDefaultIfMissing();
+        if (sensor == null) {
+            Log.w(TAG, "No sensor, ignoring this bg reading");
+            return null;
+        }
+        final BgReading existing = getForPreciseTimestamp(timestamp, Constants.MINUTE_IN_MS);
+        if (existing == null) {
+            final BgReading bgr = new BgReading();
+            bgr.sensor = sensor;
+            bgr.sensor_uuid = sensor.uuid;
+            bgr.time_since_sensor_started = JoH.msSince(sensor.started_at);
+            bgr.timestamp = timestamp;
+            bgr.uuid = UUID.randomUUID().toString();
+            bgr.calculated_value = calculated_value;
+            bgr.raw_data = SPECIAL_RAW_NOT_AVAILABLE; // native pump value, no raw
+            bgr.appendSourceInfo("iLet");
+            if (sourceInfoAppend != null && sourceInfoAppend.length() > 0) {
+                bgr.appendSourceInfo(sourceInfoAppend);
+            }
+            bgr.save();
+            Inevitable.stackableTask("NotifySyncBgr", 3000, () -> notifyAndSync(bgr));
+            return bgr;
+        } else {
+            return existing;
+        }
+    }
+
     public static synchronized BgReading bgReadingInsertFromGluPro(double calculated_value, final long timestamp, String sourceInfoAppend) {
 
         final Sensor sensor = Sensor.currentSensor();

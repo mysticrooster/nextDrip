@@ -1,0 +1,2497 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 10,
+    "identityHash": "9e089b6a346cb2cc3d6c0c0e1afd23e3",
+    "entities": [
+      {
+        "tableName": "CalibrationRequest",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `requestIfAbove` REAL NOT NULL, `requestIfBelow` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestIfAbove",
+            "columnName": "requestIfAbove",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestIfBelow",
+            "columnName": "requestIfBelow",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        }
+      },
+      {
+        "tableName": "ActiveBgAlert",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `alert_uuid` TEXT, `is_snoozed` INTEGER NOT NULL, `last_alerted_at` INTEGER, `next_alert_at` INTEGER, `alert_started_at` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alert_uuid",
+            "columnName": "alert_uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "is_snoozed",
+            "columnName": "is_snoozed",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "last_alerted_at",
+            "columnName": "last_alerted_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "next_alert_at",
+            "columnName": "next_alert_at",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "alert_started_at",
+            "columnName": "alert_started_at",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        }
+      },
+      {
+        "tableName": "PenData",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `pen_mac` TEXT, `typ` TEXT, `timestamp` INTEGER NOT NULL, `idx` INTEGER NOT NULL, `created_timestamp` INTEGER NOT NULL, `units` REAL NOT NULL, `temperature` REAL NOT NULL, `battery` INTEGER NOT NULL, `flags` INTEGER NOT NULL, `bitmap` INTEGER NOT NULL, `uuid` TEXT, `insulin_name` TEXT, `raw` BLOB)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mac",
+            "columnName": "pen_mac",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "typ",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "index",
+            "columnName": "idx",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "created_timestamp",
+            "columnName": "created_timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "units",
+            "columnName": "units",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperature",
+            "columnName": "temperature",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "battery",
+            "columnName": "battery",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "flags",
+            "columnName": "flags",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bitmap_flags",
+            "columnName": "bitmap",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "insulin_name",
+            "columnName": "insulin_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "raw",
+            "columnName": "raw",
+            "affinity": "BLOB"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_PenData_pen_mac",
+            "unique": false,
+            "columnNames": [
+              "pen_mac"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_PenData_pen_mac` ON `${TABLE_NAME}` (`pen_mac`)"
+          },
+          {
+            "name": "index_PenData_typ",
+            "unique": false,
+            "columnNames": [
+              "typ"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_PenData_typ` ON `${TABLE_NAME}` (`typ`)"
+          },
+          {
+            "name": "index_PenData_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_PenData_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_PenData_pen_mac_idx",
+            "unique": true,
+            "columnNames": [
+              "pen_mac",
+              "idx"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_PenData_pen_mac_idx` ON `${TABLE_NAME}` (`pen_mac`, `idx`)"
+          },
+          {
+            "name": "index_PenData_uuid",
+            "unique": true,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_PenData_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "AlertType",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `active` INTEGER NOT NULL, `volume` INTEGER NOT NULL, `vibrate` INTEGER NOT NULL, `light` INTEGER NOT NULL, `override_silent_mode` INTEGER NOT NULL, `force_speaker` INTEGER NOT NULL, `predictive` INTEGER NOT NULL, `time_until_threshold_crossed` REAL NOT NULL, `above` INTEGER NOT NULL, `threshold` REAL NOT NULL, `all_day` INTEGER NOT NULL, `start_time_minutes` INTEGER NOT NULL, `end_time_minutes` INTEGER NOT NULL, `minutes_between` INTEGER NOT NULL, `default_snooze` INTEGER NOT NULL, `text` TEXT, `mp3_file` TEXT, `uuid` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "active",
+            "columnName": "active",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volume",
+            "columnName": "volume",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vibrate",
+            "columnName": "vibrate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "light",
+            "columnName": "light",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "override_silent_mode",
+            "columnName": "override_silent_mode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "force_speaker",
+            "columnName": "force_speaker",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "predictive",
+            "columnName": "predictive",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "time_until_threshold_crossed",
+            "columnName": "time_until_threshold_crossed",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "above",
+            "columnName": "above",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "threshold",
+            "columnName": "threshold",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "all_day",
+            "columnName": "all_day",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "start_time_minutes",
+            "columnName": "start_time_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "end_time_minutes",
+            "columnName": "end_time_minutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minutes_between",
+            "columnName": "minutes_between",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "default_snooze",
+            "columnName": "default_snooze",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "text",
+            "columnName": "text",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "mp3_file",
+            "columnName": "mp3_file",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_AlertType_uuid",
+            "unique": false,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_AlertType_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "HeartRate",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `bpm` INTEGER NOT NULL, `accuracy` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bpm",
+            "columnName": "bpm",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "accuracy",
+            "columnName": "accuracy",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_HeartRate_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_HeartRate_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "PebbleMovement",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `metric` INTEGER NOT NULL, `source` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metric",
+            "columnName": "metric",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_PebbleMovement_source",
+            "unique": false,
+            "columnNames": [
+              "source"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_PebbleMovement_source` ON `${TABLE_NAME}` (`source`)"
+          },
+          {
+            "name": "index_PebbleMovement_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_PebbleMovement_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "TransmitterData",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `raw_data` REAL NOT NULL, `filtered_data` REAL NOT NULL, `sensor_battery_level` INTEGER NOT NULL, `uuid` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "raw_data",
+            "columnName": "raw_data",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filtered_data",
+            "columnName": "filtered_data",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensor_battery_level",
+            "columnName": "sensor_battery_level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_TransmitterData_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_TransmitterData_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_TransmitterData_uuid",
+            "unique": false,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_TransmitterData_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "ActiveBluetoothDevice",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT, `address` TEXT, `connected` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "connected",
+            "columnName": "connected",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        }
+      },
+      {
+        "tableName": "Reminder",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT, `alt_title` TEXT, `next_due` INTEGER NOT NULL, `period` INTEGER NOT NULL, `sound_uri` TEXT, `enabled` INTEGER NOT NULL, `weekdays` INTEGER NOT NULL, `weekends` INTEGER NOT NULL, `homeonly` INTEGER NOT NULL, `speak` INTEGER NOT NULL, `graphicon` INTEGER NOT NULL, `repeating` INTEGER NOT NULL, `chime` INTEGER NOT NULL, `alternating` INTEGER NOT NULL, `alternate` INTEGER NOT NULL, `snoozed_till` INTEGER NOT NULL, `last_fired` INTEGER NOT NULL, `last_snoozed_for` INTEGER NOT NULL, `fired_times` INTEGER NOT NULL, `alerted_times` INTEGER NOT NULL, `priority` INTEGER NOT NULL, `ideal_time` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "alternate_title",
+            "columnName": "alt_title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "next_due",
+            "columnName": "next_due",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "period",
+            "columnName": "period",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sound_uri",
+            "columnName": "sound_uri",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "enabled",
+            "columnName": "enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weekdays",
+            "columnName": "weekdays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "weekends",
+            "columnName": "weekends",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "homeonly",
+            "columnName": "homeonly",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "speak",
+            "columnName": "speak",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "graphicon",
+            "columnName": "graphicon",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeating",
+            "columnName": "repeating",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chime_only",
+            "columnName": "chime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alternating",
+            "columnName": "alternating",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alternate",
+            "columnName": "alternate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "snoozed_till",
+            "columnName": "snoozed_till",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "last_fired",
+            "columnName": "last_fired",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "last_snoozed_for",
+            "columnName": "last_snoozed_for",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fired_times",
+            "columnName": "fired_times",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alerted_times",
+            "columnName": "alerted_times",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "priority",
+            "columnName": "priority",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ideal_time",
+            "columnName": "ideal_time",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Reminder_next_due",
+            "unique": false,
+            "columnNames": [
+              "next_due"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_next_due` ON `${TABLE_NAME}` (`next_due`)"
+          },
+          {
+            "name": "index_Reminder_enabled",
+            "unique": false,
+            "columnNames": [
+              "enabled"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_enabled` ON `${TABLE_NAME}` (`enabled`)"
+          },
+          {
+            "name": "index_Reminder_weekdays",
+            "unique": false,
+            "columnNames": [
+              "weekdays"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_weekdays` ON `${TABLE_NAME}` (`weekdays`)"
+          },
+          {
+            "name": "index_Reminder_weekends",
+            "unique": false,
+            "columnNames": [
+              "weekends"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_weekends` ON `${TABLE_NAME}` (`weekends`)"
+          },
+          {
+            "name": "index_Reminder_homeonly",
+            "unique": false,
+            "columnNames": [
+              "homeonly"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_homeonly` ON `${TABLE_NAME}` (`homeonly`)"
+          },
+          {
+            "name": "index_Reminder_priority",
+            "unique": false,
+            "columnNames": [
+              "priority"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_priority` ON `${TABLE_NAME}` (`priority`)"
+          },
+          {
+            "name": "index_Reminder_snoozed_till",
+            "unique": false,
+            "columnNames": [
+              "snoozed_till"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_snoozed_till` ON `${TABLE_NAME}` (`snoozed_till`)"
+          },
+          {
+            "name": "index_Reminder_last_fired",
+            "unique": false,
+            "columnNames": [
+              "last_fired"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Reminder_last_fired` ON `${TABLE_NAME}` (`last_fired`)"
+          }
+        ]
+      },
+      {
+        "tableName": "ShareGlucose",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `DT` TEXT, `ST` TEXT, `Trend` REAL NOT NULL, `Value` REAL NOT NULL, `WT` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "DT",
+            "columnName": "DT",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ST",
+            "columnName": "ST",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "Trend",
+            "columnName": "Trend",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "Value",
+            "columnName": "Value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "WT",
+            "columnName": "WT",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        }
+      },
+      {
+        "tableName": "Notifications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` REAL NOT NULL, `message` TEXT, `bg_alert` INTEGER NOT NULL, `calibration_alert` INTEGER NOT NULL, `double_calibration_alert` INTEGER NOT NULL, `extra_calibration_alert` INTEGER NOT NULL, `bg_unclear_readings_alert` INTEGER NOT NULL, `bg_missed_alerts` INTEGER NOT NULL, `bg_rise_alert` INTEGER NOT NULL, `bg_fall_alert` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "bg_alert",
+            "columnName": "bg_alert",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calibration_alert",
+            "columnName": "calibration_alert",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "double_calibration_alert",
+            "columnName": "double_calibration_alert",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "extra_calibration_alert",
+            "columnName": "extra_calibration_alert",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bg_unclear_readings_alert",
+            "columnName": "bg_unclear_readings_alert",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bg_missed_alerts",
+            "columnName": "bg_missed_alerts",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bg_rise_alert",
+            "columnName": "bg_rise_alert",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bg_fall_alert",
+            "columnName": "bg_fall_alert",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Notifications_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Notifications_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Prediction",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `glucose` REAL NOT NULL, `source` TEXT, `note` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "glucose",
+            "columnName": "glucose",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Prediction_source",
+            "unique": false,
+            "columnNames": [
+              "source"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Prediction_source` ON `${TABLE_NAME}` (`source`)"
+          },
+          {
+            "name": "index_Prediction_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Prediction_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "APStatus",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `basal_percent` INTEGER NOT NULL, `basal_absolute` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "basal_percent",
+            "columnName": "basal_percent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "basal_absolute",
+            "columnName": "basal_absolute",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_APStatus_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_APStatus_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Accuracy",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `bg` REAL NOT NULL, `bgtimestamp` INTEGER NOT NULL, `bgsource` TEXT, `plugin` TEXT, `calculated` REAL NOT NULL, `lag` INTEGER NOT NULL, `difference` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bg",
+            "columnName": "bg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bgtimestamp",
+            "columnName": "bgtimestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bgsource",
+            "columnName": "bgsource",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "plugin",
+            "columnName": "plugin",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "calculated",
+            "columnName": "calculated",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lag",
+            "columnName": "lag",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "difference",
+            "columnName": "difference",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Accuracy_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Accuracy_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_Accuracy_bgtimestamp",
+            "unique": false,
+            "columnNames": [
+              "bgtimestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Accuracy_bgtimestamp` ON `${TABLE_NAME}` (`bgtimestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "LibreData",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `temperature` REAL NOT NULL, `temperatureraw` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperature",
+            "columnName": "temperature",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperatureraw",
+            "columnName": "temperatureraw",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_LibreData_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_LibreData_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Libre2RawValue2",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `serial` TEXT, `ts` INTEGER NOT NULL, `glucose` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "serial",
+            "columnName": "serial",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "ts",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "glucose",
+            "columnName": "glucose",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Libre2RawValue2_serial",
+            "unique": false,
+            "columnNames": [
+              "serial"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Libre2RawValue2_serial` ON `${TABLE_NAME}` (`serial`)"
+          },
+          {
+            "name": "index_Libre2RawValue2_ts",
+            "unique": false,
+            "columnNames": [
+              "ts"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Libre2RawValue2_ts` ON `${TABLE_NAME}` (`ts`)"
+          }
+        ]
+      },
+      {
+        "tableName": "BloodTest",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `mgdl` REAL NOT NULL, `created_timestamp` INTEGER NOT NULL, `state` INTEGER NOT NULL, `source` TEXT, `uuid` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mgdl",
+            "columnName": "mgdl",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "created_timestamp",
+            "columnName": "created_timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_BloodTest_uuid",
+            "unique": true,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_BloodTest_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          },
+          {
+            "name": "index_BloodTest_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_BloodTest_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_BloodTest_created_timestamp",
+            "unique": false,
+            "columnNames": [
+              "created_timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BloodTest_created_timestamp` ON `${TABLE_NAME}` (`created_timestamp`)"
+          },
+          {
+            "name": "index_BloodTest_state",
+            "unique": false,
+            "columnNames": [
+              "state"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BloodTest_state` ON `${TABLE_NAME}` (`state`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Treatments",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `eventType` TEXT, `enteredBy` TEXT, `notes` TEXT, `uuid` TEXT, `carbs` REAL NOT NULL, `insulin` REAL NOT NULL, `insulinJSON` TEXT, `created_at` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventType",
+            "columnName": "eventType",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "enteredBy",
+            "columnName": "enteredBy",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "carbs",
+            "columnName": "carbs",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "insulin",
+            "columnName": "insulin",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "insulinJSON",
+            "columnName": "insulinJSON",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "created_at",
+            "columnName": "created_at",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Treatments_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Treatments_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_Treatments_uuid",
+            "unique": true,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_Treatments_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "LibreBlock",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `bytestart` INTEGER NOT NULL, `byteend` INTEGER NOT NULL, `reference` TEXT, `blockbytes` BLOB, `calculatedbg` REAL NOT NULL, `uuid` TEXT, `patchUid` BLOB, `patchInfo` BLOB)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "byte_start",
+            "columnName": "bytestart",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "byte_end",
+            "columnName": "byteend",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reference",
+            "columnName": "reference",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "blockbytes",
+            "columnName": "blockbytes",
+            "affinity": "BLOB"
+          },
+          {
+            "fieldPath": "calculated_bg",
+            "columnName": "calculatedbg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "patchUid",
+            "columnName": "patchUid",
+            "affinity": "BLOB"
+          },
+          {
+            "fieldPath": "patchInfo",
+            "columnName": "patchInfo",
+            "affinity": "BLOB"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_LibreBlock_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_LibreBlock_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_LibreBlock_bytestart",
+            "unique": false,
+            "columnNames": [
+              "bytestart"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_LibreBlock_bytestart` ON `${TABLE_NAME}` (`bytestart`)"
+          },
+          {
+            "name": "index_LibreBlock_byteend",
+            "unique": false,
+            "columnNames": [
+              "byteend"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_LibreBlock_byteend` ON `${TABLE_NAME}` (`byteend`)"
+          },
+          {
+            "name": "index_LibreBlock_reference",
+            "unique": false,
+            "columnNames": [
+              "reference"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_LibreBlock_reference` ON `${TABLE_NAME}` (`reference`)"
+          },
+          {
+            "name": "index_LibreBlock_uuid",
+            "unique": false,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_LibreBlock_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "DesertSync",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `topic` TEXT, `sender` TEXT, `payload` TEXT, `processed` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topic",
+            "columnName": "topic",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sender",
+            "columnName": "sender",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "payload",
+            "columnName": "payload",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "processed",
+            "columnName": "processed",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_DesertSync_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_DesertSync_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_DesertSync_payload",
+            "unique": false,
+            "columnNames": [
+              "payload"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DesertSync_payload` ON `${TABLE_NAME}` (`payload`)"
+          },
+          {
+            "name": "index_DesertSync_processed",
+            "unique": false,
+            "columnNames": [
+              "processed"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DesertSync_processed` ON `${TABLE_NAME}` (`processed`)"
+          },
+          {
+            "name": "index_DesertSync_topic",
+            "unique": false,
+            "columnNames": [
+              "topic"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_DesertSync_topic` ON `${TABLE_NAME}` (`topic`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Sensors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `started_at` INTEGER NOT NULL, `stopped_at` INTEGER NOT NULL, `latest_battery_level` INTEGER NOT NULL, `uuid` TEXT, `sensor_location` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "started_at",
+            "columnName": "started_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stopped_at",
+            "columnName": "stopped_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "latest_battery_level",
+            "columnName": "latest_battery_level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sensor_location",
+            "columnName": "sensor_location",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Sensors_started_at",
+            "unique": false,
+            "columnNames": [
+              "started_at"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Sensors_started_at` ON `${TABLE_NAME}` (`started_at`)"
+          },
+          {
+            "name": "index_Sensors_uuid",
+            "unique": false,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Sensors_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "Calibration",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `sensor_age_at_time_of_estimation` REAL NOT NULL, `sensor` INTEGER NOT NULL, `bg` REAL NOT NULL, `raw_value` REAL NOT NULL, `adjusted_raw_value` REAL NOT NULL, `sensor_confidence` REAL NOT NULL, `slope_confidence` REAL NOT NULL, `raw_timestamp` INTEGER NOT NULL, `slope` REAL NOT NULL, `intercept` REAL NOT NULL, `distance_from_estimate` REAL NOT NULL, `estimate_raw_at_time_of_calibration` REAL NOT NULL, `estimate_bg_at_time_of_calibration` REAL NOT NULL, `uuid` TEXT, `sensor_uuid` TEXT, `possible_bad` INTEGER, `check_in` INTEGER NOT NULL, `first_decay` REAL NOT NULL, `second_decay` REAL NOT NULL, `first_slope` REAL NOT NULL, `second_slope` REAL NOT NULL, `first_intercept` REAL NOT NULL, `second_intercept` REAL NOT NULL, `first_scale` REAL NOT NULL, `second_scale` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensor_age_at_time_of_estimation",
+            "columnName": "sensor_age_at_time_of_estimation",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensor_id",
+            "columnName": "sensor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bg",
+            "columnName": "bg",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "raw_value",
+            "columnName": "raw_value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "adjusted_raw_value",
+            "columnName": "adjusted_raw_value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensor_confidence",
+            "columnName": "sensor_confidence",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "slope_confidence",
+            "columnName": "slope_confidence",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "raw_timestamp",
+            "columnName": "raw_timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "slope",
+            "columnName": "slope",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "intercept",
+            "columnName": "intercept",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distance_from_estimate",
+            "columnName": "distance_from_estimate",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estimate_raw_at_time_of_calibration",
+            "columnName": "estimate_raw_at_time_of_calibration",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estimate_bg_at_time_of_calibration",
+            "columnName": "estimate_bg_at_time_of_calibration",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sensor_uuid",
+            "columnName": "sensor_uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "possible_bad",
+            "columnName": "possible_bad",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "check_in",
+            "columnName": "check_in",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "first_decay",
+            "columnName": "first_decay",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "second_decay",
+            "columnName": "second_decay",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "first_slope",
+            "columnName": "first_slope",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "second_slope",
+            "columnName": "second_slope",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "first_intercept",
+            "columnName": "first_intercept",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "second_intercept",
+            "columnName": "second_intercept",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "first_scale",
+            "columnName": "first_scale",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "second_scale",
+            "columnName": "second_scale",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_Calibration_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Calibration_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_Calibration_sensor",
+            "unique": false,
+            "columnNames": [
+              "sensor"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Calibration_sensor` ON `${TABLE_NAME}` (`sensor`)"
+          },
+          {
+            "name": "index_Calibration_uuid",
+            "unique": false,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Calibration_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          },
+          {
+            "name": "index_Calibration_sensor_uuid",
+            "unique": false,
+            "columnNames": [
+              "sensor_uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_Calibration_sensor_uuid` ON `${TABLE_NAME}` (`sensor_uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "BgReadings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sensor` INTEGER NOT NULL, `calibration` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL, `time_since_sensor_started` REAL NOT NULL, `raw_data` REAL NOT NULL, `filtered_data` REAL NOT NULL, `age_adjusted_raw_value` REAL NOT NULL, `calibration_flag` INTEGER NOT NULL, `calculated_value` REAL NOT NULL, `filtered_calculated_value` REAL NOT NULL, `calculated_value_slope` REAL NOT NULL, `a` REAL NOT NULL, `b` REAL NOT NULL, `c` REAL NOT NULL, `ra` REAL NOT NULL, `rb` REAL NOT NULL, `rc` REAL NOT NULL, `uuid` TEXT, `calibration_uuid` TEXT, `sensor_uuid` TEXT, `snyced` INTEGER NOT NULL, `raw_calculated` REAL NOT NULL, `hide_slope` INTEGER NOT NULL, `noise` TEXT, `dg_mgdl` REAL NOT NULL, `dg_slope` REAL NOT NULL, `dg_delta_name` TEXT, `source_info` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensor_id",
+            "columnName": "sensor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calibration_id",
+            "columnName": "calibration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "time_since_sensor_started",
+            "columnName": "time_since_sensor_started",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "raw_data",
+            "columnName": "raw_data",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filtered_data",
+            "columnName": "filtered_data",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "age_adjusted_raw_value",
+            "columnName": "age_adjusted_raw_value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calibration_flag",
+            "columnName": "calibration_flag",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calculated_value",
+            "columnName": "calculated_value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "filtered_calculated_value",
+            "columnName": "filtered_calculated_value",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calculated_value_slope",
+            "columnName": "calculated_value_slope",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "a",
+            "columnName": "a",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "b",
+            "columnName": "b",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "c",
+            "columnName": "c",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ra",
+            "columnName": "ra",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rb",
+            "columnName": "rb",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rc",
+            "columnName": "rc",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "calibration_uuid",
+            "columnName": "calibration_uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "sensor_uuid",
+            "columnName": "sensor_uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "ignoreForStats",
+            "columnName": "snyced",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "raw_calculated",
+            "columnName": "raw_calculated",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hide_slope",
+            "columnName": "hide_slope",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "noise",
+            "columnName": "noise",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "dg_mgdl",
+            "columnName": "dg_mgdl",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dg_slope",
+            "columnName": "dg_slope",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dg_delta_name",
+            "columnName": "dg_delta_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "source_info",
+            "columnName": "source_info",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_BgReadings_sensor",
+            "unique": false,
+            "columnNames": [
+              "sensor"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BgReadings_sensor` ON `${TABLE_NAME}` (`sensor`)"
+          },
+          {
+            "name": "index_BgReadings_calibration",
+            "unique": false,
+            "columnNames": [
+              "calibration"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BgReadings_calibration` ON `${TABLE_NAME}` (`calibration`)"
+          },
+          {
+            "name": "index_BgReadings_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BgReadings_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_BgReadings_sensor_uuid",
+            "unique": false,
+            "columnNames": [
+              "sensor_uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BgReadings_sensor_uuid` ON `${TABLE_NAME}` (`sensor_uuid`)"
+          },
+          {
+            "name": "index_BgReadings_uuid",
+            "unique": true,
+            "columnNames": [
+              "uuid"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_BgReadings_uuid` ON `${TABLE_NAME}` (`uuid`)"
+          }
+        ]
+      },
+      {
+        "tableName": "SensorSendQueue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `Sensor` INTEGER NOT NULL, `success` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sensor_id",
+            "columnName": "Sensor",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "success",
+            "columnName": "success",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_SensorSendQueue_Sensor",
+            "unique": false,
+            "columnNames": [
+              "Sensor"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_SensorSendQueue_Sensor` ON `${TABLE_NAME}` (`Sensor`)"
+          },
+          {
+            "name": "index_SensorSendQueue_success",
+            "unique": false,
+            "columnNames": [
+              "success"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_SensorSendQueue_success` ON `${TABLE_NAME}` (`success`)"
+          }
+        ]
+      },
+      {
+        "tableName": "CalibrationSendQueue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `calibration` INTEGER NOT NULL, `success` INTEGER NOT NULL, `mongo_success` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calibration_id",
+            "columnName": "calibration",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "success",
+            "columnName": "success",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mongo_success",
+            "columnName": "mongo_success",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_CalibrationSendQueue_calibration",
+            "unique": false,
+            "columnNames": [
+              "calibration"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CalibrationSendQueue_calibration` ON `${TABLE_NAME}` (`calibration`)"
+          },
+          {
+            "name": "index_CalibrationSendQueue_success",
+            "unique": false,
+            "columnNames": [
+              "success"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CalibrationSendQueue_success` ON `${TABLE_NAME}` (`success`)"
+          },
+          {
+            "name": "index_CalibrationSendQueue_mongo_success",
+            "unique": false,
+            "columnNames": [
+              "mongo_success"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_CalibrationSendQueue_mongo_success` ON `${TABLE_NAME}` (`mongo_success`)"
+          }
+        ]
+      },
+      {
+        "tableName": "BgSendQueue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `bgReading` INTEGER NOT NULL, `success` INTEGER NOT NULL, `mongo_success` INTEGER NOT NULL, `operation_type` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bgReading_id",
+            "columnName": "bgReading",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "success",
+            "columnName": "success",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mongo_success",
+            "columnName": "mongo_success",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "operation_type",
+            "columnName": "operation_type",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_BgSendQueue_bgReading",
+            "unique": false,
+            "columnNames": [
+              "bgReading"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BgSendQueue_bgReading` ON `${TABLE_NAME}` (`bgReading`)"
+          },
+          {
+            "name": "index_BgSendQueue_success",
+            "unique": false,
+            "columnNames": [
+              "success"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BgSendQueue_success` ON `${TABLE_NAME}` (`success`)"
+          },
+          {
+            "name": "index_BgSendQueue_mongo_success",
+            "unique": false,
+            "columnNames": [
+              "mongo_success"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_BgSendQueue_mongo_success` ON `${TABLE_NAME}` (`mongo_success`)"
+          }
+        ]
+      },
+      {
+        "tableName": "UploaderQueue",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `action` TEXT, `otype` TEXT, `reference_id` INTEGER NOT NULL, `reference_uuid` TEXT, `bitfield_wanted` INTEGER NOT NULL, `bitfield_complete` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "action",
+            "columnName": "action",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "otype",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "reference_id",
+            "columnName": "reference_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reference_uuid",
+            "columnName": "reference_uuid",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "bitfield_wanted",
+            "columnName": "bitfield_wanted",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bitfield_complete",
+            "columnName": "bitfield_complete",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_UploaderQueue_action",
+            "unique": false,
+            "columnNames": [
+              "action"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UploaderQueue_action` ON `${TABLE_NAME}` (`action`)"
+          },
+          {
+            "name": "index_UploaderQueue_otype",
+            "unique": false,
+            "columnNames": [
+              "otype"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UploaderQueue_otype` ON `${TABLE_NAME}` (`otype`)"
+          },
+          {
+            "name": "index_UploaderQueue_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UploaderQueue_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          },
+          {
+            "name": "index_UploaderQueue_bitfield_complete",
+            "unique": false,
+            "columnNames": [
+              "bitfield_complete"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UploaderQueue_bitfield_complete` ON `${TABLE_NAME}` (`bitfield_complete`)"
+          },
+          {
+            "name": "index_UploaderQueue_bitfield_wanted",
+            "unique": false,
+            "columnNames": [
+              "bitfield_wanted"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UploaderQueue_bitfield_wanted` ON `${TABLE_NAME}` (`bitfield_wanted`)"
+          }
+        ]
+      },
+      {
+        "tableName": "UserErrors",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `shortError` TEXT, `message` TEXT, `severity` INTEGER NOT NULL, `timestamp` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shortError",
+            "columnName": "shortError",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "message",
+            "columnName": "message",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "severity",
+            "columnName": "severity",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_UserErrors_severity",
+            "unique": false,
+            "columnNames": [
+              "severity"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UserErrors_severity` ON `${TABLE_NAME}` (`severity`)"
+          },
+          {
+            "name": "index_UserErrors_timestamp",
+            "unique": false,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_UserErrors_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      },
+      {
+        "tableName": "PumpIobReading",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `iob` REAL NOT NULL, `reservoir` REAL NOT NULL, `battery` REAL NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "iob",
+            "columnName": "iob",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reservoir",
+            "columnName": "reservoir",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "battery",
+            "columnName": "battery",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_PumpIobReading_timestamp",
+            "unique": true,
+            "columnNames": [
+              "timestamp"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_PumpIobReading_timestamp` ON `${TABLE_NAME}` (`timestamp`)"
+          }
+        ]
+      }
+    ],
+    "views": [
+      {
+        "viewName": "Libre2Sensors",
+        "createSql": "CREATE VIEW `${VIEW_NAME}` AS SELECT MIN(_id) as _id, serial, MIN(ts) as ts_from, MAX(ts) AS ts_to, COUNT(*) AS readings FROM Libre2RawValue2 GROUP BY serial ORDER BY ts DESC"
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9e089b6a346cb2cc3d6c0c0e1afd23e3')"
+    ]
+  }
+}

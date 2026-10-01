@@ -111,7 +111,8 @@ public final class LegacyDataImporter {
                     "CalibrationSendQueue",
                     "BgSendQueue",
                     "UploaderQueue",
-                    "UserErrors")));
+                    "UserErrors",
+                    "PumpIobReading")));
 
     private static final Object stateLock = new Object();
     private static boolean started;

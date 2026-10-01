@@ -1,6 +1,7 @@
 package com.eveningoutpost.dexdrip.db;
 
 import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 /**
  * Room schema migrations.
@@ -23,8 +24,23 @@ import androidx.room.migration.Migration;
  */
 public final class Migrations {
 
+    /** Adds the PumpIobReading table for the iLet pump-IOB graph line. */
+    static final Migration MIGRATION_9_10 = new Migration(9, 10) {
+        @Override
+        public void migrate(SupportSQLiteDatabase db) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS `PumpIobReading` "
+                    + "(`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + "`timestamp` INTEGER NOT NULL, "
+                    + "`iob` REAL NOT NULL, "
+                    + "`reservoir` REAL NOT NULL, "
+                    + "`battery` REAL NOT NULL)");
+            db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_PumpIobReading_timestamp` "
+                    + "ON `PumpIobReading` (`timestamp`)");
+        }
+    };
+
     public static final Migration[] ALL = {
-            // Add migrations here as the schema evolves.
+            MIGRATION_9_10,
     };
 
     private Migrations() {

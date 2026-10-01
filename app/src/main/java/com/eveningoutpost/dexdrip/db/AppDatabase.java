@@ -33,6 +33,7 @@ import com.eveningoutpost.dexdrip.db.dao.TreatmentsDao;
 import com.eveningoutpost.dexdrip.db.dao.TransmitterDataDao;
 import com.eveningoutpost.dexdrip.db.dao.UploaderQueueDao;
 import com.eveningoutpost.dexdrip.db.dao.UserErrorDao;
+import com.eveningoutpost.dexdrip.db.dao.PumpIobReadingDao;
 import com.eveningoutpost.dexdrip.db.dao.UserNotificationDao;
 import com.eveningoutpost.dexdrip.models.APStatus;
 import com.eveningoutpost.dexdrip.models.Accuracy;
@@ -57,6 +58,7 @@ import com.eveningoutpost.dexdrip.models.StepCounter;
 import com.eveningoutpost.dexdrip.models.Treatments;
 import com.eveningoutpost.dexdrip.models.TransmitterData;
 import com.eveningoutpost.dexdrip.models.UserError;
+import com.eveningoutpost.dexdrip.models.PumpIobReading;
 import com.eveningoutpost.dexdrip.models.UserNotification;
 import com.eveningoutpost.dexdrip.sharemodels.models.ShareGlucose;
 import com.eveningoutpost.dexdrip.utilitymodels.BgSendQueue;
@@ -64,7 +66,7 @@ import com.eveningoutpost.dexdrip.utilitymodels.CalibrationSendQueue;
 import com.eveningoutpost.dexdrip.utilitymodels.SensorSendQueue;
 import com.eveningoutpost.dexdrip.utilitymodels.UploaderQueue;
 
-@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class, Sensor.class, Calibration.class, BgReading.class, SensorSendQueue.class, CalibrationSendQueue.class, BgSendQueue.class, UploaderQueue.class, UserError.class}, views = {Libre2Sensor.class}, version = 9, exportSchema = true)
+@Database(entities = {CalibrationRequest.class, ActiveBgAlert.class, PenData.class, AlertType.class, HeartRate.class, StepCounter.class, TransmitterData.class, ActiveBluetoothDevice.class, Reminder.class, ShareGlucose.class, UserNotification.class, Prediction.class, APStatus.class, Accuracy.class, LibreData.class, Libre2RawValue.class, BloodTest.class, Treatments.class, LibreBlock.class, DesertSync.class, Sensor.class, Calibration.class, BgReading.class, SensorSendQueue.class, CalibrationSendQueue.class, BgSendQueue.class, UploaderQueue.class, UserError.class, PumpIobReading.class}, views = {Libre2Sensor.class}, version = 10, exportSchema = true)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "xdrip-room.db";
@@ -123,6 +125,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract UploaderQueueDao uploaderQueueDao();
 
     public abstract UserErrorDao userErrorDao();
+
+    public abstract PumpIobReadingDao pumpIobReadingDao();
 
     public abstract MetaDao metaDao();
 

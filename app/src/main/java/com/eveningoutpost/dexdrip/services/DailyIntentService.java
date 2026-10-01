@@ -95,6 +95,11 @@ public class DailyIntentService extends IntentService {
                     Log.e(TAG, "DailyIntentService exception on UserError ", e);
                 }
                 try {
+                    com.eveningoutpost.dexdrip.models.PumpIobReading.cleanup();
+                } catch (Exception e) {
+                    Log.d(TAG, "DailyIntentService exception on PumpIobReading " + e);
+                }
+                try {
                     BgSendQueue.cleanQueue(); // no longer used
 
                 } catch (Exception e) {
