@@ -1,6 +1,7 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -71,6 +72,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.AlertList
 import com.eveningoutpost.dexdrip.EditAlertActivity
@@ -93,6 +95,7 @@ import com.eveningoutpost.dexdrip.utils.TestFeature
 import com.eveningoutpost.dexdrip.wearintegration.Amazfitservice
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService
 import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
 @Composable
 internal fun titleFor(screen: SettingsScreen): String = when (screen) {
@@ -1297,3 +1300,227 @@ private fun glucoseInputValidator(context: android.content.Context): (String) ->
     }
     valid
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SettingsScreenContentRootPreview() {
+    XdripPreview {
+        SettingsScreenContent(
+            screen = SettingsScreen.Root,
+            onNavigate = {},
+            onOpenClassic = {},
+        )
+    }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SettingsScreenContentCategoryPreview() {
+    XdripPreview {
+        SettingsScreenContent(
+            screen = SettingsScreen.GeneralCategory,
+            onNavigate = {},
+            onOpenClassic = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SwitchPrefPreview() {
+    XdripPreview {
+        SwitchPref(
+            state = SettingsState(),
+            key = "preview_switch",
+            title = "Enable feature",
+            subtitle = "Summary text",
+            default = true,
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun EditPrefPreview() {
+    XdripPreview {
+        EditPref(
+            state = SettingsState(),
+            key = "preview_edit",
+            title = "Display name",
+            subtitle = "Summary text",
+            default = "150",
+            numeric = true,
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ListPrefPreview() {
+    XdripPreview {
+        ListPref(
+            state = SettingsState(),
+            key = "preview_list",
+            title = "Units",
+            entries = listOf("mg/dl", "mmol/L"),
+            values = listOf("mgdl", "mmol"),
+            default = "mgdl",
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RingtonePrefPreview() {
+    XdripPreview {
+        RingtonePref(
+            state = SettingsState(),
+            key = "preview_ringtone",
+            title = "Alert sound",
+            subtitle = "Summary text",
+        )
+    }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun RootScreenPreview() {
+    XdripPreview { RootScreen(onNavigate = {}, onOpenClassic = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun GeneralCategoryScreenPreview() {
+    XdripPreview { GeneralCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AlarmsCategoryScreenPreview() {
+    XdripPreview { AlarmsCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun YourDataCategoryScreenPreview() {
+    XdripPreview { YourDataCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun ProfileCategoryScreenPreview() {
+    XdripPreview { ProfileCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DevicesCategoryScreenPreview() {
+    XdripPreview { DevicesCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AppearanceCategoryScreenPreview() {
+    XdripPreview { AppearanceCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AccessibilityCategoryScreenPreview() {
+    XdripPreview { AccessibilityCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AdvancedCategoryScreenPreview() {
+    XdripPreview { AdvancedCategoryScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun UnitsScreenPreview() {
+    XdripPreview { UnitsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NotificationStyleScreenPreview() {
+    XdripPreview { NotificationStyleScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BgAlertsScreenPreview() {
+    XdripPreview { BgAlertsScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SuppressAlertsScreenPreview() {
+    XdripPreview { SuppressAlertsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AscendingVolumeScreenPreview() {
+    XdripPreview { AscendingVolumeScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun PersistentHighScreenPreview() {
+    XdripPreview { PersistentHighScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun ForecastLowScreenPreview() {
+    XdripPreview { ForecastLowScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SensorExpiryScreenPreview() {
+    XdripPreview { SensorExpiryScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun CalibrationAlertsScreenPreview() {
+    XdripPreview { CalibrationAlertsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun OtherAlertsScreenPreview() {
+    XdripPreview { OtherAlertsScreen() }
+}
+
+// endregion
