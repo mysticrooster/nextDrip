@@ -24,9 +24,9 @@ import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.GcmActivity
 import com.eveningoutpost.dexdrip.NFCReaderX
 import com.eveningoutpost.dexdrip.R
-import com.eveningoutpost.dexdrip.cgm.ilet.ILetEntry
 import com.eveningoutpost.dexdrip.cgm.ilet.ILetLoginActivity
 import com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs
+import com.eveningoutpost.dexdrip.insulin.InsulinPumps
 import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.services.G5BaseService
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
@@ -114,16 +114,6 @@ internal fun DataSourceScreen(onNavigate: (SettingsScreen) -> Unit) {
             )
         }
 
-        if (ct == DexCollectionType.ILet) {
-            SettingsActionRow(
-                title = "iLet",
-                subtitle = "iLet account, pump data and read-only notice",
-                icon = Icons.Outlined.Sensors,
-                onClick = { onNavigate(SettingsScreen.ILetDevice) },
-                modifier = Modifier.testTag("setting_ilet"),
-            )
-        }
-
         if (ct == DexCollectionType.NSFollow) {
             EditPref(state, "nsfollow_url", context.getString(R.string.title_nsfollow_url), default = "", subtitle = context.getString(R.string.summary_nsfollow_url), tag = "setting_nsfollow_url")
             SettingsActionRow(
@@ -203,7 +193,7 @@ internal fun DataSourceScreen(onNavigate: (SettingsScreen) -> Unit) {
  * Reproduces the legacy `dex_collection_method` change listener: follower battery resets, turning
  * off xDrip Sync master for followers, and always restarting the collection service.
  */
-private fun applyCollectionMethodChange(newValue: String) {
+internal fun applyCollectionMethodChange(newValue: String) {
     val type = DexCollectionType.getType(newValue)
     if (type == DexCollectionType.DexcomShare) {
         Pref.setBoolean("calibration_notifications", false)
@@ -216,6 +206,12 @@ private fun applyCollectionMethodChange(newValue: String) {
             JoH.static_toast_long("Turning off xDrip Sync Master for Followers!")
         }
         GcmActivity.requestBGsync()
+    }
+    // Keep the Insulin Pumps selector in step when a pump is chosen here directly.
+    val pump = InsulinPumps.pumpForCollector(newValue)
+    if (pump != null) {
+        InsulinPumps.setSelectedValue(pump.value)
+        InsulinPumps.setDriverEnabled(pump, true)
     }
     CollectionServiceStarter.restartCollectionServiceBackground()
 }
@@ -485,17 +481,10 @@ internal fun ILetDeviceScreen() {
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
-
-        SwitchPref(
-            state = state,
-            key = IletPrefs.ENABLED,
-            title = "Enable iLet",
-            subtitle = "Read pump data; off by default",
-            onCheckedChange = { enabled ->
-                state.setBool(IletPrefs.ENABLED, enabled)
-                if (enabled) ILetEntry.startIfEnabled(context) else ILetEntry.stop(context)
-            },
-            tag = "setting_ilet_enabled",
+        Text(
+            "Select and enable the pump under Devices \u2192 Insulin Pumps.",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 0.dp),
         )
 
         EditPref(
@@ -520,7 +509,6 @@ internal fun ILetDeviceScreen() {
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
 
-        SwitchPref(state, IletPrefs.DOWNLOAD_GLUCOSE, "Use iLet as glucose source", default = true, tag = "setting_ilet_glucose")
         SwitchPref(state, IletPrefs.DOWNLOAD_BOLUSES, "Download boluses", default = true, tag = "setting_ilet_boluses")
         SwitchPref(state, IletPrefs.DOWNLOAD_MEALS, "Download meals", default = true, tag = "setting_ilet_meals")
         SwitchPref(state, IletPrefs.DOWNLOAD_BASAL, "Download basal", default = true, tag = "setting_ilet_basal")

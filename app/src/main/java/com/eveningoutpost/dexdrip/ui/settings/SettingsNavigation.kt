@@ -33,6 +33,7 @@ internal sealed interface SettingsScreen {
     data object LibreDevice : SettingsScreen
     data object MedtrumDevice : SettingsScreen
     data object ILetDevice : SettingsScreen
+    data object InsulinPumps : SettingsScreen
     data object BluetoothBridge : SettingsScreen
     data object WebFollow : SettingsScreen
     data object NfcSettings : SettingsScreen
@@ -119,6 +120,7 @@ internal val SETTINGS_SEARCH_INDEX = listOf(
     SettingsSearchEntry("Libre / NFC", SettingsScreen.LibreDevice, listOf("libre", "nfc", "sensor", "bluereader")),
     SettingsSearchEntry("Medtrum", SettingsScreen.MedtrumDevice, listOf("medtrum", "sensor")),
     SettingsSearchEntry("iLet", SettingsScreen.ILetDevice, listOf("ilet", "beta bionics", "pump", "bolus", "basal", "reservoir")),
+    SettingsSearchEntry("Insulin Pumps", SettingsScreen.InsulinPumps, listOf("insulin pump", "pump", "ilet", "bolus", "basal")),
     SettingsSearchEntry("Bluetooth Bridge", SettingsScreen.BluetoothBridge, listOf("bridge", "wixel", "parakeet")),
     SettingsSearchEntry("Web Follower Settings", SettingsScreen.WebFollow, listOf("webfollow", "proxy")),
     SettingsSearchEntry("NFC Scan Features", SettingsScreen.NfcSettings, listOf("nfc", "libre", "scan", "expiry")),

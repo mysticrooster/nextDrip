@@ -114,13 +114,29 @@ class SettingsIaTest {
     }
 
     @Test
-    fun iletPumpIsReachableFromDevicesWhenEnabled() {
-        Pref.setBoolean("ilet_enabled", true)
+    fun insulinPumpsSelectAndMirrorCollector() {
+        Pref.setString("dex_collection_method", "Disabled")
+        Pref.setString("pump_selected", "None")
+        Pref.setBoolean("ilet_enabled", false)
 
         category("setting_category_devices")
-        composeRule.onNodeWithTag("setting_ilet_pump").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_insulin_pumps").performScrollTo().performClick()
 
-        composeRule.onNodeWithTag("setting_ilet_enabled").performScrollTo().assertExists()
-        composeRule.onNodeWithTag("setting_ilet_account").performScrollTo().assertExists()
+        // Pick iLet as the pump driver.
+        composeRule.onNodeWithTag("setting_insulin_pump").performScrollTo().performClick()
+        composeRule.onNodeWithText("iLet").performClick()
+        assertThat(Pref.getString("pump_selected", "None")).isEqualTo("iLet")
+        assertThat(Pref.getBoolean("ilet_enabled", false)).isTrue()
+
+        // Make it the glucose source; the collector mirrors it.
+        composeRule.onNodeWithTag("setting_pump_glucose_source").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_pump_glucose_confirm").assertExists()
+        composeRule.onNodeWithText("Confirm").performClick()
+        assertThat(Pref.getString("dex_collection_method", "Disabled")).isEqualTo("iLet")
+
+        // Turning it off restores the previous collector (Disabled here).
+        composeRule.onNodeWithTag("setting_pump_glucose_source").performScrollTo().performClick()
+        composeRule.onNodeWithText("Confirm").performClick()
+        assertThat(Pref.getString("dex_collection_method", "Disabled")).isEqualTo("Disabled")
     }
 }

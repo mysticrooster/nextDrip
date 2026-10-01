@@ -52,6 +52,16 @@
         <item>iLet</item>
     </string-array>
 
+    <string-array name="InsulinPumpEntries">
+        <item>None</item>
+        <item>iLet</item>
+    </string-array>
+
+    <string-array name="InsulinPumpValues">
+        <item>None</item>
+        <item>iLet</item>
+    </string-array>
+
      <string-array name="EnableStreamingMethods">
         <item>@string/enable_streaming_always_allow</item>
         <item>@string/enable_streaming_ask_each_time</item>

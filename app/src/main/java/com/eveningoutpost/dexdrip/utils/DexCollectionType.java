@@ -112,6 +112,11 @@ public enum DexCollectionType {
         this.internalName = name;
     }
 
+    /** The value stored in the `dex_collection_method` preference. */
+    public String getInternalName() {
+        return internalName;
+    }
+
 
     public static DexCollectionType getType(String dexCollectionType) {
 

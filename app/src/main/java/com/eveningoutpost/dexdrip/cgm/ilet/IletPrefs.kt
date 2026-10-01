@@ -12,7 +12,6 @@ import com.eveningoutpost.dexdrip.utils.DexCollectionType
 object IletPrefs {
 
     const val ENABLED = "ilet_enabled"
-    const val DOWNLOAD_GLUCOSE = "ilet_download_glucose"
     const val DOWNLOAD_BOLUSES = "ilet_download_boluses"
     const val DOWNLOAD_MEALS = "ilet_download_meals"
     const val DOWNLOAD_BASAL = "ilet_download_basal"
@@ -45,9 +44,13 @@ object IletPrefs {
     @JvmStatic
     fun isPumpOnly(): Boolean = isEnabled() && !isCollectorSelected()
 
-    /** Whether to write glucose from iLet at all (collector mode only). */
+    /**
+     * Whether iLet glucose should be written. Being the selected collector is
+     * the single definition of "primary glucose source" (see InsulinPumps); in
+     * pump-only mode another collector supplies glucose and this is false.
+     */
     @JvmStatic
-    fun downloadGlucose(): Boolean = isCollectorSelected() && Pref.getBoolean(DOWNLOAD_GLUCOSE, true)
+    fun downloadGlucose(): Boolean = isCollectorSelected()
 
     @JvmStatic
     fun downloadBoluses(): Boolean = Pref.getBoolean(DOWNLOAD_BOLUSES, true)

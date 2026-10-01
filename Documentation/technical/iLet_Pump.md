@@ -31,12 +31,19 @@ cgm/ilet/
 
 ## Settings placement
 
-The iLet settings are the bounded per-device screen `ILetDevice` (rendered by
-`ILetDeviceScreen()` in `DataSourceScreen.kt`, alongside `DexcomDevice`/`MedtrumDevice`).
-It is reached two ways in the category-based IA: from **Devices → iLet Pump** whenever
-`ilet_enabled` is set (this keeps the account/pump data reachable in pump-only mode, when
-another CGM is the collector), and contextually from **Devices → Data Source → iLet** when
-iLet is the selected collector. The screen is also indexed in the root settings search.
+The pump driver lives under `Devices → Insulin Pumps`. That page has a general pump selector
+(`InsulinPumps` registry, `pump_selected`) that lists pumps regardless of CGM support, and for
+a CGM-capable pump a **Use … as glucose source** toggle. The toggle is the only thing that
+touches the primary glucose source: turning it on sets `dex_collection_method` to the pump's
+collector name (remembering the previous collector in `pump_previous_collector`) and turning
+it off restores that previous collector (or `Disabled` if there was none); the change is
+confirmed first, because it restarts collection and can alter calibration/follower behaviour.
+Selecting a pump only activates its driver, so a pump can be active for pump data while a
+different collector supplies glucose (pump-only mode). Choosing a pump in the Hardware Data
+Source list mirrors the selection back, and iLet remains a valid entry there. The pump's own
+screen (`ILetDevice`, rendered by `ILetDeviceScreen()` in `DataSourceScreen.kt`) is reached
+from the Insulin Pumps page and holds the read-only notice, Bluetooth address, data-download
+toggles and the account/login link.
 
 ## Protocol summary
 
