@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.service.notification.NotificationListenerService;
 
+import androidx.annotation.VisibleForTesting;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ProcessLifecycleOwner;
 
@@ -393,9 +395,23 @@ public class CollectionServiceStarter {
 
     private static void restartCollectorViaAlarm() {
         final Class<?> serviceClass = DexCollectionType.getCollectorServiceClass();
-        final PendingIntent pendingIntent = WakeLockTrampoline.getPendingIntent(serviceClass, BACKGROUND_RESTART_REQUEST_CODE);
+        if (!canStartAsForegroundService(serviceClass)) {
+            Log.d(TAG, "Collector " + serviceClass.getSimpleName()
+                    + " is not a foreground service; skipping background restart");
+            return;
+        }
+        final PendingIntent pendingIntent =
+                WakeLockTrampoline.getPendingIntent(serviceClass, BACKGROUND_RESTART_REQUEST_CODE);
         JoH.wakeUpIntent(xdrip.getAppContext(), BACKGROUND_RESTART_DELAY_MS, pendingIntent);
         Log.d(TAG, "Scheduled background collector restart via alarm for: " + serviceClass.getSimpleName());
+    }
+
+    @VisibleForTesting
+    static boolean canStartAsForegroundService(final Class<?> serviceClass) {
+        // NotificationListenerService instances are bound by the system and never call
+        // startForeground(); starting one via startForegroundService() kills the process with
+        // ForegroundServiceDidNotStartInTimeException.
+        return !NotificationListenerService.class.isAssignableFrom(serviceClass);
     }
 
 

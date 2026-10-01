@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.service.notification.NotificationListenerService;
 import android.util.SparseArray;
 
 import com.eveningoutpost.dexdrip.models.JoH;
@@ -51,6 +52,12 @@ public class WakeLockTrampoline extends BroadcastReceiver {
         final Class serviceClass = getClassFromName(serviceName);
         if (serviceClass == null) {
             UserError.Log.wtf(TAG, "Could not resolve service class for: " + serviceName);
+            return;
+        }
+
+        if (NotificationListenerService.class.isAssignableFrom(serviceClass)) {
+            UserError.Log.wtf(TAG, "Refusing to start NotificationListenerService as a foreground service: "
+                    + serviceName);
             return;
         }
 

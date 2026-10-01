@@ -294,7 +294,12 @@ runtime requirements that crash on startup:
   Handler path is kept only for foreground restarts (where the full
   stop-all/start-correct-collector logic is needed). The direct
   `startForegroundService` call sites are also wrapped so they log instead of
-  crashing when the allow-list is absent.
+  crashing when the allow-list is absent. Non-foreground collectors (UiBased,
+  a `NotificationListenerService`) are excluded from the exact-alarm restart
+  path entirely, since they can never call `startForeground()` — starting one
+  would still be killed by `ForegroundServiceDidNotStartInTimeException`.
+  `UiBasedCollector` now also reports listener-enabled health through
+  `isCollecting()`, which `MissedReadingService` reads via reflection.
 
 ### 8. Theme & color system (Phase 1)
 
