@@ -63,7 +63,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.EditAlertActivity
 import com.eveningoutpost.dexdrip.R
-import com.eveningoutpost.dexdrip.models.AlertType
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import java.util.Calendar
 import kotlin.math.roundToInt
@@ -101,13 +100,21 @@ fun SettingsActionRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     trailing: String? = null,
-    icon: ImageVector? = null,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
 ) {
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
-        leadingContent = icon?.let { vector -> { Icon(imageVector = vector, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) } },
+        leadingContent = icon?.let { vector ->
+            {
+                Icon(
+                    imageVector = vector,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
         trailingContent = trailing?.let { { TrailingValue(it) } },
         modifier = modifier
             .fillMaxWidth()
@@ -205,7 +212,8 @@ private fun TrailingValue(
     maxLines: Int = 1,
 ) {
     val widthFraction = if (maxLines > 1) 0.66f else 0.5f
-    val maxWidth = (LocalConfiguration.current.screenWidthDp.dp * widthFraction).coerceAtLeast(140.dp)
+    val maxWidth =
+        (LocalConfiguration.current.screenWidthDp.dp * widthFraction).coerceAtLeast(140.dp)
     Text(
         text = text,
         style = MaterialTheme.typography.bodyMedium,
@@ -295,12 +303,22 @@ fun SettingsListRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val selectedIndex = values.indexOf(selectedValue).coerceAtLeast(0)
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
+        leadingContent = icon?.let { vector ->
+            {
+                Icon(
+                    imageVector = vector,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
         trailingContent = { TrailingValue(entries.getOrElse(selectedIndex) { "" }) },
         modifier = modifier
             .fillMaxWidth()
@@ -330,7 +348,15 @@ fun SettingsListRow(
                 }
             },
             confirmButton = {},
-            dismissButton = { TextButton(onClick = { showDialog = false }) { Text(stringResource(android.R.string.cancel)) } },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(
+                        stringResource(
+                            android.R.string.cancel
+                        )
+                    )
+                }
+            },
         )
     }
 }
@@ -381,18 +407,22 @@ fun SettingsRingtoneRow(
     enabled: Boolean = true,
 ) {
     val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            val data = result.data ?: return@rememberLauncherForActivityResult
-            val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+    val launcher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == android.app.Activity.RESULT_OK) {
+                val data = result.data ?: return@rememberLauncherForActivityResult
+                val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    data.getParcelableExtra(
+                        RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
+                        Uri::class.java
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
+                }
+                onPicked(uri?.toString() ?: "")
             }
-            onPicked(uri?.toString() ?: "")
         }
-    }
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
@@ -405,7 +435,10 @@ fun SettingsRingtoneRow(
                     putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALL)
                     putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
                     putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM))
+                    putExtra(
+                        RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI,
+                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                    )
                     putExtra(
                         RingtoneManager.EXTRA_RINGTONE_EXISTING_URI,
                         if (value.isNullOrEmpty()) null else Uri.parse(value),
@@ -627,7 +660,15 @@ private fun ColorPickerDialog(
                 ColorSlider("Brightness", value, 0f..1f) { value = it }
             }
         },
-        confirmButton = { TextButton(onClick = { onColorPicked(color) }) { Text(stringResource(android.R.string.ok)) } },
+        confirmButton = {
+            TextButton(onClick = { onColorPicked(color) }) {
+                Text(
+                    stringResource(
+                        android.R.string.ok
+                    )
+                )
+            }
+        },
         dismissButton = {
             Row {
                 if (onReset != null) {
@@ -640,7 +681,12 @@ private fun ColorPickerDialog(
 }
 
 @Composable
-private fun ColorSlider(label: String, value: Float, range: ClosedFloatingPointRange<Float>, onChange: (Float) -> Unit) {
+private fun ColorSlider(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    onChange: (Float) -> Unit
+) {
     Text(label, style = MaterialTheme.typography.labelMedium)
     Slider(value = value, onValueChange = onChange, valueRange = range)
 }
@@ -664,7 +710,9 @@ private fun EditTextDialog(
             OutlinedTextField(
                 value = text,
                 onValueChange = { newValue ->
-                    text = if (maxLength != null && newValue.length > maxLength) newValue.take(maxLength) else newValue
+                    text = if (maxLength != null && newValue.length > maxLength) newValue.take(
+                        maxLength
+                    ) else newValue
                 },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(
@@ -770,7 +818,6 @@ private fun SettingsListRowPreview() {
     XdripPreview {
         SettingsListRow(
             title = "Units",
-            subtitle = "Glucose value units",
             entries = listOf("mg/dl", "mmol/L"),
             values = listOf("mgdl", "mmol"),
             selectedValue = "mgdl",

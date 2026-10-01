@@ -30,7 +30,6 @@ internal enum class SettingsScreen {
     OtherAlerts,
     DataSource,
     DexcomDevice,
-    LibreDevice,
     MedtrumDevice,
     BluetoothBridge,
     WebFollow,

@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.SendToMobile
+import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -201,6 +203,29 @@ internal fun WearSettingsScreen() {
         )
         SwitchPref(state, "show_wear_treatments", context.getString(R.string.pref_show_treatments), default = false, subtitle = context.getString(R.string.pref_summary_show_treatments), enabled = wearSync)
         SwitchPref(state, "enable_wear_auto_update", context.getString(R.string.title_enable_wear_auto_update), default = true, subtitle = context.getString(R.string.summary_enable_wear_auto_update), enabled = wearSync)
+
+        SettingsActionRow(
+            title = context.getString(R.string.action_open_watch_setting),
+            icon = Icons.Outlined.Watch,
+            enabled = state.bool("wear_sync", false),
+            onClick = {
+                context.startService(
+                    Intent(context, WatchUpdaterService::class.java).setAction(WatchUpdaterService.ACTION_OPEN_SETTINGS)
+                )
+            },
+            modifier = Modifier.testTag("setting_open_watch_settings"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.action_sync_watch_db),
+            icon = Icons.Outlined.Sync,
+            enabled = state.bool("wear_sync", false),
+            onClick = {
+                context.startService(
+                    Intent(context, WatchUpdaterService::class.java).setAction(WatchUpdaterService.ACTION_RESET_DB)
+                )
+            },
+            modifier = Modifier.testTag("setting_sync_watch_db"),
+        )
     }
 }
 
@@ -256,6 +281,18 @@ internal fun AmazfitSettingsScreen() {
             enabled = graph,
         )
     }
+    SettingsActionRow(
+        title = context.getString(R.string.action_resend_to_watch),
+        icon = Icons.Outlined.SendToMobile,
+        enabled = state.bool("wear_sync", false) || state.bool("pref_amazfit_enable_key", false),
+        onClick = {
+            WatchUpdaterService.startServiceAndResendData(0)
+            if (state.bool("pref_amazfit_enable_key", false)) {
+                Amazfitservice.start("xDrip_synced_SGV_data")
+            }
+        },
+        modifier = Modifier.testTag("setting_resend_watch"),
+    )
 }
 
 /* ---------------------------------------------------------------------------- LeFun */

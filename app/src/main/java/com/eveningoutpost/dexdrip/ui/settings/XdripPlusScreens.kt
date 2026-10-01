@@ -7,7 +7,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.provider.Settings
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -645,7 +644,6 @@ internal fun LanguageSettingsScreen() {
         )
         SettingsListRow(
             title = context.getString(R.string.chosse_language),
-            subtitle = context.getString(R.string.need_alternate_language),
             entries = localeEntries,
             values = localeValues,
             selectedValue = language,
@@ -654,6 +652,7 @@ internal fun LanguageSettingsScreen() {
                 if (state.bool("force_english", false)) SdcardImportExport.hardReset()
             },
             modifier = Modifier.testTag("setting_forced_language"),
+            subtitle = context.getString(R.string.need_alternate_language),
         )
     }
 }

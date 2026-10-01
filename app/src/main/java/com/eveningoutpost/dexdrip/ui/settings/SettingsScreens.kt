@@ -38,7 +38,6 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.SendToMobile
 import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShowChart
@@ -92,105 +91,103 @@ import com.eveningoutpost.dexdrip.profileeditor.ProfileEditor
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.LibreTrendGraph
 import com.eveningoutpost.dexdrip.utils.TestFeature
-import com.eveningoutpost.dexdrip.wearintegration.Amazfitservice
-import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService
 import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
-internal fun titleFor(context: Context, screen: SettingsScreen): String = when (screen) {
-    SettingsScreen.Root -> "Settings"
-    SettingsScreen.GeneralCategory -> context.getString(R.string.general_settings)
-    SettingsScreen.AlarmsCategory -> context.getString(R.string.alarms_and_alerts)
-    SettingsScreen.YourDataCategory -> "Your Data"
-    SettingsScreen.ProfileCategory -> "Profile"
-    SettingsScreen.DevicesCategory -> "Devices"
-    SettingsScreen.AppearanceCategory -> "Appearance"
-    SettingsScreen.AccessibilityCategory -> "Accessibility"
-    SettingsScreen.AdvancedCategory -> "Advanced"
-    SettingsScreen.Units -> context.getString(R.string.glucose_units)
-    SettingsScreen.Theme -> context.getString(R.string.theme_colors)
-    SettingsScreen.NotificationStyle -> "Notification Style"
-    SettingsScreen.BgAlerts -> context.getString(R.string.glucose_alerts_settings)
-    SettingsScreen.SuppressAlerts -> context.getString(R.string.suppress_alerts_if_missed_readings)
-    SettingsScreen.AscendingVolume -> context.getString(R.string.title_ascending_volume)
-    SettingsScreen.PersistentHigh -> context.getString(R.string.persistent_high_alert)
-    SettingsScreen.ForecastLow -> context.getString(R.string.forecasted_low_alert)
-    SettingsScreen.SensorExpiry -> context.getString(R.string.title_sens_expiry)
-    SettingsScreen.CalibrationAlerts -> context.getString(R.string.calibration_alerts)
-    SettingsScreen.OtherAlerts -> context.getString(R.string.other_alerts)
-    SettingsScreen.DataSource -> context.getString(R.string.data_source_settings)
-    SettingsScreen.DexcomDevice -> "Dexcom"
-    SettingsScreen.LibreDevice -> "Libre / NFC"
-    SettingsScreen.MedtrumDevice -> "Medtrum"
-    SettingsScreen.BluetoothBridge -> "Bluetooth Bridge"
-    SettingsScreen.WebFollow -> "Web Follower Settings"
-    SettingsScreen.NfcSettings -> context.getString(R.string.nfc_scan_features)
-    SettingsScreen.NsFollowDownload -> context.getString(R.string.title_nsfollow_download_treatments)
-    SettingsScreen.G5Debug -> context.getString(R.string.g5_debug_settings)
-    SettingsScreen.PreemptiveRestart -> context.getString(R.string.title_ob1_g5_preemptive_restart)
-    SettingsScreen.DataSync -> context.getString(R.string.data_sync)
-    SettingsScreen.Backups -> "Backups"
-    SettingsScreen.About -> "About"
-    SettingsScreen.Version -> "Version"
-    SettingsScreen.HomeScreen -> "Home Screen"
-    SettingsScreen.AutoConfig -> context.getString(R.string.auto_configure_title)
-    SettingsScreen.CloudUpload -> context.getString(R.string.cloud_upload)
-    SettingsScreen.RestApi -> context.getString(R.string.pref_title_api)
-    SettingsScreen.RestApiDownload -> context.getString(R.string.title_cloud_storage_api_download_enable)
-    SettingsScreen.RestApiExtra -> context.getString(R.string.title_rest_api_extra_options)
-    SettingsScreen.Mongo -> context.getString(R.string.pref_title_mongodb)
-    SettingsScreen.Influx -> context.getString(R.string.pref_title_influxdb)
-    SettingsScreen.DexcomUpload -> context.getString(R.string.dexcom_share_server_upload)
-    SettingsScreen.Tidepool -> context.getString(R.string.title_tidepool)
-    SettingsScreen.WebDeposit -> "Web Deposit"
-    SettingsScreen.NightLite -> "NightLite"
-    SettingsScreen.Nocturne -> context.getString(R.string.nocturne)
-    SettingsScreen.GlucoseMeters -> context.getString(R.string.glucose_meters)
-    SettingsScreen.SpeakReadings -> context.getString(R.string.speak_readings)
-    SettingsScreen.InterApp -> context.getString(R.string.interapp_settings)
-    SettingsScreen.HealthConnect -> context.getString(R.string.google_health_connect)
-    SettingsScreen.ExtraStatusLine -> context.getString(R.string.extra_status_line)
-    SettingsScreen.CalibrationSettings -> context.getString(R.string.advanced_calibration)
-    SettingsScreen.BluetoothSettings -> context.getString(R.string.bluetooth_settings)
-    SettingsScreen.BlueReaderSettings -> context.getString(R.string.advanced_bluereader_settings)
-    SettingsScreen.Libre2Settings -> context.getString(R.string.title_advanced_settings_4_Lib2)
-    SettingsScreen.LoggingSettings -> context.getString(R.string.extra_logging)
-    SettingsScreen.OtherMiscSettings -> context.getString(R.string.title_Other_misc_options)
-    SettingsScreen.CollectorInForeground -> context.getString(R.string.title_collector_in_foreground)
-    SettingsScreen.SmartWatchOptions -> context.getString(R.string.smart_watch_features)
-    SettingsScreen.SmartwatchSensors -> context.getString(R.string.title_Smartwatch_Sensors)
-    SettingsScreen.WearSettings -> context.getString(R.string.android_wear_integration)
-    SettingsScreen.AmazfitSettings -> context.getString(R.string.amazfit_sync_service)
-    SettingsScreen.LeFunSettings -> context.getString(R.string.title_lefun_band)
-    SettingsScreen.LeFunFeatures -> context.getString(R.string.title_lefun_screens_features)
-    SettingsScreen.BlueJaySettings -> "BlueJay Watch"
-    SettingsScreen.BlueJayAdvanced -> "BlueJay Advanced Settings"
-    SettingsScreen.MiBandSettings -> context.getString(R.string.title_miband)
-    SettingsScreen.MiBandSubSettings -> context.getString(R.string.title_miband_screens_features)
-    SettingsScreen.PebbleSettings -> context.getString(R.string.pebble_integration)
-    SettingsScreen.XdripPlusDisplay -> context.getString(R.string.xdrip_plus_display_settings)
-    SettingsScreen.XdripPlusFont -> context.getString(R.string.title_font_settings)
-    SettingsScreen.XdripPlusLanguage -> context.getString(R.string.title_language)
-    SettingsScreen.XdripPlusGraphDisplay -> context.getString(R.string.title_xdrip_plus_graph_display_settings)
-    SettingsScreen.XdripPlusGraphSmoothing -> context.getString(R.string.graph_smoothing)
-    SettingsScreen.XdripPlusYAxis -> context.getString(R.string.title_yRange)
-    SettingsScreen.XdripPlusAccessibility -> context.getString(R.string.title_xdrip_plus_accessibility)
-    SettingsScreen.XdripPlusNumberWall -> context.getString(R.string.title_xdrip_plus_number_wall)
-    SettingsScreen.XdripPlusNumberIcon -> context.getString(R.string.title_xdrip_plus_number_icon)
-    SettingsScreen.XdripPlusCopying -> context.getString(R.string.copying_settings)
-    SettingsScreen.XdripPlusUpdate -> context.getString(R.string.xdrip_plus_update_settings)
-    SettingsScreen.XdripPlusMotion -> context.getString(R.string.xdrip_motion_tracking)
-    SettingsScreen.XdripPlusPens -> context.getString(R.string.insulin_pens)
-    SettingsScreen.XdripPlusNovopen -> context.getString(R.string.title_novopen_insulin_pen)
-    SettingsScreen.XdripPlusInpen -> context.getString(R.string.title_inpen_screen)
-    SettingsScreen.XdripPlusPendiq -> context.getString(R.string.title_pendiq_screen)
-    SettingsScreen.XdripPlusPrediction -> context.getString(R.string.xdrip_plus_prediction_settings)
-    SettingsScreen.XdripPlusMultipleInsulin -> context.getString(R.string.title_multiple_insulin_types_settings)
-    SettingsScreen.XdripPlusAdvPredict -> context.getString(R.string.low_prediction_values)
-    SettingsScreen.XdripPlusSync -> context.getString(R.string.xdrip_plus_sync_settings)
-    SettingsScreen.XdripPlusRemoteSnooze -> context.getString(R.string.remote_snoozing)
-    SettingsScreen.XdripPlusDesertSync -> context.getString(R.string.title_xdrip_plus_desert_sync_settings)
-}
+internal fun titleFor(context: Context, screen: SettingsScreen): String =
+    when (screen) {
+        SettingsScreen.Root -> "Settings"
+        SettingsScreen.GeneralCategory -> context.getString(R.string.general_settings)
+        SettingsScreen.AlarmsCategory -> context.getString(R.string.alarms_and_alerts)
+        SettingsScreen.YourDataCategory -> "Your Data"
+        SettingsScreen.ProfileCategory -> "Profile"
+        SettingsScreen.DevicesCategory -> "Devices"
+        SettingsScreen.AppearanceCategory -> "Appearance"
+        SettingsScreen.AccessibilityCategory -> "Accessibility"
+        SettingsScreen.AdvancedCategory -> "Advanced"
+        SettingsScreen.Units -> context.getString(R.string.glucose_units)
+        SettingsScreen.Theme -> context.getString(R.string.theme_colors)
+        SettingsScreen.NotificationStyle -> "Notification Style"
+        SettingsScreen.BgAlerts -> context.getString(R.string.glucose_alerts_settings)
+        SettingsScreen.SuppressAlerts -> context.getString(R.string.suppress_alerts_if_missed_readings)
+        SettingsScreen.AscendingVolume -> context.getString(R.string.title_ascending_volume)
+        SettingsScreen.PersistentHigh -> context.getString(R.string.persistent_high_alert)
+        SettingsScreen.ForecastLow -> context.getString(R.string.forecasted_low_alert)
+        SettingsScreen.SensorExpiry -> context.getString(R.string.title_sens_expiry)
+        SettingsScreen.CalibrationAlerts -> context.getString(R.string.calibration_alerts)
+        SettingsScreen.OtherAlerts -> context.getString(R.string.other_alerts)
+        SettingsScreen.DataSource -> context.getString(R.string.data_source_settings)
+        SettingsScreen.DexcomDevice -> "Dexcom"
+        SettingsScreen.MedtrumDevice -> "Medtrum"
+        SettingsScreen.BluetoothBridge -> "Bluetooth Bridge"
+        SettingsScreen.WebFollow -> "Web Follower Settings"
+        SettingsScreen.NfcSettings -> context.getString(R.string.nfc_scan_features)
+        SettingsScreen.NsFollowDownload -> context.getString(R.string.title_nsfollow_download_treatments)
+        SettingsScreen.G5Debug -> context.getString(R.string.g5_debug_settings)
+        SettingsScreen.PreemptiveRestart -> context.getString(R.string.title_ob1_g5_preemptive_restart)
+        SettingsScreen.DataSync -> context.getString(R.string.data_sync)
+        SettingsScreen.Backups -> "Backups"
+        SettingsScreen.About -> "About"
+        SettingsScreen.Version -> "Version"
+        SettingsScreen.HomeScreen -> "Home Screen"
+        SettingsScreen.AutoConfig -> context.getString(R.string.auto_configure_title)
+        SettingsScreen.CloudUpload -> context.getString(R.string.cloud_upload)
+        SettingsScreen.RestApi -> context.getString(R.string.pref_title_api)
+        SettingsScreen.RestApiDownload -> context.getString(R.string.title_cloud_storage_api_download_enable)
+        SettingsScreen.RestApiExtra -> context.getString(R.string.title_rest_api_extra_options)
+        SettingsScreen.Mongo -> context.getString(R.string.pref_title_mongodb)
+        SettingsScreen.Influx -> context.getString(R.string.pref_title_influxdb)
+        SettingsScreen.DexcomUpload -> context.getString(R.string.dexcom_share_server_upload)
+        SettingsScreen.Tidepool -> context.getString(R.string.title_tidepool)
+        SettingsScreen.WebDeposit -> "Web Deposit"
+        SettingsScreen.NightLite -> "NightLite"
+        SettingsScreen.Nocturne -> context.getString(R.string.nocturne)
+        SettingsScreen.GlucoseMeters -> context.getString(R.string.glucose_meters)
+        SettingsScreen.SpeakReadings -> context.getString(R.string.speak_readings)
+        SettingsScreen.InterApp -> context.getString(R.string.interapp_settings)
+        SettingsScreen.HealthConnect -> context.getString(R.string.google_health_connect)
+        SettingsScreen.ExtraStatusLine -> context.getString(R.string.extra_status_line)
+        SettingsScreen.CalibrationSettings -> context.getString(R.string.advanced_calibration)
+        SettingsScreen.BluetoothSettings -> context.getString(R.string.bluetooth_settings)
+        SettingsScreen.BlueReaderSettings -> context.getString(R.string.advanced_bluereader_settings)
+        SettingsScreen.Libre2Settings -> context.getString(R.string.title_advanced_settings_4_Lib2)
+        SettingsScreen.LoggingSettings -> context.getString(R.string.extra_logging)
+        SettingsScreen.OtherMiscSettings -> context.getString(R.string.title_Other_misc_options)
+        SettingsScreen.CollectorInForeground -> context.getString(R.string.title_collector_in_foreground)
+        SettingsScreen.SmartWatchOptions -> context.getString(R.string.smart_watch_features)
+        SettingsScreen.SmartwatchSensors -> context.getString(R.string.title_Smartwatch_Sensors)
+        SettingsScreen.WearSettings -> context.getString(R.string.android_wear_integration)
+        SettingsScreen.AmazfitSettings -> context.getString(R.string.amazfit_sync_service)
+        SettingsScreen.LeFunSettings -> context.getString(R.string.title_lefun_band)
+        SettingsScreen.LeFunFeatures -> context.getString(R.string.title_lefun_screens_features)
+        SettingsScreen.BlueJaySettings -> "BlueJay Watch"
+        SettingsScreen.BlueJayAdvanced -> "BlueJay Advanced Settings"
+        SettingsScreen.MiBandSettings -> context.getString(R.string.title_miband)
+        SettingsScreen.MiBandSubSettings -> context.getString(R.string.title_miband_screens_features)
+        SettingsScreen.PebbleSettings -> context.getString(R.string.pebble_integration)
+        SettingsScreen.XdripPlusDisplay -> context.getString(R.string.xdrip_plus_display_settings)
+        SettingsScreen.XdripPlusFont -> context.getString(R.string.title_font_settings)
+        SettingsScreen.XdripPlusLanguage -> context.getString(R.string.title_language)
+        SettingsScreen.XdripPlusGraphDisplay -> context.getString(R.string.title_xdrip_plus_graph_display_settings)
+        SettingsScreen.XdripPlusGraphSmoothing -> context.getString(R.string.graph_smoothing)
+        SettingsScreen.XdripPlusYAxis -> context.getString(R.string.title_yRange)
+        SettingsScreen.XdripPlusAccessibility -> context.getString(R.string.title_xdrip_plus_accessibility)
+        SettingsScreen.XdripPlusNumberWall -> context.getString(R.string.title_xdrip_plus_number_wall)
+        SettingsScreen.XdripPlusNumberIcon -> context.getString(R.string.title_xdrip_plus_number_icon)
+        SettingsScreen.XdripPlusCopying -> context.getString(R.string.copying_settings)
+        SettingsScreen.XdripPlusUpdate -> context.getString(R.string.xdrip_plus_update_settings)
+        SettingsScreen.XdripPlusMotion -> context.getString(R.string.xdrip_motion_tracking)
+        SettingsScreen.XdripPlusPens -> context.getString(R.string.insulin_pens)
+        SettingsScreen.XdripPlusNovopen -> context.getString(R.string.title_novopen_insulin_pen)
+        SettingsScreen.XdripPlusInpen -> context.getString(R.string.title_inpen_screen)
+        SettingsScreen.XdripPlusPendiq -> context.getString(R.string.title_pendiq_screen)
+        SettingsScreen.XdripPlusPrediction -> context.getString(R.string.xdrip_plus_prediction_settings)
+        SettingsScreen.XdripPlusMultipleInsulin -> context.getString(R.string.title_multiple_insulin_types_settings)
+        SettingsScreen.XdripPlusAdvPredict -> context.getString(R.string.low_prediction_values)
+        SettingsScreen.XdripPlusSync -> context.getString(R.string.xdrip_plus_sync_settings)
+        SettingsScreen.XdripPlusRemoteSnooze -> context.getString(R.string.remote_snoozing)
+        SettingsScreen.XdripPlusDesertSync -> context.getString(R.string.title_xdrip_plus_desert_sync_settings)
+    }
 
 @Composable
 internal fun SettingsScreenContent(
@@ -221,7 +218,6 @@ internal fun SettingsScreenContent(
         SettingsScreen.OtherAlerts -> OtherAlertsScreen()
         SettingsScreen.DataSource -> DataSourceScreen(onNavigate)
         SettingsScreen.DexcomDevice -> DexcomDeviceScreen(onNavigate)
-        SettingsScreen.LibreDevice -> LibreDeviceScreen(onNavigate)
         SettingsScreen.MedtrumDevice -> MedtrumDeviceScreen()
         SettingsScreen.BluetoothBridge -> BluetoothBridgeScreen()
         SettingsScreen.WebFollow -> WebFollowScreen()
@@ -334,20 +330,19 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
         }
         return
     }
-
-    SettingsCategoryButton(
-        title = context.getString(R.string.general_settings),
-        subtitle = context.getString(R.string.mmol_or_mgdl_high_and_low),
-        icon = Icons.Outlined.Tune,
-        onClick = { onNavigate(SettingsScreen.GeneralCategory) },
-        modifier = Modifier.testTag("setting_category_general"),
-    )
     SettingsCategoryButton(
         title = context.getString(R.string.alarms_and_alerts),
         subtitle = context.getString(R.string.glucose_calibration_and_other_alerts),
         icon = Icons.Outlined.NotificationsActive,
         onClick = { onNavigate(SettingsScreen.AlarmsCategory) },
         modifier = Modifier.testTag("setting_category_alarms"),
+    )
+    SettingsCategoryButton(
+        title = "Devices",
+        subtitle = "Data sources, meters, pens and watches",
+        icon = Icons.Outlined.Devices,
+        onClick = { onNavigate(SettingsScreen.DevicesCategory) },
+        modifier = Modifier.testTag("setting_category_devices"),
     )
     SettingsCategoryButton(
         title = "Your Data",
@@ -357,19 +352,20 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
         modifier = Modifier.testTag("setting_category_data"),
     )
     SettingsCategoryButton(
+        title = context.getString(R.string.general_settings),
+        subtitle = context.getString(R.string.mmol_or_mgdl_high_and_low),
+        icon = Icons.Outlined.Tune,
+        onClick = { onNavigate(SettingsScreen.GeneralCategory) },
+        modifier = Modifier.testTag("setting_category_general"),
+    )
+    SettingsCategoryButton(
         title = "Profile",
         subtitle = "Insulin, carb ratios and prediction",
         icon = Icons.Outlined.Person,
         onClick = { onNavigate(SettingsScreen.ProfileCategory) },
         modifier = Modifier.testTag("setting_category_profile"),
     )
-    SettingsCategoryButton(
-        title = "Devices",
-        subtitle = "Data sources, meters, pens and watches",
-        icon = Icons.Outlined.Devices,
-        onClick = { onNavigate(SettingsScreen.DevicesCategory) },
-        modifier = Modifier.testTag("setting_category_devices"),
-    )
+
     SettingsCategoryButton(
         title = "Appearance",
         subtitle = "Theme, display, graph and home screen",
@@ -410,6 +406,31 @@ private fun GeneralCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
             icon = Icons.Outlined.Straighten,
             onClick = { onNavigate(SettingsScreen.Units) },
             modifier = Modifier.testTag("setting_glucose_units"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.reminders),
+            icon = Icons.Outlined.Alarm,
+            onClick = { context.startActivity(Intent(context, Reminders::class.java)) },
+            modifier = Modifier.testTag("setting_reminders"),
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.emergency_messages),
+            icon = Icons.Outlined.Emergency,
+            onClick = {
+                context.startActivity(
+                    Intent(
+                        context,
+                        EmergencyAssistActivity::class.java
+                    )
+                )
+            },
+            modifier = Modifier.testTag("setting_emergency_messages"),
+        )
+        SettingsActionRow(
+            title = "Notification Style",
+            icon = Icons.Outlined.Style,
+            onClick = { onNavigate(SettingsScreen.NotificationStyle) },
+            modifier = Modifier.testTag("setting_notification_style"),
         )
     }
 }
@@ -465,24 +486,6 @@ private fun AlarmsCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
             icon = Icons.Outlined.Campaign,
             onClick = { onNavigate(SettingsScreen.OtherAlerts) },
             modifier = Modifier.testTag("setting_other_alerts"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.reminders),
-            icon = Icons.Outlined.Alarm,
-            onClick = { context.startActivity(Intent(context, Reminders::class.java)) },
-            modifier = Modifier.testTag("setting_reminders"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.emergency_messages),
-            icon = Icons.Outlined.Emergency,
-            onClick = { context.startActivity(Intent(context, EmergencyAssistActivity::class.java)) },
-            modifier = Modifier.testTag("setting_emergency_messages"),
-        )
-        SettingsActionRow(
-            title = "Notification Style",
-            icon = Icons.Outlined.Style,
-            onClick = { onNavigate(SettingsScreen.NotificationStyle) },
-            modifier = Modifier.testTag("setting_notification_style"),
         )
     }
 }
@@ -609,13 +612,15 @@ private fun DevicesCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
     val context = LocalContext.current
     val state = rememberSettingsState()
     SettingsCategory("Devices") {
-        SettingsActionRow(
-            title = context.getString(R.string.hardware_data_source),
-            subtitle = context.getString(R.string.how_receive_data),
-            icon = Icons.Outlined.Sensors,
-            onClick = { onNavigate(SettingsScreen.DataSource) },
-            modifier = Modifier.testTag("setting_data_source"),
-        )
+//        SettingsActionRow(
+//            title = context.getString(R.string.hardware_data_source),
+//            subtitle = context.getString(R.string.how_receive_data),
+//            icon = Icons.Outlined.Sensors,
+//            onClick = { onNavigate(SettingsScreen.DataSource) },
+//            modifier = Modifier.testTag("setting_data_source"),
+//        )
+
+        DataSourceScreen(onNavigate)
         SettingsActionRow(
             title = context.getString(R.string.glucose_meters),
             subtitle = context.getString(R.string.glucose_meter_options),
@@ -652,40 +657,6 @@ private fun DevicesCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
                 modifier = Modifier.testTag("setting_libre2"),
             )
         }
-        SettingsActionRow(
-            title = context.getString(R.string.action_resend_to_watch),
-            icon = Icons.Outlined.SendToMobile,
-            enabled = state.bool("wear_sync", false) || state.bool("pref_amazfit_enable_key", false),
-            onClick = {
-                WatchUpdaterService.startServiceAndResendData(0)
-                if (state.bool("pref_amazfit_enable_key", false)) {
-                    Amazfitservice.start("xDrip_synced_SGV_data")
-                }
-            },
-            modifier = Modifier.testTag("setting_resend_watch"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.action_open_watch_setting),
-            icon = Icons.Outlined.Watch,
-            enabled = state.bool("wear_sync", false),
-            onClick = {
-                context.startService(
-                    Intent(context, WatchUpdaterService::class.java).setAction(WatchUpdaterService.ACTION_OPEN_SETTINGS)
-                )
-            },
-            modifier = Modifier.testTag("setting_open_watch_settings"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.action_sync_watch_db),
-            icon = Icons.Outlined.Sync,
-            enabled = state.bool("wear_sync", false),
-            onClick = {
-                context.startService(
-                    Intent(context, WatchUpdaterService::class.java).setAction(WatchUpdaterService.ACTION_RESET_DB)
-                )
-            },
-            modifier = Modifier.testTag("setting_sync_watch_db"),
-        )
     }
 }
 
@@ -723,7 +694,14 @@ private fun AppearanceCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
         SettingsActionRow(
             title = context.getString(R.string.show_libre_trend),
             icon = Icons.Outlined.Timeline,
-            onClick = { context.startActivity(Intent(context, LibreTrendGraph::class.java).putExtra("events", "")) },
+            onClick = {
+                context.startActivity(
+                    Intent(context, LibreTrendGraph::class.java).putExtra(
+                        "events",
+                        ""
+                    )
+                )
+            },
             modifier = Modifier.testTag("setting_show_libre_trend"),
         )
         SettingsActionRow(
@@ -789,7 +767,14 @@ private fun AdvancedCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
         SettingsActionRow(
             title = context.getString(R.string.view_events_log),
             icon = Icons.Outlined.ListAlt,
-            onClick = { context.startActivity(Intent(context, EventLogActivity::class.java).putExtra("events", "")) },
+            onClick = {
+                context.startActivity(
+                    Intent(
+                        context,
+                        EventLogActivity::class.java
+                    ).putExtra("events", "")
+                )
+            },
             modifier = Modifier.testTag("setting_events_log"),
         )
         SettingsActionRow(
@@ -912,8 +897,20 @@ private fun NotificationStyleScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     SettingsCategory("Notification Style") {
-        SwitchPref(state, "high_priority_notifications", context.getString(R.string.title_high_priority_notifications), default = true, subtitle = context.getString(R.string.summary_high_priority_notifications))
-        SwitchPref(state, "public_notifications", context.getString(R.string.title_public_notifications), default = false, subtitle = context.getString(R.string.summary_public_notifications))
+        SwitchPref(
+            state,
+            "high_priority_notifications",
+            context.getString(R.string.title_high_priority_notifications),
+            default = true,
+            subtitle = context.getString(R.string.summary_high_priority_notifications)
+        )
+        SwitchPref(
+            state,
+            "public_notifications",
+            context.getString(R.string.title_public_notifications),
+            default = false,
+            subtitle = context.getString(R.string.summary_public_notifications)
+        )
         SwitchPref(
             state = state,
             key = "ongoing_notification_aodchipstyle",
@@ -947,17 +944,77 @@ private fun BgAlertsScreen(onNavigate: (SettingsScreen) -> Unit) {
             values = context.resources.getStringArray(R.array.AudioFocusValues).toList(),
             default = "AUDIOFOCUS_NONE",
         )
-        SwitchPref(state, "smart_snoozing", context.getString(R.string.smart_snoozing), default = true, subtitle = context.getString(R.string.keep_snoozing_if_glucose_is_heading_in_right_direction))
-        SwitchPref(state, "smart_alerting", context.getString(R.string.smart_alerting), default = true, subtitle = context.getString(R.string.dont_alert_if_glucose_in_right_direction))
-        SwitchPref(state, "no_alarms_during_calls", context.getString(R.string.dont_alarm_during_phone_calls), default = true, subtitle = context.getString(R.string.alarms_silenced_during_telephone_calls))
-        SwitchPref(state, "buttons_silence_alert", context.getString(R.string.buttons_silence_alarms), default = true, subtitle = context.getString(R.string.volume_buttons_snooze))
-        SwitchPref(state, "show_buttons_in_alerts", context.getString(R.string.alert_buttons), default = false, subtitle = context.getString(R.string.show_action_buttons_within_alerts))
-        SwitchPref(state, "start_snoozed", context.getString(R.string.start_snoozed), default = false, subtitle = context.getString(R.string.alerts_start_out_snoozed_and_must_persist_for_a_while))
-        SwitchPref(state, "wake_phone_during_alerts", context.getString(R.string.wake_up_screen), default = false, subtitle = context.getString(R.string.wake_up_screen_summary))
-        SwitchPref(state, "flash_torch_alerts_charging", context.getString(R.string.use_camera_light), default = false, subtitle = context.getString(R.string.use_camera_light_summary))
-        SwitchPref(state, "bg_alerts_from_main_menu", context.getString(R.string.shortcut_to_bg_alerts), default = false, subtitle = context.getString(R.string.create_shortcut))
-        SettingsActionRow(title = context.getString(R.string.suppress_alerts_if_missed_readings), icon = Icons.Outlined.Block, onClick = { onNavigate(SettingsScreen.SuppressAlerts) })
-        SettingsActionRow(title = context.getString(R.string.title_ascending_volume), icon = Icons.Outlined.VolumeUp, onClick = { onNavigate(SettingsScreen.AscendingVolume) })
+        SwitchPref(
+            state,
+            "smart_snoozing",
+            context.getString(R.string.smart_snoozing),
+            default = true,
+            subtitle = context.getString(R.string.keep_snoozing_if_glucose_is_heading_in_right_direction)
+        )
+        SwitchPref(
+            state,
+            "smart_alerting",
+            context.getString(R.string.smart_alerting),
+            default = true,
+            subtitle = context.getString(R.string.dont_alert_if_glucose_in_right_direction)
+        )
+        SwitchPref(
+            state,
+            "no_alarms_during_calls",
+            context.getString(R.string.dont_alarm_during_phone_calls),
+            default = true,
+            subtitle = context.getString(R.string.alarms_silenced_during_telephone_calls)
+        )
+        SwitchPref(
+            state,
+            "buttons_silence_alert",
+            context.getString(R.string.buttons_silence_alarms),
+            default = true,
+            subtitle = context.getString(R.string.volume_buttons_snooze)
+        )
+        SwitchPref(
+            state,
+            "show_buttons_in_alerts",
+            context.getString(R.string.alert_buttons),
+            default = false,
+            subtitle = context.getString(R.string.show_action_buttons_within_alerts)
+        )
+        SwitchPref(
+            state,
+            "start_snoozed",
+            context.getString(R.string.start_snoozed),
+            default = false,
+            subtitle = context.getString(R.string.alerts_start_out_snoozed_and_must_persist_for_a_while)
+        )
+        SwitchPref(
+            state,
+            "wake_phone_during_alerts",
+            context.getString(R.string.wake_up_screen),
+            default = false,
+            subtitle = context.getString(R.string.wake_up_screen_summary)
+        )
+        SwitchPref(
+            state,
+            "flash_torch_alerts_charging",
+            context.getString(R.string.use_camera_light),
+            default = false,
+            subtitle = context.getString(R.string.use_camera_light_summary)
+        )
+        SwitchPref(
+            state,
+            "bg_alerts_from_main_menu",
+            context.getString(R.string.shortcut_to_bg_alerts),
+            default = false,
+            subtitle = context.getString(R.string.create_shortcut)
+        )
+        SettingsActionRow(
+            title = context.getString(R.string.suppress_alerts_if_missed_readings),
+            icon = Icons.Outlined.Block,
+            onClick = { onNavigate(SettingsScreen.SuppressAlerts) })
+        SettingsActionRow(
+            title = context.getString(R.string.title_ascending_volume),
+            icon = Icons.Outlined.VolumeUp,
+            onClick = { onNavigate(SettingsScreen.AscendingVolume) })
     }
 }
 
@@ -966,7 +1023,14 @@ private fun SuppressAlertsScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     SettingsCategory(context.getString(R.string.suppress_alerts_if_missed_readings)) {
-        SwitchPref(state, "disable_alerts_stale_data", context.getString(R.string.suppress_alerts_if_missed_readings), default = false, subtitle = context.getString(R.string.suppress_alerts_missed_readings), tag = "setting_stale_enabled")
+        SwitchPref(
+            state,
+            "disable_alerts_stale_data",
+            context.getString(R.string.suppress_alerts_if_missed_readings),
+            default = false,
+            subtitle = context.getString(R.string.suppress_alerts_missed_readings),
+            tag = "setting_stale_enabled"
+        )
         EditPref(
             state = state,
             key = "disable_alerts_stale_data_minutes",
@@ -985,8 +1049,20 @@ private fun AscendingVolumeScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     SettingsCategory(context.getString(R.string.title_ascending_volume)) {
-        SwitchPref(state, "delay_ascending_3min", context.getString(R.string.title_delay_ascending_3min), default = true, subtitle = context.getString(R.string.summary_delay_ascending_3min))
-        SwitchPref(state, "ascending_volume_to_medium", context.getString(R.string.title_ascending_volume_to_medium), default = false, subtitle = context.getString(R.string.summary_ascending_volume_to_medium))
+        SwitchPref(
+            state,
+            "delay_ascending_3min",
+            context.getString(R.string.title_delay_ascending_3min),
+            default = true,
+            subtitle = context.getString(R.string.summary_delay_ascending_3min)
+        )
+        SwitchPref(
+            state,
+            "ascending_volume_to_medium",
+            context.getString(R.string.title_ascending_volume_to_medium),
+            default = false,
+            subtitle = context.getString(R.string.summary_ascending_volume_to_medium)
+        )
     }
 }
 
@@ -995,16 +1071,37 @@ private fun PersistentHighScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     SettingsCategory(context.getString(R.string.persistent_high_alert)) {
-        SwitchPref(state, "persistent_high_alert_enabled", context.getString(R.string.persistent_high_alert_enable), default = false, subtitle = context.getString(R.string.alarm_if_above_high_value))
-        SwitchPref(state, "high_value_is_persistent_high_threshold", context.getString(R.string.title_persistent_high_threshold_link), default = true, subtitle = context.getString(R.string.summary_persistent_high_threshold_link))
+        SwitchPref(
+            state,
+            "persistent_high_alert_enabled",
+            context.getString(R.string.persistent_high_alert_enable),
+            default = false,
+            subtitle = context.getString(R.string.alarm_if_above_high_value)
+        )
+        SwitchPref(
+            state,
+            "high_value_is_persistent_high_threshold",
+            context.getString(R.string.title_persistent_high_threshold_link),
+            default = true,
+            subtitle = context.getString(R.string.summary_persistent_high_threshold_link)
+        )
         EditPref(
             state = state,
             key = "persistent_high_threshold",
             title = context.getString(R.string.title_persistent_high_threshold),
-            subtitle = SettingsPrefs.unitizedSummary(state.string("persistent_high_threshold", "170")),
+            subtitle = SettingsPrefs.unitizedSummary(
+                state.string(
+                    "persistent_high_threshold",
+                    "170"
+                )
+            ),
             default = "170",
             numeric = true,
-            enabled = state.dependentEnabled("high_value_is_persistent_high_threshold", true, disableDependentsState = true),
+            enabled = state.dependentEnabled(
+                "high_value_is_persistent_high_threshold",
+                true,
+                disableDependentsState = true
+            ),
             tag = "setting_persistent_high_threshold",
             validate = glucoseInputValidator(context),
         )
@@ -1032,8 +1129,18 @@ private fun PersistentHighScreen() {
             subtitle = context.getString(R.string.choose_sound_used_for_persistent_high_alarm),
             enabled = state.dependentEnabled("persistent_high_alert_enabled", false),
         )
-        SwitchPref(state, "persistent_high_alert_override_silent", context.getString(R.string.override_silent_mode), default = false)
-        SwitchPref(state, "persistent_high_alert_vibrate_on_alert", context.getString(R.string.vibrate_on_alert), default = true)
+        SwitchPref(
+            state,
+            "persistent_high_alert_override_silent",
+            context.getString(R.string.override_silent_mode),
+            default = false
+        )
+        SwitchPref(
+            state,
+            "persistent_high_alert_vibrate_on_alert",
+            context.getString(R.string.vibrate_on_alert),
+            default = true
+        )
     }
 }
 
@@ -1042,9 +1149,28 @@ private fun ForecastLowScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     SettingsCategory(context.getString(R.string.forecasted_low_alert)) {
-        SwitchPref(state, "predict_lows", context.getString(R.string.forecast_lows), default = true, subtitle = context.getString(R.string.extrapolate_data_to_try_to_predict_lows))
-        SwitchPref(state, "predict_lows_alarm", context.getString(R.string.raise_alarm_on_forecast_low), default = false, subtitle = context.getString(R.string.notify_when_predicted_low_time_reaches_threshold), enabled = state.dependentEnabled("predict_lows", true))
-        SwitchPref(state, "low_value_is_forecast_low_threshold", context.getString(R.string.title_forecast_low_threshold_link), default = true, subtitle = context.getString(R.string.summary_forecast_low_threshold_link))
+        SwitchPref(
+            state,
+            "predict_lows",
+            context.getString(R.string.forecast_lows),
+            default = true,
+            subtitle = context.getString(R.string.extrapolate_data_to_try_to_predict_lows)
+        )
+        SwitchPref(
+            state,
+            "predict_lows_alarm",
+            context.getString(R.string.raise_alarm_on_forecast_low),
+            default = false,
+            subtitle = context.getString(R.string.notify_when_predicted_low_time_reaches_threshold),
+            enabled = state.dependentEnabled("predict_lows", true)
+        )
+        SwitchPref(
+            state,
+            "low_value_is_forecast_low_threshold",
+            context.getString(R.string.title_forecast_low_threshold_link),
+            default = true,
+            subtitle = context.getString(R.string.summary_forecast_low_threshold_link)
+        )
         EditPref(
             state = state,
             key = "forecast_low_threshold",
@@ -1052,7 +1178,11 @@ private fun ForecastLowScreen() {
             subtitle = SettingsPrefs.unitizedSummary(state.string("forecast_low_threshold", "70")),
             default = "70",
             numeric = true,
-            enabled = state.dependentEnabled("low_value_is_forecast_low_threshold", true, disableDependentsState = true),
+            enabled = state.dependentEnabled(
+                "low_value_is_forecast_low_threshold",
+                true,
+                disableDependentsState = true
+            ),
             tag = "setting_forecast_low_threshold",
             validate = glucoseInputValidator(context),
         )
@@ -1071,8 +1201,18 @@ private fun ForecastLowScreen() {
             subtitle = context.getString(R.string.choose_sound_used_for_predicted_low_alarm),
             enabled = state.dependentEnabled("predict_lows", true),
         )
-        SwitchPref(state, "bg_predict_alert_override_silent", context.getString(R.string.override_silent_mode), default = false)
-        SwitchPref(state, "bg_predict_alert_vibrate_on_alert", context.getString(R.string.vibrate_on_alert), default = true)
+        SwitchPref(
+            state,
+            "bg_predict_alert_override_silent",
+            context.getString(R.string.override_silent_mode),
+            default = false
+        )
+        SwitchPref(
+            state,
+            "bg_predict_alert_vibrate_on_alert",
+            context.getString(R.string.vibrate_on_alert),
+            default = true
+        )
     }
 }
 
@@ -1081,7 +1221,13 @@ private fun SensorExpiryScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     SettingsCategory(context.getString(R.string.title_sens_expiry)) {
-        SwitchPref(state, "alert_raise_for_sensor_expiry", context.getString(R.string.title_sens_expiry_notify), default = false, subtitle = context.getString(R.string.summary_sens_expiry_notify))
+        SwitchPref(
+            state,
+            "alert_raise_for_sensor_expiry",
+            context.getString(R.string.title_sens_expiry_notify),
+            default = false,
+            subtitle = context.getString(R.string.summary_sens_expiry_notify)
+        )
     }
 }
 
@@ -1116,9 +1262,29 @@ private fun CalibrationAlertsScreen() {
             subtitle = context.getString(R.string.calibrations_sound),
             enabled = state.dependentEnabled("calibration_notifications", false),
         )
-        SwitchPref(state, "calibration_alerts_override_silent", context.getString(R.string.override_silent_mode), default = true, enabled = state.dependentEnabled("calibration_notifications", false))
-        SwitchPref(state, "calibration_alerts_while_charging", context.getString(R.string.even_when_charging), default = true, subtitle = context.getString(R.string.no_calibration_requests_charging), enabled = state.dependentEnabled("calibration_notifications", false))
-        SwitchPref(state, "calibration_alerts_repeat", context.getString(R.string.repeat_alerts), default = true, subtitle = context.getString(R.string.keep_alert_no_calibration), enabled = state.dependentEnabled("calibration_notifications", false))
+        SwitchPref(
+            state,
+            "calibration_alerts_override_silent",
+            context.getString(R.string.override_silent_mode),
+            default = true,
+            enabled = state.dependentEnabled("calibration_notifications", false)
+        )
+        SwitchPref(
+            state,
+            "calibration_alerts_while_charging",
+            context.getString(R.string.even_when_charging),
+            default = true,
+            subtitle = context.getString(R.string.no_calibration_requests_charging),
+            enabled = state.dependentEnabled("calibration_notifications", false)
+        )
+        SwitchPref(
+            state,
+            "calibration_alerts_repeat",
+            context.getString(R.string.repeat_alerts),
+            default = true,
+            subtitle = context.getString(R.string.keep_alert_no_calibration),
+            enabled = state.dependentEnabled("calibration_notifications", false)
+        )
         EditPref(
             state = state,
             key = "calibration_snooze",
@@ -1128,7 +1294,13 @@ private fun CalibrationAlertsScreen() {
             numeric = true,
             enabled = state.dependentEnabled("calibration_alerts_repeat", true),
         )
-        SwitchPref(state, "play_sound_for_initial_calibration", context.getString(R.string.title_play_sound_for_initial_calibration), default = true, subtitle = context.getString(R.string.summary_play_sound_for_initial_calibration))
+        SwitchPref(
+            state,
+            "play_sound_for_initial_calibration",
+            context.getString(R.string.title_play_sound_for_initial_calibration),
+            default = true,
+            subtitle = context.getString(R.string.summary_play_sound_for_initial_calibration)
+        )
     }
 }
 
@@ -1140,7 +1312,12 @@ private fun OtherAlertsScreen() {
     val risingValues = context.resources.getStringArray(R.array.risingValues).toList()
 
     SettingsCategory(context.getString(R.string.category_noisy_readings)) {
-        SwitchPref(state, "bg_unclear_readings_alerts", context.getString(R.string.bad_noisy_value_alerts), default = false)
+        SwitchPref(
+            state,
+            "bg_unclear_readings_alerts",
+            context.getString(R.string.bad_noisy_value_alerts),
+            default = false
+        )
         EditPref(
             state = state,
             key = "bg_unclear_readings_minutes",
@@ -1158,7 +1335,14 @@ private fun OtherAlertsScreen() {
             numeric = true,
             enabled = state.dependentEnabled("bg_unclear_readings_alerts", false),
         )
-        SwitchPref(state, "bg_unclear_readings_alert_enable_alerts_reraise", context.getString(R.string.reraise_before_snooze), default = false, subtitle = context.getString(R.string.reraise_not_snoozed_sooner), enabled = state.dependentEnabled("bg_unclear_readings_alerts", false))
+        SwitchPref(
+            state,
+            "bg_unclear_readings_alert_enable_alerts_reraise",
+            context.getString(R.string.reraise_before_snooze),
+            default = false,
+            subtitle = context.getString(R.string.reraise_not_snoozed_sooner),
+            enabled = state.dependentEnabled("bg_unclear_readings_alerts", false)
+        )
         EditPref(
             state = state,
             key = "bg_unclear_readings_alert_reraise_sec",
@@ -1166,19 +1350,63 @@ private fun OtherAlertsScreen() {
             subtitle = context.getString(R.string.alert_seconds_reraise),
             default = "60",
             numeric = true,
-            enabled = state.dependentEnabled("bg_unclear_readings_alert_enable_alerts_reraise", false),
+            enabled = state.dependentEnabled(
+                "bg_unclear_readings_alert_enable_alerts_reraise",
+                false
+            ),
         )
     }
     SettingsCategory(context.getString(R.string.category_falling_rising_bg)) {
-        SwitchPref(state, "falling_alert", context.getString(R.string.bg_falling_fast), default = false)
-        ListPref(state, "falling_bg_val", context.getString(R.string.falling_threshold), risingEntries, risingValues, "3", enabled = state.dependentEnabled("falling_alert", false))
-        SwitchPref(state, "rising_alert", context.getString(R.string.bg_rising_fast), default = false)
-        ListPref(state, "rising_bg_val", context.getString(R.string.rising_threshold), risingEntries, risingValues, "3", enabled = state.dependentEnabled("rising_alert", false))
+        SwitchPref(
+            state,
+            "falling_alert",
+            context.getString(R.string.bg_falling_fast),
+            default = false
+        )
+        ListPref(
+            state,
+            "falling_bg_val",
+            context.getString(R.string.falling_threshold),
+            risingEntries,
+            risingValues,
+            "3",
+            enabled = state.dependentEnabled("falling_alert", false)
+        )
+        SwitchPref(
+            state,
+            "rising_alert",
+            context.getString(R.string.bg_rising_fast),
+            default = false
+        )
+        ListPref(
+            state,
+            "rising_bg_val",
+            context.getString(R.string.rising_threshold),
+            risingEntries,
+            risingValues,
+            "3",
+            enabled = state.dependentEnabled("rising_alert", false)
+        )
     }
     SettingsCategory(context.getString(R.string.category_alert_prefs)) {
-        RingtonePref(state, "other_alerts_sound", context.getString(R.string.alert_sound), subtitle = context.getString(R.string.set_sound_for_bg_alerts))
-        SwitchPref(state, "other_alerts_override_silent", context.getString(R.string.override_silent_mode_these), default = false)
-        SwitchPref(state, "other_alerts_vibrate_on_alert", context.getString(R.string.vibrate_on_alert), default = true)
+        RingtonePref(
+            state,
+            "other_alerts_sound",
+            context.getString(R.string.alert_sound),
+            subtitle = context.getString(R.string.set_sound_for_bg_alerts)
+        )
+        SwitchPref(
+            state,
+            "other_alerts_override_silent",
+            context.getString(R.string.override_silent_mode_these),
+            default = false
+        )
+        SwitchPref(
+            state,
+            "other_alerts_vibrate_on_alert",
+            context.getString(R.string.vibrate_on_alert),
+            default = true
+        )
     }
 }
 
@@ -1259,15 +1487,15 @@ internal fun ListPref(
 ) {
     SettingsListRow(
         title = title,
-        subtitle = subtitle,
         entries = entries,
         values = values,
         selectedValue = state.string(key, default),
         onSelected = { newValue ->
             if (onSelected != null) onSelected(newValue) else state.setString(key, newValue)
         },
-        enabled = enabled,
         modifier = tag?.let { Modifier.testTag(it) } ?: Modifier,
+        subtitle = subtitle,
+        enabled = enabled,
     )
 }
 
@@ -1290,25 +1518,51 @@ internal fun RingtonePref(
     )
 }
 
-private fun glucoseInputValidator(context: android.content.Context): (String) -> Boolean = { value ->
-    val valid = SettingsPrefs.isValidGlucoseInput(value)
-    if (!valid) {
-        val doMgdl = SettingsPrefs.isMgdl()
-        JoH.static_toast_long(
-            context.getString(
-                R.string.the_value_must_be_between_min_and_max,
-                EditAlertActivity.unitsConvert2Disp(doMgdl, com.eveningoutpost.dexdrip.utils.Preferences.MIN_GLUCOSE_INPUT),
-                EditAlertActivity.unitsConvert2Disp(doMgdl, com.eveningoutpost.dexdrip.utils.Preferences.MAX_GLUCOSE_INPUT),
+private fun glucoseInputValidator(context: Context): (String) -> Boolean =
+    { value ->
+        val valid = SettingsPrefs.isValidGlucoseInput(value)
+        if (!valid) {
+            val doMgdl = SettingsPrefs.isMgdl()
+            JoH.static_toast_long(
+                context.getString(
+                    R.string.the_value_must_be_between_min_and_max,
+                    EditAlertActivity.unitsConvert2Disp(
+                        doMgdl,
+                        com.eveningoutpost.dexdrip.utils.Preferences.MIN_GLUCOSE_INPUT
+                    ),
+                    EditAlertActivity.unitsConvert2Disp(
+                        doMgdl,
+                        com.eveningoutpost.dexdrip.utils.Preferences.MAX_GLUCOSE_INPUT
+                    ),
+                )
             )
-        )
+        }
+        valid
     }
-    valid
-}
 
 // region Previews
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
+@Composable
+private fun RootScreenPreview() {
+    XdripPreview { RootScreen(onNavigate = {}, onOpenClassic = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun SettingsScreenContentRootPreview() {
     XdripPreview {
@@ -1321,7 +1575,13 @@ private fun SettingsScreenContentRootPreview() {
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun SettingsScreenContentCategoryPreview() {
     XdripPreview {
@@ -1395,133 +1655,234 @@ private fun RingtonePrefPreview() {
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
-@Composable
-private fun RootScreenPreview() {
-    XdripPreview { RootScreen(onNavigate = {}, onOpenClassic = {}) }
-}
-
-@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun GeneralCategoryScreenPreview() {
     XdripPreview { GeneralCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun AlarmsCategoryScreenPreview() {
     XdripPreview { AlarmsCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun YourDataCategoryScreenPreview() {
     XdripPreview { YourDataCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun ProfileCategoryScreenPreview() {
     XdripPreview { ProfileCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun DevicesCategoryScreenPreview() {
     XdripPreview { DevicesCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun AppearanceCategoryScreenPreview() {
     XdripPreview { AppearanceCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun AccessibilityCategoryScreenPreview() {
     XdripPreview { AccessibilityCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun AdvancedCategoryScreenPreview() {
     XdripPreview { AdvancedCategoryScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun UnitsScreenPreview() {
     XdripPreview { UnitsScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun NotificationStyleScreenPreview() {
     XdripPreview { NotificationStyleScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun BgAlertsScreenPreview() {
     XdripPreview { BgAlertsScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun SuppressAlertsScreenPreview() {
     XdripPreview { SuppressAlertsScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun AscendingVolumeScreenPreview() {
     XdripPreview { AscendingVolumeScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun PersistentHighScreenPreview() {
     XdripPreview { PersistentHighScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun ForecastLowScreenPreview() {
     XdripPreview { ForecastLowScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun SensorExpiryScreenPreview() {
     XdripPreview { SensorExpiryScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun CalibrationAlertsScreenPreview() {
     XdripPreview { CalibrationAlertsScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    widthDp = 400,
+    heightDp = 800
+)
 @Composable
 private fun OtherAlertsScreenPreview() {
     XdripPreview { OtherAlertsScreen() }
