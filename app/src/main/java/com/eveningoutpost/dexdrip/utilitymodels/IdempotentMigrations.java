@@ -49,6 +49,7 @@ public class IdempotentMigrations {
         CompatibleApps.notifyAboutCompatibleApps();
         legacySettingsMoveLanguageFromNoToNb();
         settingsFix();
+        reconcileGlucoseUnits();
         FirstPageFragment.defineDefaults(); // Define the statistics page visibility defaults.
         prefSettingRangeVerification();
         inheritPrefSettingsAfterUpdate();
@@ -189,6 +190,18 @@ public class IdempotentMigrations {
         if ("no".equals(Pref.getString("forced_language", ""))) {
         // Update the language preference to "nb"
         Pref.setString("forced_language", "nb");
+        }
+    }
+
+    // Repair high/low thresholds left in the wrong unit by an earlier units change
+    public void reconcileGlucoseUnits() {
+        final String units = prefs.getString("units", "mgdl");
+        final boolean doMgdl = units.equals("mgdl");
+        final double high = JoH.tolerantParseDouble(prefs.getString("highValue", "170"), 170);
+        final double low = JoH.tolerantParseDouble(prefs.getString("lowValue", "70"), 70);
+        if (doMgdl ? (high < 36 || low < 36) : (high > 35 || low > 35)) {
+            Log.i(TAG, "Reconciling high/low glucose values with units=" + units);
+            Preferences.handleUnitsChange(null, units, null);
         }
     }
 

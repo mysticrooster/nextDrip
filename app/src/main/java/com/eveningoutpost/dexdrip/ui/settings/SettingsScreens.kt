@@ -90,6 +90,7 @@ import com.eveningoutpost.dexdrip.profileeditor.ProfileEditor
 import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.LibreTrendGraph
+import com.eveningoutpost.dexdrip.utils.Preferences
 import com.eveningoutpost.dexdrip.utils.TestFeature
 import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
@@ -859,7 +860,13 @@ private fun UnitsScreen() {
             entries = entries,
             values = values,
             selectedValue = state.string("units", SettingsPrefs.UNIT_MGDL),
-            onSelected = { state.setString("units", it) },
+            onSelected = { newValue ->
+                state.setString("units", newValue)
+                Preferences.handleUnitsChange(null, newValue, null)
+                state.clearOverride("highValue")
+                state.clearOverride("lowValue")
+                Home.staticRefreshBGCharts()
+            },
             modifier = Modifier.testTag("setting_units"),
         )
         SettingsEditTextRow(
@@ -868,6 +875,7 @@ private fun UnitsScreen() {
             value = state.string("highValue", "170"),
             valueColor = colors.highValues,
             numeric = true,
+            decimal = true,
             onValueChange = { state.setString("highValue", it) },
             modifier = Modifier.testTag("setting_highValue"),
         )
@@ -877,6 +885,7 @@ private fun UnitsScreen() {
             value = state.string("lowValue", "70"),
             valueColor = colors.lowValues,
             numeric = true,
+            decimal = true,
             onValueChange = { state.setString("lowValue", it) },
             modifier = Modifier.testTag("setting_lowValue"),
         )

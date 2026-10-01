@@ -89,6 +89,11 @@ class SettingsState {
         Pref.setInt(key, value)
     }
 
+    /** Drop a local override so subsequent reads fall through to [Pref]. */
+    fun clearOverride(key: String) {
+        overrides.remove(key)
+    }
+
     /**
      * Reproduces `android:dependency` / `android:disableDependentsState`: a dependent row is
      * enabled when the master equals the "enabled" state (master checked, unless

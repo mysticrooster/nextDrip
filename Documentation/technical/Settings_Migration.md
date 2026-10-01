@@ -447,4 +447,9 @@ Plan: `.kilo/plans/1790818203174-settings-ia-redesign.md`.
 - Vestigial shortcut keys (`bg_to_speech_shortcut`, `bg_alerts_from_main_menu`,
   `plus_show_reminders`) are retained but no longer drive any UI.
 - `upload/pull NS profile` has no backing feature; not added.
+- Selecting units on the General → Units sub-screen routes through
+  `Preferences.handleUnitsChange`, so `highValue`/`lowValue` (stored in display units) and the
+  profile/target/threshold side effects stay in parity with the legacy screen. An idempotent
+  `IdempotentMigrations.reconcileGlucoseUnits()` repair runs at startup to reconcile stale High/Low
+  units left by earlier builds.
 

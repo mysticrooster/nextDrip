@@ -9,14 +9,19 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import com.eveningoutpost.dexdrip.BuildConfig
 import com.eveningoutpost.dexdrip.TestingApplication
+import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColor
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore
+import com.eveningoutpost.dexdrip.utilitymodels.IdempotentMigrations
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
+import com.eveningoutpost.dexdrip.xdrip
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -25,6 +30,17 @@ class SettingsActivityTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<SettingsActivity>()
+
+    @Before
+    fun alignAppContextAndPrefCache() {
+        // Robolectric reuses static app state across test methods; point the app context (used by
+        // Preferences.handleUnitsChange / IdempotentMigrations) and Pref's cached store at this
+        // test's application instance so writes are observed consistently.
+        xdrip.setContextAlways(RuntimeEnvironment.getApplication())
+        val field = Pref::class.java.getDeclaredField("prefs")
+        field.isAccessible = true
+        field.set(null, null)
+    }
 
     @Test
     fun unitsSubScreenWritesPref() {
@@ -37,6 +53,50 @@ class SettingsActivityTest {
         composeRule.onNodeWithText("mmol/L").performClick()
 
         assertThat(Pref.getString("units", "mgdl")).isEqualTo("mmol")
+    }
+
+    @Test
+    fun unitChangeConvertsHighAndLowValues() {
+        Pref.setString("units", "mgdl")
+        Pref.setString("highValue", "170")
+        Pref.setString("lowValue", "70")
+
+        composeRule.onNodeWithTag("setting_category_general").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_glucose_units").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_units").performScrollTo().performClick()
+        composeRule.onNodeWithText("mmol/L").performClick()
+
+        assertThat(Pref.getString("units", "mgdl")).isEqualTo("mmol")
+        assertThat(JoH.tolerantParseDouble(Pref.getString("highValue", "0"))).isWithin(0.2).of(9.4)
+        assertThat(JoH.tolerantParseDouble(Pref.getString("lowValue", "0"))).isWithin(0.2).of(3.9)
+    }
+
+    @Test
+    fun unitChangeBackToMgdlConvertsHighAndLowValues() {
+        Pref.setString("units", "mmol")
+        Pref.setString("highValue", "9.4")
+        Pref.setString("lowValue", "3.9")
+
+        composeRule.onNodeWithTag("setting_category_general").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_glucose_units").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_units").performScrollTo().performClick()
+        composeRule.onNodeWithText("mg/dL").performClick()
+
+        assertThat(Pref.getString("units", "mgdl")).isEqualTo("mgdl")
+        assertThat(JoH.tolerantParseDouble(Pref.getString("highValue", "0"))).isWithin(1.5).of(169.0)
+        assertThat(JoH.tolerantParseDouble(Pref.getString("lowValue", "0"))).isWithin(1.5).of(70.0)
+    }
+
+    @Test
+    fun reconcileGlucoseUnitsRepairsMismatchedValues() {
+        Pref.setString("units", "mmol")
+        Pref.setString("highValue", "170")
+        Pref.setString("lowValue", "70")
+
+        IdempotentMigrations(RuntimeEnvironment.getApplication()).reconcileGlucoseUnits()
+
+        assertThat(JoH.tolerantParseDouble(Pref.getString("highValue", "0"))).isWithin(0.2).of(9.4)
+        assertThat(JoH.tolerantParseDouble(Pref.getString("lowValue", "0"))).isWithin(0.2).of(3.9)
     }
 
     @Test
