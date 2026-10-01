@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -53,9 +54,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.EditAlertActivity
@@ -105,7 +108,7 @@ fun SettingsActionRow(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
         leadingContent = icon?.let { vector -> { Icon(imageVector = vector, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) } },
-        trailingContent = trailing?.let { { Text(it, style = MaterialTheme.typography.bodyMedium) } },
+        trailingContent = trailing?.let { { TrailingValue(it) } },
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
@@ -186,6 +189,33 @@ fun SettingsSwitchRow(
     HorizontalDivider()
 }
 
+/**
+ * Value shown at the trailing edge of a settings row.
+ *
+ * Material3 [ListItem] measures trailing content against the full row width, so an unbounded long
+ * value (e.g. a Nightscout URL) wraps onto several lines and stretches the row, pushing the
+ * following options off-screen. Cap it to an ellipsised value at a fraction of the row width so
+ * the title keeps its space and the row height stays bounded. Editable/list/ringtone rows use a
+ * single line; read-only info rows pass [maxLines] > 1 so their full value stays readable.
+ */
+@Composable
+private fun TrailingValue(
+    text: String,
+    color: Color = Color.Unspecified,
+    maxLines: Int = 1,
+) {
+    val widthFraction = if (maxLines > 1) 0.66f else 0.5f
+    val maxWidth = (LocalConfiguration.current.screenWidthDp.dp * widthFraction).coerceAtLeast(140.dp)
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = color,
+        maxLines = maxLines,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.widthIn(max = maxWidth),
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsEditTextRow(
@@ -205,7 +235,7 @@ fun SettingsEditTextRow(
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
-        trailingContent = { Text(value, style = MaterialTheme.typography.bodyMedium, color = valueColor) },
+        trailingContent = { TrailingValue(value, valueColor) },
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
@@ -244,7 +274,7 @@ fun SettingsInfoRow(
         supportingContent = subtitle?.let { { Text(it) } },
         trailingContent = {
             SelectionContainer {
-                Text(value, style = MaterialTheme.typography.bodyMedium)
+                TrailingValue(value, maxLines = 2)
             }
         },
         modifier = modifier
@@ -271,7 +301,7 @@ fun SettingsListRow(
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
-        trailingContent = { Text(entries.getOrElse(selectedIndex) { "" }, style = MaterialTheme.typography.bodyMedium) },
+        trailingContent = { TrailingValue(entries.getOrElse(selectedIndex) { "" }) },
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
@@ -366,7 +396,7 @@ fun SettingsRingtoneRow(
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
-        trailingContent = { Text(ringtoneTitle(context, value), style = MaterialTheme.typography.bodyMedium) },
+        trailingContent = { TrailingValue(ringtoneTitle(context, value)) },
         modifier = modifier
             .fillMaxWidth()
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
