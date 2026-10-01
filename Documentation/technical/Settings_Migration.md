@@ -278,12 +278,21 @@ handling), and their layouts were deleted. Retained for the not-yet-migrated ale
 screens: `SnoozeActivity.SetSnoozePickerValues` + `snooze_picker.xml` and the shared
 `DatePickerFragment`/`TimePickerFragment` (retire with V6/V11).
 
+**Pass 6 — done (V5 settings-linked admin quick wins).** `SaveLogs` (info + save, keeps the storage
+write/permission logic), `NumberWallPreview` (Compose sliders/colour/background/multi controls over
+the legacy `ViewModel` bitmap rendering and the min-value snapping prefs wrapper; new
+`SecondaryScreenFill` non-scrolling scaffold variant), `DisplayQRCode` (bridges the QR
+bitmap/narrative observables; QR/payload/upload logic unchanged) and `SendFeedBack` (Compose form +
+type/email dialogs; toasts, persisted contact and OkHttp upload kept in the activity). All four
+layouts deleted. `PrefsView*` still used by `NumberWallPreview` (snapping wrappers) besides `Home`,
+`BackupActivity` and `EmergencyAssistActivity`.
+
 **Remaining:** `ErrorsActivity`, `FollowerManagementActivity`, `AlertList` + `EditAlertActivity`,
-`ProfileEditor`, `BasalProfileEditor`, `NumberWallPreview`, `DisplayQRCode`, `SdcardImportExport`,
-`SendFeedBack`, `BTGlucoseMeterActivity`, plus the app-wide/drawer surfaces and the Data-Binding /
-`NanoStatus` group (`EventLogActivity`, `NoteSearch`, `PhoneKeypadInputActivity`, `MegaStatus`,
-`ThinJamActivity`). The `PrefsView*` bridge retires once its remaining users (`Home`,
-`BackupActivity`, `EmergencyAssistActivity`, `NumberWallPreview`, `DisplayQRCode`) move.
+`ProfileEditor`, `BasalProfileEditor`, `SdcardImportExport`, `BTGlucoseMeterActivity`, plus the
+app-wide/drawer surfaces and the Data-Binding / `NanoStatus` group (`EventLogActivity`,
+`NoteSearch`, `PhoneKeypadInputActivity`, `MegaStatus`, `ThinJamActivity`). The `PrefsView*` bridge
+retires once its remaining users (`Home`, `BackupActivity`, `EmergencyAssistActivity`,
+`NumberWallPreview`) move.
 
 
 ---
@@ -327,6 +336,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | V3 Track V medium (DB screens) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V4 Track V rich Medium | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V5 Track V sensor/calibration forms | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| V6 Track V admin quick wins | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 (H = search and J = retirement are app-wide and tracked above.)
 

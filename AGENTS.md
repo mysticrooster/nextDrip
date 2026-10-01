@@ -106,8 +106,9 @@ specific features.
   calibration check-in/override, double calibration, daydream settings, health privacy, fake
   numbers), **pass 3** (Medium small Data-Binding screens: `MtpConfigureActivity`,
   `DatabaseAdmin`, `GluProActivity`), **pass 4** (rich Medium: `EmergencyAssistActivity`,
-  `BackupActivity`) and **pass 5** (sensor/calibration forms: `NewSensorLocation`, `StopSensor`,
-  `AddCalibration`, `StartNewSensor`, `SnoozeActivity`) are done as in-place Compose
+  `BackupActivity`), **pass 5** (sensor/calibration forms: `NewSensorLocation`, `StopSensor`,
+  `AddCalibration`, `StartNewSensor`, `SnoozeActivity`) and **pass 6** (admin quick wins:
+  `SaveLogs`, `NumberWallPreview`, `DisplayQRCode`, `SendFeedBack`) are done as in-place Compose
   (`ui/secondary/`); remaining secondary views (alert/editor/table/admin) are deferred.
   Next: **S6** retire the legacy settings subsystem (deferred until on-device testing). Track V
   (secondary views) continues.
