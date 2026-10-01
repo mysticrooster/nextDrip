@@ -262,4 +262,10 @@ public class UiBasedCollectorTest extends RobolectricTestWithConfig {
                 .that(ui.handleNewValue(start + Constants.MINUTE_IN_MS * 10 * 10, 100)).isFalse();
     }
 
+    @Test
+    public void isCollecting_falseWhenNotificationListenerDisabled() {
+        assertWithMessage("notification listener is not enabled by default")
+                .that(UiBasedCollector.isCollecting()).isFalse();
+    }
+
 }

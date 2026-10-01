@@ -517,6 +517,10 @@ public class UiBasedCollector extends NotificationListenerService {
         }
     }
 
+    public static boolean isCollecting() {
+        return isNotificationServiceEnabled();
+    }
+
     private static boolean isNotificationServiceEnabled() {
         val pkgName = xdrip.getAppContext().getPackageName();
         val flat = Settings.Secure.getString(xdrip.getAppContext().getContentResolver(),

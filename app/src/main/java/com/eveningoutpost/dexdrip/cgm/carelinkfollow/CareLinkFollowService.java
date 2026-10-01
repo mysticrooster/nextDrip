@@ -100,6 +100,10 @@ public class CareLinkFollowService extends ForegroundService {
         return DexCollectionType.getDexCollectionType() == DexCollectionType.CLFollow;
     }
 
+    public static boolean isCollecting() {
+        return msSince(last_wakeup) < (Constants.MINUTE_IN_MS * 15);
+    }
+
     private static long getGraceMillis() {
         return Constants.SECOND_IN_MS * gracePeriod;
     }

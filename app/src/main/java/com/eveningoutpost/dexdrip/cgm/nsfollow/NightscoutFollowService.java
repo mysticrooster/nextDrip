@@ -52,6 +52,7 @@ public class NightscoutFollowService extends ForegroundService {
 
     private static BuggySamsung buggySamsung;
     private static volatile long wakeup_time = 0;
+    private static volatile long last_wakeup = 0;
 
     private static volatile BgReading lastBg;
     private static volatile long lastPoll = 0;
@@ -120,6 +121,7 @@ public class NightscoutFollowService extends ForegroundService {
                 return START_NOT_STICKY;
             }
             buggySamsungCheck();
+            last_wakeup = JoH.tsl();
 
             // Check current
             lastBg = BgReading.lastNoSenssor();
@@ -203,6 +205,10 @@ public class NightscoutFollowService extends ForegroundService {
 
     private static boolean shouldServiceRun() {
         return DexCollectionType.getDexCollectionType() == NSFollow;
+    }
+
+    public static boolean isCollecting() {
+        return JoH.msSince(last_wakeup) < (Constants.MINUTE_IN_MS * 15);
     }
 
     /**

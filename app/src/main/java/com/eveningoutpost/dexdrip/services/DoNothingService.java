@@ -69,6 +69,7 @@ public class DoNothingService extends Service {
     private static long max_wake_time_difference = 0;
     private static int wakeUpErrors = 0;
     private static String lastState = "Not running";
+    private static volatile long last_wakeup = 0;
 
 
     public DoNothingService() {
@@ -161,6 +162,7 @@ public class DoNothingService extends Service {
             return START_NOT_STICKY;
         }
         lastState = "Started " + JoH.hourMinuteString();
+        last_wakeup = JoH.tsl();
         return START_STICKY;
 
     }
@@ -190,6 +192,10 @@ public class DoNothingService extends Service {
 
     public void listenForChangeInSettings() {
         prefs.registerOnSharedPreferenceChangeListener(prefListener);
+    }
+
+    public static boolean isCollecting() {
+        return msSince(last_wakeup) < (Constants.MINUTE_IN_MS * 15);
     }
 
 
