@@ -92,6 +92,7 @@ Always run the unit suite + `assembleFastDebug` before committing. There is no k
 | [`Compose_Library_Replacements.md`](Documentation/technical/Compose_Library_Replacements.md) | map | Legacy UI libs/widgets → Compose replacement (hellocharts→Vico, pickers/search, RemoteViews surfaces) |
 | [`Tech_Debt.md`](Documentation/technical/Tech_Debt.md) | register | Dependencies/AARs/frameworks to replace/retire, with status |
 | [`Kotlin_Policy.md`](Documentation/technical/Kotlin_Policy.md) | policy | Java/Kotlin interop rules |
+| [`iLet_Pump.md`](Documentation/technical/iLet_Pump.md) | feature | iLet (Beta Bionics) read-only pump driver: protocol, mapping, safety exclusions, credential handling |
 
 Other docs (`BlueJay_Tasker.md`, `Incoming_Glucose_Broadcast.md`, `Local_Web_Services.md`) cover
 specific features.
