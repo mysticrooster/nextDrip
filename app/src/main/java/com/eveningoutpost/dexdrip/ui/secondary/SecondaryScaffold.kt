@@ -1,5 +1,7 @@
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,6 +58,45 @@ fun SecondaryScreen(
                         .fillMaxSize()
                         .padding(padding)
                         .verticalScroll(rememberScrollState()),
+                    content = content,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Like [SecondaryScreen] but with a non-scrolling [Box] content area, for screens that render a
+ * full-size surface (e.g. a preview bitmap).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SecondaryScreenFill(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    XdripTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(title) },
+                        navigationIcon = {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                )
+                            }
+                        },
+                    )
+                },
+            ) { padding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     content = content,
                 )
             }
