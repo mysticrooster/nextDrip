@@ -86,6 +86,14 @@ class SettingsActivityTest {
     }
 
     @Test
+    fun searchNavigatesToNewlyCoveredDestination() {
+        composeRule.onNodeWithTag("setting_search").performTextInput("health")
+        composeRule.onNodeWithText("Google Health Connect").performClick()
+
+        composeRule.onNodeWithText("Use Health Connect").assertExists()
+    }
+
+    @Test
     fun themeEditorSetsAndResetsOverride() {
         ThemeColorStore.clearAll()
 

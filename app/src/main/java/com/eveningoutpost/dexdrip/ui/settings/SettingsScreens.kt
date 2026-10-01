@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,7 +72,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.AlertList
@@ -97,100 +97,99 @@ import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService
 import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
-@Composable
-internal fun titleFor(screen: SettingsScreen): String = when (screen) {
+internal fun titleFor(context: Context, screen: SettingsScreen): String = when (screen) {
     SettingsScreen.Root -> "Settings"
-    SettingsScreen.GeneralCategory -> stringResource(R.string.general_settings)
-    SettingsScreen.AlarmsCategory -> stringResource(R.string.alarms_and_alerts)
+    SettingsScreen.GeneralCategory -> context.getString(R.string.general_settings)
+    SettingsScreen.AlarmsCategory -> context.getString(R.string.alarms_and_alerts)
     SettingsScreen.YourDataCategory -> "Your Data"
     SettingsScreen.ProfileCategory -> "Profile"
     SettingsScreen.DevicesCategory -> "Devices"
     SettingsScreen.AppearanceCategory -> "Appearance"
     SettingsScreen.AccessibilityCategory -> "Accessibility"
     SettingsScreen.AdvancedCategory -> "Advanced"
-    SettingsScreen.Units -> stringResource(R.string.glucose_units)
-    SettingsScreen.Theme -> stringResource(R.string.theme_colors)
+    SettingsScreen.Units -> context.getString(R.string.glucose_units)
+    SettingsScreen.Theme -> context.getString(R.string.theme_colors)
     SettingsScreen.NotificationStyle -> "Notification Style"
-    SettingsScreen.BgAlerts -> stringResource(R.string.glucose_alerts_settings)
-    SettingsScreen.SuppressAlerts -> stringResource(R.string.suppress_alerts_if_missed_readings)
-    SettingsScreen.AscendingVolume -> stringResource(R.string.title_ascending_volume)
-    SettingsScreen.PersistentHigh -> stringResource(R.string.persistent_high_alert)
-    SettingsScreen.ForecastLow -> stringResource(R.string.forecasted_low_alert)
-    SettingsScreen.SensorExpiry -> stringResource(R.string.title_sens_expiry)
-    SettingsScreen.CalibrationAlerts -> stringResource(R.string.calibration_alerts)
-    SettingsScreen.OtherAlerts -> stringResource(R.string.other_alerts)
-    SettingsScreen.DataSource -> stringResource(R.string.data_source_settings)
+    SettingsScreen.BgAlerts -> context.getString(R.string.glucose_alerts_settings)
+    SettingsScreen.SuppressAlerts -> context.getString(R.string.suppress_alerts_if_missed_readings)
+    SettingsScreen.AscendingVolume -> context.getString(R.string.title_ascending_volume)
+    SettingsScreen.PersistentHigh -> context.getString(R.string.persistent_high_alert)
+    SettingsScreen.ForecastLow -> context.getString(R.string.forecasted_low_alert)
+    SettingsScreen.SensorExpiry -> context.getString(R.string.title_sens_expiry)
+    SettingsScreen.CalibrationAlerts -> context.getString(R.string.calibration_alerts)
+    SettingsScreen.OtherAlerts -> context.getString(R.string.other_alerts)
+    SettingsScreen.DataSource -> context.getString(R.string.data_source_settings)
     SettingsScreen.DexcomDevice -> "Dexcom"
     SettingsScreen.LibreDevice -> "Libre / NFC"
     SettingsScreen.MedtrumDevice -> "Medtrum"
     SettingsScreen.BluetoothBridge -> "Bluetooth Bridge"
     SettingsScreen.WebFollow -> "Web Follower Settings"
-    SettingsScreen.NfcSettings -> stringResource(R.string.nfc_scan_features)
-    SettingsScreen.NsFollowDownload -> stringResource(R.string.title_nsfollow_download_treatments)
-    SettingsScreen.G5Debug -> stringResource(R.string.g5_debug_settings)
-    SettingsScreen.PreemptiveRestart -> stringResource(R.string.title_ob1_g5_preemptive_restart)
-    SettingsScreen.DataSync -> stringResource(R.string.data_sync)
+    SettingsScreen.NfcSettings -> context.getString(R.string.nfc_scan_features)
+    SettingsScreen.NsFollowDownload -> context.getString(R.string.title_nsfollow_download_treatments)
+    SettingsScreen.G5Debug -> context.getString(R.string.g5_debug_settings)
+    SettingsScreen.PreemptiveRestart -> context.getString(R.string.title_ob1_g5_preemptive_restart)
+    SettingsScreen.DataSync -> context.getString(R.string.data_sync)
     SettingsScreen.Backups -> "Backups"
     SettingsScreen.About -> "About"
     SettingsScreen.Version -> "Version"
     SettingsScreen.HomeScreen -> "Home Screen"
-    SettingsScreen.AutoConfig -> stringResource(R.string.auto_configure_title)
-    SettingsScreen.CloudUpload -> stringResource(R.string.cloud_upload)
-    SettingsScreen.RestApi -> stringResource(R.string.pref_title_api)
-    SettingsScreen.RestApiDownload -> stringResource(R.string.title_cloud_storage_api_download_enable)
-    SettingsScreen.RestApiExtra -> stringResource(R.string.title_rest_api_extra_options)
-    SettingsScreen.Mongo -> stringResource(R.string.pref_title_mongodb)
-    SettingsScreen.Influx -> stringResource(R.string.pref_title_influxdb)
-    SettingsScreen.DexcomUpload -> stringResource(R.string.dexcom_share_server_upload)
-    SettingsScreen.Tidepool -> stringResource(R.string.title_tidepool)
+    SettingsScreen.AutoConfig -> context.getString(R.string.auto_configure_title)
+    SettingsScreen.CloudUpload -> context.getString(R.string.cloud_upload)
+    SettingsScreen.RestApi -> context.getString(R.string.pref_title_api)
+    SettingsScreen.RestApiDownload -> context.getString(R.string.title_cloud_storage_api_download_enable)
+    SettingsScreen.RestApiExtra -> context.getString(R.string.title_rest_api_extra_options)
+    SettingsScreen.Mongo -> context.getString(R.string.pref_title_mongodb)
+    SettingsScreen.Influx -> context.getString(R.string.pref_title_influxdb)
+    SettingsScreen.DexcomUpload -> context.getString(R.string.dexcom_share_server_upload)
+    SettingsScreen.Tidepool -> context.getString(R.string.title_tidepool)
     SettingsScreen.WebDeposit -> "Web Deposit"
     SettingsScreen.NightLite -> "NightLite"
-    SettingsScreen.Nocturne -> stringResource(R.string.nocturne)
-    SettingsScreen.GlucoseMeters -> stringResource(R.string.glucose_meters)
-    SettingsScreen.SpeakReadings -> stringResource(R.string.speak_readings)
-    SettingsScreen.InterApp -> stringResource(R.string.interapp_settings)
-    SettingsScreen.HealthConnect -> stringResource(R.string.google_health_connect)
-    SettingsScreen.ExtraStatusLine -> stringResource(R.string.extra_status_line)
-    SettingsScreen.CalibrationSettings -> stringResource(R.string.advanced_calibration)
-    SettingsScreen.BluetoothSettings -> stringResource(R.string.bluetooth_settings)
-    SettingsScreen.BlueReaderSettings -> stringResource(R.string.advanced_bluereader_settings)
-    SettingsScreen.Libre2Settings -> stringResource(R.string.title_advanced_settings_4_Lib2)
-    SettingsScreen.LoggingSettings -> stringResource(R.string.extra_logging)
-    SettingsScreen.OtherMiscSettings -> stringResource(R.string.title_Other_misc_options)
-    SettingsScreen.CollectorInForeground -> stringResource(R.string.title_collector_in_foreground)
-    SettingsScreen.SmartWatchOptions -> stringResource(R.string.smart_watch_features)
-    SettingsScreen.SmartwatchSensors -> stringResource(R.string.title_Smartwatch_Sensors)
-    SettingsScreen.WearSettings -> stringResource(R.string.android_wear_integration)
-    SettingsScreen.AmazfitSettings -> stringResource(R.string.amazfit_sync_service)
-    SettingsScreen.LeFunSettings -> stringResource(R.string.title_lefun_band)
-    SettingsScreen.LeFunFeatures -> stringResource(R.string.title_lefun_screens_features)
+    SettingsScreen.Nocturne -> context.getString(R.string.nocturne)
+    SettingsScreen.GlucoseMeters -> context.getString(R.string.glucose_meters)
+    SettingsScreen.SpeakReadings -> context.getString(R.string.speak_readings)
+    SettingsScreen.InterApp -> context.getString(R.string.interapp_settings)
+    SettingsScreen.HealthConnect -> context.getString(R.string.google_health_connect)
+    SettingsScreen.ExtraStatusLine -> context.getString(R.string.extra_status_line)
+    SettingsScreen.CalibrationSettings -> context.getString(R.string.advanced_calibration)
+    SettingsScreen.BluetoothSettings -> context.getString(R.string.bluetooth_settings)
+    SettingsScreen.BlueReaderSettings -> context.getString(R.string.advanced_bluereader_settings)
+    SettingsScreen.Libre2Settings -> context.getString(R.string.title_advanced_settings_4_Lib2)
+    SettingsScreen.LoggingSettings -> context.getString(R.string.extra_logging)
+    SettingsScreen.OtherMiscSettings -> context.getString(R.string.title_Other_misc_options)
+    SettingsScreen.CollectorInForeground -> context.getString(R.string.title_collector_in_foreground)
+    SettingsScreen.SmartWatchOptions -> context.getString(R.string.smart_watch_features)
+    SettingsScreen.SmartwatchSensors -> context.getString(R.string.title_Smartwatch_Sensors)
+    SettingsScreen.WearSettings -> context.getString(R.string.android_wear_integration)
+    SettingsScreen.AmazfitSettings -> context.getString(R.string.amazfit_sync_service)
+    SettingsScreen.LeFunSettings -> context.getString(R.string.title_lefun_band)
+    SettingsScreen.LeFunFeatures -> context.getString(R.string.title_lefun_screens_features)
     SettingsScreen.BlueJaySettings -> "BlueJay Watch"
     SettingsScreen.BlueJayAdvanced -> "BlueJay Advanced Settings"
-    SettingsScreen.MiBandSettings -> stringResource(R.string.title_miband)
-    SettingsScreen.MiBandSubSettings -> stringResource(R.string.title_miband_screens_features)
-    SettingsScreen.PebbleSettings -> stringResource(R.string.pebble_integration)
-    SettingsScreen.XdripPlusDisplay -> stringResource(R.string.xdrip_plus_display_settings)
-    SettingsScreen.XdripPlusFont -> stringResource(R.string.title_font_settings)
-    SettingsScreen.XdripPlusLanguage -> stringResource(R.string.title_language)
-    SettingsScreen.XdripPlusGraphDisplay -> stringResource(R.string.title_xdrip_plus_graph_display_settings)
-    SettingsScreen.XdripPlusGraphSmoothing -> stringResource(R.string.graph_smoothing)
-    SettingsScreen.XdripPlusYAxis -> stringResource(R.string.title_yRange)
-    SettingsScreen.XdripPlusAccessibility -> stringResource(R.string.title_xdrip_plus_accessibility)
-    SettingsScreen.XdripPlusNumberWall -> stringResource(R.string.title_xdrip_plus_number_wall)
-    SettingsScreen.XdripPlusNumberIcon -> stringResource(R.string.title_xdrip_plus_number_icon)
-    SettingsScreen.XdripPlusCopying -> stringResource(R.string.copying_settings)
-    SettingsScreen.XdripPlusUpdate -> stringResource(R.string.xdrip_plus_update_settings)
-    SettingsScreen.XdripPlusMotion -> stringResource(R.string.xdrip_motion_tracking)
-    SettingsScreen.XdripPlusPens -> stringResource(R.string.insulin_pens)
-    SettingsScreen.XdripPlusNovopen -> stringResource(R.string.title_novopen_insulin_pen)
-    SettingsScreen.XdripPlusInpen -> stringResource(R.string.title_inpen_screen)
-    SettingsScreen.XdripPlusPendiq -> stringResource(R.string.title_pendiq_screen)
-    SettingsScreen.XdripPlusPrediction -> stringResource(R.string.xdrip_plus_prediction_settings)
-    SettingsScreen.XdripPlusMultipleInsulin -> stringResource(R.string.title_multiple_insulin_types_settings)
-    SettingsScreen.XdripPlusAdvPredict -> stringResource(R.string.low_prediction_values)
-    SettingsScreen.XdripPlusSync -> stringResource(R.string.xdrip_plus_sync_settings)
-    SettingsScreen.XdripPlusRemoteSnooze -> stringResource(R.string.remote_snoozing)
-    SettingsScreen.XdripPlusDesertSync -> stringResource(R.string.title_xdrip_plus_desert_sync_settings)
+    SettingsScreen.MiBandSettings -> context.getString(R.string.title_miband)
+    SettingsScreen.MiBandSubSettings -> context.getString(R.string.title_miband_screens_features)
+    SettingsScreen.PebbleSettings -> context.getString(R.string.pebble_integration)
+    SettingsScreen.XdripPlusDisplay -> context.getString(R.string.xdrip_plus_display_settings)
+    SettingsScreen.XdripPlusFont -> context.getString(R.string.title_font_settings)
+    SettingsScreen.XdripPlusLanguage -> context.getString(R.string.title_language)
+    SettingsScreen.XdripPlusGraphDisplay -> context.getString(R.string.title_xdrip_plus_graph_display_settings)
+    SettingsScreen.XdripPlusGraphSmoothing -> context.getString(R.string.graph_smoothing)
+    SettingsScreen.XdripPlusYAxis -> context.getString(R.string.title_yRange)
+    SettingsScreen.XdripPlusAccessibility -> context.getString(R.string.title_xdrip_plus_accessibility)
+    SettingsScreen.XdripPlusNumberWall -> context.getString(R.string.title_xdrip_plus_number_wall)
+    SettingsScreen.XdripPlusNumberIcon -> context.getString(R.string.title_xdrip_plus_number_icon)
+    SettingsScreen.XdripPlusCopying -> context.getString(R.string.copying_settings)
+    SettingsScreen.XdripPlusUpdate -> context.getString(R.string.xdrip_plus_update_settings)
+    SettingsScreen.XdripPlusMotion -> context.getString(R.string.xdrip_motion_tracking)
+    SettingsScreen.XdripPlusPens -> context.getString(R.string.insulin_pens)
+    SettingsScreen.XdripPlusNovopen -> context.getString(R.string.title_novopen_insulin_pen)
+    SettingsScreen.XdripPlusInpen -> context.getString(R.string.title_inpen_screen)
+    SettingsScreen.XdripPlusPendiq -> context.getString(R.string.title_pendiq_screen)
+    SettingsScreen.XdripPlusPrediction -> context.getString(R.string.xdrip_plus_prediction_settings)
+    SettingsScreen.XdripPlusMultipleInsulin -> context.getString(R.string.title_multiple_insulin_types_settings)
+    SettingsScreen.XdripPlusAdvPredict -> context.getString(R.string.low_prediction_values)
+    SettingsScreen.XdripPlusSync -> context.getString(R.string.xdrip_plus_sync_settings)
+    SettingsScreen.XdripPlusRemoteSnooze -> context.getString(R.string.remote_snoozing)
+    SettingsScreen.XdripPlusDesertSync -> context.getString(R.string.title_xdrip_plus_desert_sync_settings)
 }
 
 @Composable
@@ -298,6 +297,8 @@ internal fun SettingsScreenContent(
 @Composable
 private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -> Unit) {
     val context = LocalContext.current
+    val state = rememberSettingsState()
+    val index = remember(context) { buildSettingsSearchIndex(context) }
     var query by remember { mutableStateOf("") }
 
     OutlinedTextField(
@@ -312,7 +313,7 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
     )
 
     if (query.isNotBlank()) {
-        val results = searchSettings(query)
+        val results = searchSettings(index, query, state)
         if (results.isEmpty()) {
             SettingsCategory("No matches") {
                 SettingsActionRow(
@@ -324,7 +325,10 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
         } else {
             SettingsCategory("Results") {
                 results.forEach { entry ->
-                    SettingsActionRow(title = entry.title, onClick = { onNavigate(entry.screen) })
+                    SettingsActionRow(
+                        title = entry.localizedTitle,
+                        onClick = { onNavigate(entry.screen) },
+                    )
                 }
             }
         }

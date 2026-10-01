@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.eveningoutpost.dexdrip.cloud.jamcm.Pusher
 import com.eveningoutpost.dexdrip.services.ActivityRecognizedService
 import com.eveningoutpost.dexdrip.ui.LockScreenWallPaper
@@ -107,7 +108,7 @@ internal fun SettingsRoot(onOpenClassic: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(titleFor(stack.last())) },
+                title = { Text(titleFor(LocalContext.current, stack.last())) },
                 navigationIcon = {
                     if (stack.size > 1) {
                         IconButton(onClick = { stack.removeAt(stack.lastIndex) }) {

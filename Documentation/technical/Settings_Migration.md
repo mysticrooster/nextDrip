@@ -143,9 +143,11 @@ Also landed: a host scroll-reset fix (`274fd4e6e`); long-list dialogs now scroll
    ```
 2. **Read `Preferences.java`** for the `removePreference`/`addPreference` and listener logic that
    touches those keys (the matrix lives ~L1334–2200, plus each `addPreferencesFromResource` block).
-3. **Wire navigation**: add `data object` entries to `SettingsScreen` (`SettingsNavigation.kt`), a
-   `titleFor` branch and a `SettingsScreenContent` branch (`SettingsScreens.kt`), the root category
-   row, and a `SETTINGS_SEARCH_INDEX` entry.
+3. **Wire navigation**: add `SettingsScreen` enum entries (`SettingsNavigation.kt`), a
+   `titleFor(context, …)` branch and a `SettingsScreenContent` branch (`SettingsScreens.kt`) and the
+   root category row. The destination search index is derived from the enum automatically
+   (`SettingsSearch.kt`); add a `SETTINGS_SEARCH_KEYWORDS` alias only when the title does not cover
+   the likely query.
 4. **Build the screen** with the row helpers. Gate with `SettingsVisibility` (read via
    `SettingsState`); attach side effects via `onCheckedChange`/`onValueChange`/`onSelected`.
 5. **Test** (Robolectric + Compose, see §8): a gate test (`Pref` set → row appears/absent) and a
@@ -212,7 +214,9 @@ Compose host.
 ## 6. Cross-cutting leftovers
 
 - **Deep links**: `Preferences.jumpToScreen(key)` → a `SettingsScreen` argument on `SettingsActivity`.
-- **Search scope**: `SETTINGS_SEARCH_INDEX` covers sub-screens; extend to leaf prefs.
+- **Search scope**: `SettingsSearch.kt` derives the index from every `SettingsScreen` destination
+  (relevance-ranked, diacritics-insensitive, conservative availability filtering); leaf-pref
+  indexing + jump/highlight remains open.
 - **Custom widgets**: `ExampleChartPreferenceView` row; multi-select / tree-selector / PIN dialogs.
 - **Icons**: legacy sub-screens carry `android:icon`; add leading icons to `SettingsActionRow`.
 - **Live pref-change listeners**: the legacy activity registered service/watch/collector listeners
@@ -316,7 +320,9 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 - **F — Summaries/validation.** `bindPreference*` behaviour reproduced. *Partly ready.*
 - **G — Custom widgets.** Every custom widget has a Compose equivalent + test. *Partly ready
   (`ExampleChartPreferenceView` is `AndroidView`-wrapped in the theme editor).*
-- **H — Search parity.** Migrated search matches `search-preference` breadth. *Pending.*
+- **H — Search parity.** Migrated search covers every Compose destination (AAPS-style ranking,
+  diacritics, conservative gating), matching `search-preference` at destination level. Leaf-pref
+  indexing/jump-to-row still open (requires a pref-key/title catalog). *Destination parity done.*
 - **I — Theming.** Material You defaults, overrides win, no literals. *Ready (`ThemeColorTest`).*
 - **J — Legacy interop/retirement.** S6 artefacts deleted, no dangling users. *Pending (S6).*
 - **K — Global regression.** Full suite + `assembleFastDebug` (R8) + backup/restore. *Run every pass.*
@@ -408,9 +414,10 @@ Plan: `.kilo/plans/1790818203174-settings-ia-redesign.md`.
   unchanged); the long-press popup still works but does not live-update (documented deviation).
 - **Theme presets** (`Material You` = `clearAll`, `Classic xDrip` = seed legacy defaults) are
   apply-once actions on the theme editor; no new colour keys/source of truth.
-- `SETTINGS_SEARCH_INDEX` regrouped under the new titles, with aliases for the retired umbrella
-  names (`extra settings`, `less common`, `other settings`) and new entries
-  (`Home Screen`, `Notification Style`, `Backups`, `About`, `Version`, per-device).
+- Search switched to a derived destination index (`SettingsSearch.kt` over `SettingsScreen.entries`),
+  replacing the hand-maintained `SETTINGS_SEARCH_INDEX`. It keeps aliases for the retired umbrella
+  names (`extra settings`, `less common`, `other settings`) and covers the new destinations
+  (`Home Screen`, `Notification Style`, `Backups`, `About`, `Version`, per-device) automatically.
 
 ### Known deviations / follow-ups
 
