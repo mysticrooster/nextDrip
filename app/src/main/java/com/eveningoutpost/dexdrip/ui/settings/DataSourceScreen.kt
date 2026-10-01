@@ -101,6 +101,15 @@ internal fun DataSourceScreen(onNavigate: (SettingsScreen) -> Unit) {
             EditPref(state, "medtrum_a_hex", context.getString(R.string.title_medtrum_a_hex), default = "", subtitle = context.getString(R.string.summary_medtrum_a_hex))
         }
 
+        if (ct == DexCollectionType.ILet) {
+            SettingsActionRow(
+                title = "iLet Settings",
+                subtitle = "iLet account, pump data and read-only notice",
+                onClick = { onNavigate(SettingsScreen.ILet) },
+                modifier = Modifier.testTag("setting_ilet"),
+            )
+        }
+
         if (ct == DexCollectionType.NSFollow) {
             EditPref(state, "nsfollow_url", context.getString(R.string.title_nsfollow_url), default = "", subtitle = context.getString(R.string.summary_nsfollow_url), tag = "setting_nsfollow_url")
             SettingsActionRow(

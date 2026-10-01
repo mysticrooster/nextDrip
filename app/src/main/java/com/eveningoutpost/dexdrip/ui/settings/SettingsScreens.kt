@@ -40,6 +40,7 @@ internal fun titleFor(screen: SettingsScreen): String = when (screen) {
     SettingsScreen.CalibrationAlerts -> stringResource(R.string.calibration_alerts)
     SettingsScreen.OtherAlerts -> stringResource(R.string.other_alerts)
     SettingsScreen.DataSource -> stringResource(R.string.data_source_settings)
+    SettingsScreen.ILet -> "iLet"
     SettingsScreen.WebFollow -> "Web Follower Settings"
     SettingsScreen.NfcSettings -> stringResource(R.string.nfc_scan_features)
     SettingsScreen.NsFollowDownload -> stringResource(R.string.title_nsfollow_download_treatments)
@@ -127,6 +128,7 @@ internal fun SettingsScreenContent(
         SettingsScreen.CalibrationAlerts -> CalibrationAlertsScreen()
         SettingsScreen.OtherAlerts -> OtherAlertsScreen()
         SettingsScreen.DataSource -> DataSourceScreen(onNavigate)
+        SettingsScreen.ILet -> ILetScreen()
         SettingsScreen.WebFollow -> WebFollowScreen()
         SettingsScreen.NfcSettings -> NfcSettingsScreen()
         SettingsScreen.NsFollowDownload -> NsFollowDownloadScreen()

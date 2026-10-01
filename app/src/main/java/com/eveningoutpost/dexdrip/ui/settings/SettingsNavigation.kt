@@ -22,6 +22,7 @@ internal sealed interface SettingsScreen {
     data object CalibrationAlerts : SettingsScreen
     data object OtherAlerts : SettingsScreen
     data object DataSource : SettingsScreen
+    data object ILet : SettingsScreen
     data object WebFollow : SettingsScreen
     data object NfcSettings : SettingsScreen
     data object NsFollowDownload : SettingsScreen
