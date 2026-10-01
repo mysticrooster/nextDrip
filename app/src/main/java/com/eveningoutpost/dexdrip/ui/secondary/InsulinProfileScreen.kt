@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -23,11 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.insulin.InsulinManager
 import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.ui.settings.SettingsListRow
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
 /**
  * Track V — `InsulinProfileEditor`: enable/disable insulin profiles and pick the basal/bolus
@@ -153,3 +156,16 @@ internal fun InsulinProfileScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun InsulinProfileScreenPreview() {
+    XdripPreview {
+        InsulinProfileScreen(onSave = {}, onCancel = {})
+    }
+}
+
+// endregion

@@ -3,6 +3,7 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -26,11 +27,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -47,13 +52,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.EditAlertActivity
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.models.AlertType
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import java.util.Calendar
 import kotlin.math.roundToInt
 
@@ -90,11 +98,13 @@ fun SettingsActionRow(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     trailing: String? = null,
+    icon: ImageVector? = null,
     enabled: Boolean = true,
 ) {
     ListItem(
         headlineContent = { Text(title) },
         supportingContent = subtitle?.let { { Text(it) } },
+        leadingContent = icon?.let { vector -> { Icon(imageVector = vector, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) } },
         trailingContent = trailing?.let { { Text(it, style = MaterialTheme.typography.bodyMedium) } },
         modifier = modifier
             .fillMaxWidth()
@@ -102,6 +112,46 @@ fun SettingsActionRow(
             .clickable(enabled = enabled, onClick = onClick),
     )
     HorizontalDivider()
+}
+
+/**
+ * Prominent top-level category button shown on the settings root. Opens the category submenu and
+ * carries the category's icon.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsCategoryButton(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+) {
+    OutlinedCard(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+    ) {
+        ListItem(
+            headlineContent = { Text(title, style = MaterialTheme.typography.titleMedium) },
+            supportingContent = subtitle?.let { { Text(it) } },
+            leadingContent = {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            },
+            trailingContent = {
+                Icon(
+                    imageVector = Icons.Filled.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -601,3 +651,216 @@ private fun EditTextDialog(
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
     )
 }
+
+// region Previews
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsCategoryPreview() {
+    XdripPreview {
+        Column {
+            SettingsCategory("Category heading") {
+                SettingsSwitchRow(title = "Enable feature", checked = true, onCheckedChange = {})
+            }
+        }
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsActionRowPreview() {
+    XdripPreview {
+        SettingsActionRow(
+            title = "Open screen",
+            subtitle = "Supporting summary",
+            trailing = "value",
+            icon = Icons.Filled.ChevronRight,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsCategoryButtonPreview() {
+    XdripPreview {
+        SettingsCategoryButton(
+            title = "Devices",
+            subtitle = "Sensors, transmitters and watches",
+            icon = Icons.Filled.ChevronRight,
+            onClick = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsSwitchRowPreview() {
+    XdripPreview {
+        SettingsSwitchRow(
+            title = "Enable feature",
+            subtitle = "Summary text",
+            checked = true,
+            onCheckedChange = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsEditTextRowPreview() {
+    XdripPreview {
+        SettingsEditTextRow(
+            title = "Display name",
+            subtitle = "Shown on the graph",
+            value = "Sample value",
+            onValueChange = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsInfoRowPreview() {
+    XdripPreview {
+        SettingsInfoRow(title = "Node id", subtitle = "Read only", value = "abc-123")
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsListRowPreview() {
+    XdripPreview {
+        SettingsListRow(
+            title = "Units",
+            subtitle = "Glucose value units",
+            entries = listOf("mg/dl", "mmol/L"),
+            values = listOf("mgdl", "mmol"),
+            selectedValue = "mgdl",
+            onSelected = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsSliderRowPreview() {
+    XdripPreview {
+        SettingsSliderRow(
+            title = "Window latency",
+            subtitle = "Minutes",
+            value = 40,
+            valueRange = 0..120,
+            onValueChange = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsRingtoneRowPreview() {
+    XdripPreview {
+        SettingsRingtoneRow(
+            title = "Alert sound",
+            subtitle = "Played for high alerts",
+            value = null,
+            onPicked = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsTimeRowPreview() {
+    XdripPreview {
+        SettingsTimeRow(
+            title = "Night mode start",
+            subtitle = "Millis since epoch",
+            valueMillis = 0L,
+            onTimeChanged = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsMinutesOfDayRowPreview() {
+    XdripPreview {
+        SettingsMinutesOfDayRow(
+            title = "Missed reading time",
+            subtitle = "Minutes since midnight",
+            minutes = 90,
+            onTimeChanged = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsColorRowPreview() {
+    XdripPreview {
+        SettingsColorRow(
+            title = "High color",
+            subtitle = "Line color",
+            color = 0xFFFFBB33.toInt(),
+            showHex = true,
+            onReset = {},
+            onColorChanged = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun TimeOfDayDialogPreview() {
+    XdripPreview {
+        TimeOfDayDialog(initialMinutes = 90, onDismiss = {}, onConfirm = {})
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ColorPickerDialogPreview() {
+    XdripPreview {
+        ColorPickerDialog(
+            title = "High color",
+            initial = 0xFFFFBB33.toInt(),
+            onDismiss = {},
+            onColorPicked = {},
+            onReset = {},
+        )
+    }
+}
+
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun EditTextDialogPreview() {
+    XdripPreview {
+        EditTextDialog(
+            title = "Display name",
+            initial = "Sample value",
+            numeric = false,
+            decimal = false,
+            masked = false,
+            onDismiss = {},
+            onConfirm = {},
+        )
+    }
+}
+
+// endregion

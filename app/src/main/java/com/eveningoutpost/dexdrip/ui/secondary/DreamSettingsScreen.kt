@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
@@ -12,8 +13,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.ui.settings.SettingsSwitchRow
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 
 /**
@@ -43,3 +46,16 @@ internal fun DreamSettingsScreen(onBack: () -> Unit) {
         )
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DreamSettingsScreenPreview() {
+    XdripPreview {
+        DreamSettingsScreen(onBack = {})
+    }
+}
+
+// endregion

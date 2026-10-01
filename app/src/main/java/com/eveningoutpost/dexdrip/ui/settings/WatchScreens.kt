@@ -3,6 +3,10 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.MonitorHeart
+import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -14,11 +18,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.R
-import com.eveningoutpost.dexdrip.utils.LocationHelper
-import com.eveningoutpost.dexdrip.utils.framework.IncomingCallsReceiver
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Constants
 import com.eveningoutpost.dexdrip.utilitymodels.pebble.PebbleActions
+import com.eveningoutpost.dexdrip.utils.LocationHelper
+import com.eveningoutpost.dexdrip.utils.framework.IncomingCallsReceiver
 import com.eveningoutpost.dexdrip.watch.miband.MiBand
 import com.eveningoutpost.dexdrip.watch.miband.MiBandEntry
 import com.eveningoutpost.dexdrip.watch.thinjam.BlueJayAdapter
@@ -57,36 +63,43 @@ internal fun SmartWatchOptionsScreen(onNavigate: (SettingsScreen) -> Unit) {
     SettingsCategory(context.getString(R.string.smart_watch_features)) {
         SettingsActionRow(
             title = context.getString(R.string.android_wear_integration),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.WearSettings) },
             modifier = Modifier.testTag("setting_watch_wear"),
         )
         SettingsActionRow(
             title = context.getString(R.string.pebble_integration),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.PebbleSettings) },
             modifier = Modifier.testTag("setting_watch_pebble"),
         )
         SettingsActionRow(
             title = context.getString(R.string.amazfit_sync_service),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.AmazfitSettings) },
             modifier = Modifier.testTag("setting_watch_amazfit"),
         )
         SettingsActionRow(
             title = "BlueJay Watch",
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.BlueJaySettings) },
             modifier = Modifier.testTag("setting_watch_bluejay"),
         )
         SettingsActionRow(
             title = context.getString(R.string.title_lefun_band),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.LeFunSettings) },
             modifier = Modifier.testTag("setting_watch_lefun"),
         )
         SettingsActionRow(
             title = context.getString(R.string.title_miband),
+            icon = Icons.Outlined.Watch,
             onClick = { onNavigate(SettingsScreen.MiBandSettings) },
             modifier = Modifier.testTag("setting_watch_miband"),
         )
         SettingsActionRow(
             title = context.getString(R.string.title_Smartwatch_Sensors),
+            icon = Icons.Outlined.MonitorHeart,
             onClick = { onNavigate(SettingsScreen.SmartwatchSensors) },
             modifier = Modifier.testTag("setting_watch_sensors"),
         )
@@ -736,3 +749,84 @@ internal fun PebbleSettingsScreen() {
         )
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SmartWatchOptionsScreenPreview() {
+    XdripPreview { SmartWatchOptionsScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SmartwatchSensorsScreenPreview() {
+    XdripPreview { SmartwatchSensorsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun WearSettingsScreenPreview() {
+    XdripPreview { WearSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AmazfitSettingsScreenPreview() {
+    XdripPreview { AmazfitSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun LeFunSettingsScreenPreview() {
+    XdripPreview { LeFunSettingsScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun LeFunFeaturesScreenPreview() {
+    XdripPreview { LeFunFeaturesScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BlueJaySettingsScreenPreview() {
+    XdripPreview { BlueJaySettingsScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BlueJayAdvancedScreenPreview() {
+    XdripPreview { BlueJayAdvancedScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MiBandSettingsScreenPreview() {
+    XdripPreview { MiBandSettingsScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MiBandSubSettingsScreenPreview() {
+    XdripPreview { MiBandSubSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun PebbleSettingsScreenPreview() {
+    XdripPreview { PebbleSettingsScreen() }
+}
+
+// endregion

@@ -22,7 +22,6 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
-import android.view.View;
 
 import com.eveningoutpost.dexdrip.BaseAppCompatActivity;
 import com.eveningoutpost.dexdrip.GcmActivity;
@@ -32,9 +31,8 @@ import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.utilitymodels.NightscoutUploader;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
-import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewImpl;
 import com.eveningoutpost.dexdrip.utilitymodels.desertsync.RouteTools;
-import com.eveningoutpost.dexdrip.databinding.ActivityDisplayQrcodeBinding;
+import com.eveningoutpost.dexdrip.ui.secondary.DisplayQRCodeScreen;
 import com.eveningoutpost.dexdrip.xdrip;
 import com.google.zxing.WriterException;
 import com.eveningoutpost.dexdrip.utilitymodels.OkHttpWrapper;
@@ -67,17 +65,13 @@ public class DisplayQRCode extends BaseAppCompatActivity {
 
 
 
-    private ActivityDisplayQrcodeBinding binding;
+    public final ViewModel viewModel = new ViewModel();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mInstance = this;
-        binding = ActivityDisplayQrcodeBinding.inflate(getLayoutInflater());
-        binding.setPrefs(new PrefsViewImpl());
-        binding.setViewmodel(new ViewModel());
-        setContentView(binding.getRoot());
-        JoH.fixActionBar(this);
+        DisplayQRCodeScreen.installDisplayQRCode(this);
         processIntent(getIntent());
     }
 
@@ -93,10 +87,10 @@ public class DisplayQRCode extends BaseAppCompatActivity {
             if (action != null) {
                 switch (action) {
                     case "xdrip_plus_desert_sync_qr":
-                        desertSyncSettings(null);
+                        desertSyncSettings();
                         break;
                     case "xdrip_plus_keks_qr":
-                        showGKey(null);
+                        showGKey();
                         break;
                     case "xdrip_nightlite_qr":
                         showNsLiteQr();
@@ -115,13 +109,13 @@ public class DisplayQRCode extends BaseAppCompatActivity {
         super.onDestroy();
     }
 
-    public synchronized void xdripPlusSyncSettings(View view) {
+    public synchronized void xdripPlusSyncSettings() {
         prefsMap.put("custom_sync_key", prefs.getString("custom_sync_key", ""));
         prefsMap.put("use_custom_sync_key", Boolean.toString(prefs.getBoolean("use_custom_sync_key", false)));
         showQRCode();
     }
 
-    public synchronized void connectionSettings(View view) {
+    public synchronized void connectionSettings() {
         prefsMap.clear();
         prefsMap.put("wifi_recievers_addresses", prefs.getString("wifi_recievers_addresses", ""));
         prefsMap.put("dex_collection_method", prefs.getString("dex_collection_method", "BluetoothWixel"));
@@ -133,7 +127,7 @@ public class DisplayQRCode extends BaseAppCompatActivity {
         showQRCode();
     }
 
-    public synchronized void alarmSettings(View view) {
+    public synchronized void alarmSettings() {
         prefsMap.clear();
         prefsMap.put("bg_alert_profile", prefs.getString("bg_alert_profile", "ascending"));
         prefsMap.put("smart_snoozing", Boolean.toString(prefs.getBoolean("smart_snoozing", true)));
@@ -143,7 +137,7 @@ public class DisplayQRCode extends BaseAppCompatActivity {
         showQRCode();
     }
 
-    public synchronized void desertSyncSettings(View view) {
+    public synchronized void desertSyncSettings() {
         prefsMap.clear();
         prefsMap.put("desert_sync_enabled", Boolean.toString(true));
         prefsMap.put("desert_sync_master_ip", RouteTools.getBestInterfaceAddress());
@@ -182,7 +176,7 @@ public class DisplayQRCode extends BaseAppCompatActivity {
         return false;
     }
 
-    public synchronized void showGKey(View view) {
+    public synchronized void showGKey() {
         showQrCodeFromBinaryPrefsMap("G Key settings\n\n" + Preferences.getMapKeysString(binaryPrefsMap).replace("\n", " ") + "\n\nHash: " + mapChecksum.substring(0, 16));
     }
 
@@ -268,7 +262,7 @@ public class DisplayQRCode extends BaseAppCompatActivity {
         }
     }
 
-    public void allSettings(View view) {
+    public void allSettings() {
         prefsMap.clear();
         byte[] result = SdcardImportExport.getPreferencesFileAsBytes(getApplicationContext());
         if ((result != null) && (result.length > 0)) {
@@ -323,10 +317,10 @@ public class DisplayQRCode extends BaseAppCompatActivity {
         val desiredPixels = (int) (Math.min(getScreenWidth(), getScreenHeight()) * scale);
         try {
             val bitmap = createQRCodeBitmap(bytesc, desiredPixels, desiredPixels, prefix);
-            binding.getViewmodel().showQr.set(false);
-            binding.getViewmodel().narrative.set(JoH.dateTimeText(JoH.tsl()) + "\n" + Build.MANUFACTURER + " " + Build.MODEL + "\n" + hint);
-            binding.getViewmodel().qrbitmap.set(new BitmapDrawable(xdrip.getAppContext().getResources(), bitmap));
-            binding.getViewmodel().showQr.set(true);
+            viewModel.showQr.set(false);
+            viewModel.narrative.set(JoH.dateTimeText(JoH.tsl()) + "\n" + Build.MANUFACTURER + " " + Build.MODEL + "\n" + hint);
+            viewModel.qrbitmap.set(new BitmapDrawable(xdrip.getAppContext().getResources(), bitmap));
+            viewModel.showQr.set(true);
         } catch (WriterException e) {
             Log.e(TAG, "ERROR: " + e);
         }
@@ -346,17 +340,17 @@ public class DisplayQRCode extends BaseAppCompatActivity {
         val desiredPixels = (int) (Math.min(getScreenWidth(), getScreenHeight()) * scale);
         try {
             val bitmap = createQRCodeFromString(str, desiredPixels, desiredPixels);
-            binding.getViewmodel().showQr.set(false);
-            binding.getViewmodel().narrative.set(JoH.dateTimeText(JoH.tsl()) + "\n" + hint);
-            binding.getViewmodel().qrbitmap.set(new BitmapDrawable(xdrip.getAppContext().getResources(), bitmap));
-            binding.getViewmodel().showQr.set(true);
+            viewModel.showQr.set(false);
+            viewModel.narrative.set(JoH.dateTimeText(JoH.tsl()) + "\n" + hint);
+            viewModel.qrbitmap.set(new BitmapDrawable(xdrip.getAppContext().getResources(), bitmap));
+            viewModel.showQr.set(true);
         } catch (WriterException e) {
             Log.e(TAG, "ERROR: " + e);
         }
     }
 
 
-    public void closeNow(View view) {
+    public void closeNow() {
         try {
             mInstance = null;
             finish();

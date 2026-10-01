@@ -1,5 +1,8 @@
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +21,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.ui.theme.XdripTheme
 
 /**
@@ -62,3 +67,68 @@ fun SecondaryScreen(
         }
     }
 }
+
+/**
+ * Like [SecondaryScreen] but with a non-scrolling [Box] content area, for screens that render a
+ * full-size surface (e.g. a preview bitmap).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SecondaryScreenFill(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    XdripTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(title) },
+                        navigationIcon = {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                )
+                            }
+                        },
+                    )
+                },
+            ) { padding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    content = content,
+                )
+            }
+        }
+    }
+}
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SecondaryScreenPreview() {
+    XdripPreview {
+        SecondaryScreen(title = "Screen title", onBack = {}) {
+            Text("Screen content")
+        }
+    }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SecondaryScreenFillPreview() {
+    XdripPreview {
+        SecondaryScreenFill(title = "Screen title", onBack = {}) {
+            Text("Full-size content")
+        }
+    }
+}
+
+// endregion

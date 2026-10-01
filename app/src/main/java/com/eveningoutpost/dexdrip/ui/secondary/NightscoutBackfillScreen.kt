@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import android.os.PowerManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -28,12 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.models.BgReading
 import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.models.Treatments
 import com.eveningoutpost.dexdrip.services.SyncService
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Constants
 import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore
 import com.eveningoutpost.dexdrip.utilitymodels.UploaderQueue
@@ -179,3 +182,16 @@ internal fun NightscoutBackfillScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NightscoutBackfillScreenPreview() {
+    XdripPreview {
+        NightscoutBackfillScreen(onCancel = {}, onRun = {})
+    }
+}
+
+// endregion

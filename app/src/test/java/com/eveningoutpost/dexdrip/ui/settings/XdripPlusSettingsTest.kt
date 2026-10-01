@@ -33,6 +33,8 @@ class XdripPlusSettingsTest {
 
     private fun click(tag: String) = composeRule.onNodeWithTag(tag).performScrollTo().performClick()
 
+    private fun openCategory(tag: String) = composeRule.onNodeWithTag(tag).performScrollTo().performClick()
+
     private fun nextStartedActivity(): Intent? = Shadows.shadowOf(composeRule.activity).nextStartedActivity
 
     /**
@@ -47,17 +49,21 @@ class XdripPlusSettingsTest {
 
     @Test
     fun extraSettingsRootListsScreens() {
-        composeRule.onNodeWithTag("setting_xdrip_display").performScrollTo().assertExists()
-        composeRule.onNodeWithTag("setting_xdrip_prediction").assertExists()
-        composeRule.onNodeWithTag("setting_xdrip_sync").assertExists()
-        composeRule.onNodeWithTag("setting_xdrip_motion").assertExists()
-        composeRule.onNodeWithTag("setting_xdrip_update").assertExists()
-        composeRule.onNodeWithTag("setting_xdrip_copying").assertExists()
-        composeRule.onNodeWithTag("setting_xdrip_pens").assertExists()
+        // The former "extra settings" rows now live inside their IA category buttons.
+        composeRule.onNodeWithTag("setting_category_general").performScrollTo().assertExists()
+        composeRule.onNodeWithTag("setting_category_alarms").assertExists()
+        composeRule.onNodeWithTag("setting_category_data").assertExists()
+        composeRule.onNodeWithTag("setting_category_profile").assertExists()
+        composeRule.onNodeWithTag("setting_category_devices").assertExists()
+        composeRule.onNodeWithTag("setting_category_appearance").assertExists()
+        composeRule.onNodeWithTag("setting_category_accessibility").assertExists()
+        composeRule.onNodeWithTag("setting_category_advanced").assertExists()
+        composeRule.onNodeWithTag("setting_category_about").assertExists()
     }
 
     @Test
     fun copyingLaunchesQrCodeIntent() {
+        openCategory("setting_category_data")
         click("setting_xdrip_copying")
         click("setting_show_qr_codes")
 
@@ -69,6 +75,7 @@ class XdripPlusSettingsTest {
         Pref.setBoolean("engineering_mode", false)
         Pref.setString("update_channel", "beta")
 
+        openCategory("setting_category_advanced")
         click("setting_xdrip_update")
         click("setting_update_channel")
 
@@ -80,6 +87,7 @@ class XdripPlusSettingsTest {
         Pref.setBoolean("engineering_mode", true)
         Pref.setString("update_channel", "beta")
 
+        openCategory("setting_category_advanced")
         click("setting_xdrip_update")
         click("setting_update_channel")
 
@@ -92,6 +100,7 @@ class XdripPlusSettingsTest {
         Pref.setBoolean("enable_crashlytics", false)
         Pref.setBoolean("enable_telemetry", false)
 
+        openCategory("setting_category_advanced")
         click("setting_xdrip_update")
         composeRule.onNodeWithTag("setting_enable_telemetry").performScrollTo().performClick()
 
@@ -103,6 +112,7 @@ class XdripPlusSettingsTest {
         Pref.setBoolean("motion_tracking_enabled", false)
         Pref.setBoolean("plot_motion", false)
 
+        openCategory("setting_category_advanced")
         click("setting_xdrip_motion")
         composeRule.onNodeWithTag("setting_plot_motion").performScrollTo().performClick()
 
@@ -111,6 +121,7 @@ class XdripPlusSettingsTest {
 
     @Test
     fun pensNavigateToNovopen() {
+        openCategory("setting_category_devices")
         click("setting_xdrip_pens")
         click("setting_pens_novopen")
 
@@ -121,6 +132,7 @@ class XdripPlusSettingsTest {
     fun inpenResetLaunchesHomeIntent() {
         Pref.setBoolean("engineering_mode", false)
 
+        openCategory("setting_category_devices")
         click("setting_xdrip_pens")
         click("setting_pens_inpen")
         click("setting_inpen_reset")
@@ -135,10 +147,11 @@ class XdripPlusSettingsTest {
         Pref.setBoolean("I_understand", false)
         setPrefThenRecreate("I_understand", false)
 
+        openCategory("setting_category_profile")
         click("setting_xdrip_prediction")
 
         // The gated row is disabled, so its sub-screen does not open.
-        composeRule.onNodeWithTag("setting_multiple_insulin").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_simulations_enabled").assertDoesNotExist()
     }
 
     @Test
@@ -146,7 +159,7 @@ class XdripPlusSettingsTest {
         Pref.setBoolean("I_understand", true)
         setPrefThenRecreate("I_understand", true)
 
-        click("setting_xdrip_prediction")
+        openCategory("setting_category_profile")
         click("setting_profile_carb_ratio")
 
         assertThat(nextStartedActivity()?.component?.className)
@@ -158,6 +171,7 @@ class XdripPlusSettingsTest {
         Pref.setString("custom_sync_key", "")
         setPrefThenRecreate("I_understand", true)
 
+        openCategory("setting_category_data")
         click("setting_xdrip_sync")
         composeRule.waitForIdle()
 
@@ -170,6 +184,7 @@ class XdripPlusSettingsTest {
         Pref.setBoolean("plus_follow_master", true)
         setPrefThenRecreate("I_understand", true)
 
+        openCategory("setting_category_data")
         click("setting_xdrip_sync")
         click("setting_desert_sync")
 
@@ -180,6 +195,7 @@ class XdripPlusSettingsTest {
     fun noiseUltrasensitiveHiddenWithoutEngineeringMode() {
         Pref.setBoolean("engineering_mode", false)
 
+        openCategory("setting_category_appearance")
         click("setting_xdrip_display")
 
         composeRule.onNodeWithTag("setting_bg_compensate_noise_ultrasensitive").assertDoesNotExist()
@@ -191,8 +207,8 @@ class XdripPlusSettingsTest {
         Pref.setString("forced_language", "en")
         Pref.setBoolean("engineering_mode", false)
 
-        click("setting_xdrip_display")
-        click("setting_display_language")
+        openCategory("setting_category_appearance")
+        click("setting_language")
         click("setting_forced_language")
         composeRule.onNodeWithText("Deutsch").performClick()
 
@@ -201,7 +217,7 @@ class XdripPlusSettingsTest {
 
     @Test
     fun numberWallTimePickerCarriesPrefName() {
-        click("setting_xdrip_display")
+        openCategory("setting_category_appearance")
         click("setting_number_wall")
         click("setting_pick_numberwall_start")
 
@@ -212,7 +228,7 @@ class XdripPlusSettingsTest {
 
     @Test
     fun numberWallConfigLaunchesPreview() {
-        click("setting_xdrip_display")
+        openCategory("setting_category_appearance")
         click("setting_number_wall")
         click("setting_number_wall_config")
 
@@ -221,6 +237,7 @@ class XdripPlusSettingsTest {
 
     @Test
     fun themeEditorRendersLegacyGroupsAndFlairSwitch() {
+        openCategory("setting_category_appearance")
         click("setting_theme")
 
         composeRule.onNodeWithText("Reading dots").assertExists()
@@ -234,6 +251,7 @@ class XdripPlusSettingsTest {
     fun themeFlairSwitchRoundTrips() {
         Pref.setBoolean("use_flair_colors", false)
 
+        openCategory("setting_category_appearance")
         click("setting_theme")
         composeRule.onNodeWithTag("setting_theme_use_flair_colors").performScrollTo().performClick()
 

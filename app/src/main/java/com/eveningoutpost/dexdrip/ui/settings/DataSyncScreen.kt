@@ -3,10 +3,15 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.NightscoutBackfillActivity
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.deposit.DepositActivity
@@ -14,6 +19,7 @@ import com.eveningoutpost.dexdrip.glucosemeter.BTGlucoseMeterActivity
 import com.eveningoutpost.dexdrip.nocturne.NocturneConnectHelper
 import com.eveningoutpost.dexdrip.tidepool.AuthFlowOut
 import com.eveningoutpost.dexdrip.tidepool.TidepoolUploader
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.AndroidBarcode
 import com.eveningoutpost.dexdrip.utils.DisplayQRCode
@@ -33,20 +39,16 @@ internal fun DataSyncScreen(onNavigate: (SettingsScreen) -> Unit) {
         SettingsActionRow(
             title = context.getString(R.string.auto_configure_title),
             subtitle = context.getString(R.string.prefs_auto_config_summary),
+            icon = Icons.Outlined.QrCodeScanner,
             onClick = { onNavigate(SettingsScreen.AutoConfig) },
             modifier = Modifier.testTag("setting_auto_config"),
         )
         SettingsActionRow(
             title = context.getString(R.string.cloud_upload),
             subtitle = context.getString(R.string.options_for_upload),
+            icon = Icons.Outlined.CloudUpload,
             onClick = { onNavigate(SettingsScreen.CloudUpload) },
             modifier = Modifier.testTag("setting_cloud_upload"),
-        )
-        SettingsActionRow(
-            title = context.getString(R.string.glucose_meters),
-            subtitle = context.getString(R.string.glucose_meter_options),
-            onClick = { onNavigate(SettingsScreen.GlucoseMeters) },
-            modifier = Modifier.testTag("setting_glucose_meters"),
         )
     }
 }
@@ -320,3 +322,105 @@ internal fun GlucoseMetersScreen() {
 private fun startActivityWithAction(context: Context, clazz: Class<*>, action: String?) {
     context.startActivity(Intent(action).setClass(context, clazz))
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DataSyncScreenPreview() {
+    XdripPreview { DataSyncScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun AutoConfigScreenPreview() {
+    XdripPreview { AutoConfigScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun CloudUploadScreenPreview() {
+    XdripPreview { CloudUploadScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun RestApiScreenPreview() {
+    XdripPreview { RestApiScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun RestApiDownloadScreenPreview() {
+    XdripPreview { RestApiDownloadScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun RestApiExtraScreenPreview() {
+    XdripPreview { RestApiExtraScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MongoScreenPreview() {
+    XdripPreview { MongoScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun InfluxScreenPreview() {
+    XdripPreview { InfluxScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun DexcomUploadScreenPreview() {
+    XdripPreview { DexcomUploadScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun TidepoolScreenPreview() {
+    XdripPreview { TidepoolScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun WebDepositScreenPreview() {
+    XdripPreview { WebDepositScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NightLiteScreenPreview() {
+    XdripPreview { NightLiteScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun NocturneScreenPreview() {
+    XdripPreview { NocturneScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun GlucoseMetersScreenPreview() {
+    XdripPreview { GlucoseMetersScreen() }
+}
+
+// endregion

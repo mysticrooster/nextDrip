@@ -2,14 +2,17 @@ package com.eveningoutpost.dexdrip.ui.settings
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.calibrations.PluggableCalibration
 import com.eveningoutpost.dexdrip.healthconnect.HealthGamut
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
 /**
  * S5a — Other settings (`pref_advanced_settings.xml` → `other_category`).
@@ -91,39 +94,6 @@ internal fun HealthConnectScreen() {
             onClick = { (context as? Activity)?.let { HealthGamut.init(it).openPermissionManager() } },
             enabled = enabled,
         )
-    }
-}
-
-@Composable
-internal fun LessCommonScreen(onNavigate: (SettingsScreen) -> Unit) {
-    val context = LocalContext.current
-    val state = rememberSettingsState()
-    SettingsCategory(context.getString(R.string.less_common_settings)) {
-        SettingsActionRow(title = context.getString(R.string.extra_status_line), onClick = { onNavigate(SettingsScreen.ExtraStatusLine) }, modifier = Modifier.testTag("setting_nav_extra_status_line"))
-        SettingsActionRow(title = context.getString(R.string.advanced_calibration), onClick = { onNavigate(SettingsScreen.CalibrationSettings) })
-        SettingsActionRow(title = context.getString(R.string.bluetooth_settings), onClick = { onNavigate(SettingsScreen.BluetoothSettings) })
-        if (SettingsVisibility.isBlueReader()) {
-            SettingsActionRow(title = context.getString(R.string.advanced_bluereader_settings), onClick = { onNavigate(SettingsScreen.BlueReaderSettings) })
-        }
-        if (SettingsVisibility.isLibreReceiver()) {
-            SettingsActionRow(title = context.getString(R.string.title_advanced_settings_4_Lib2), onClick = { onNavigate(SettingsScreen.Libre2Settings) })
-        }
-        SwitchPref(state, "aggressive_service_restart", context.getString(R.string.aggressive_service_restarts), default = true, subtitle = context.getString(R.string.repeatedly_restart_collection_service))
-        SwitchPref(state, "interpret_raw", context.getString(R.string.interpret_raw), default = false, subtitle = context.getString(R.string.interpret_share_raw))
-        SettingsActionRow(title = context.getString(R.string.extra_logging), onClick = { onNavigate(SettingsScreen.LoggingSettings) })
-        SwitchPref(state, "show_data_tables", context.getString(R.string.show_datatables), default = false, subtitle = context.getString(R.string.show_datatables_in_app_drawer))
-        SwitchPref(state, "display_bridge_battery", context.getString(R.string.display_bridge_battery), default = true, subtitle = context.getString(R.string.summary_Choose_to_display_the_bridge_battery_level))
-        SwitchPref(state, "disable_battery_warning", context.getString(R.string.disable_battery_warning), default = false, subtitle = context.getString(R.string.disable_log_transmitter_battery_warning))
-        SwitchPref(state, "save_db_ondemand", context.getString(R.string.daily_save_db), default = false, subtitle = context.getString(R.string.allow_daily_db_save))
-        EditPref(
-            state,
-            "retention_days_bg_reading",
-            "${context.getString(R.string.title_Glucose_Retention)} (${state.string("retention_days_bg_reading", "180")})",
-            default = "180",
-            numeric = true,
-            subtitle = context.getString(R.string.summary_Erase_data_older_than_this_many_days),
-        )
-        SettingsActionRow(title = context.getString(R.string.title_Other_misc_options), onClick = { onNavigate(SettingsScreen.OtherMiscSettings) })
     }
 }
 
@@ -281,6 +251,20 @@ internal fun OtherMiscSettingsScreen(onNavigate: (SettingsScreen) -> Unit) {
         SwitchPref(state, "libre_one_minute", context.getString(R.string.title_libre_one_minute_interval), default = false, subtitle = context.getString(R.string.summary_libre_one_minute_interval))
         SwitchPref(state, "Eversense_one_minute", "1-min Inter-app broadcast", default = false, subtitle = "Accept data at one-minute intervals from Inter-app broadcast. Reboot your phone for changes to take effect.")
         SwitchPref(state, "allow_testing_with_dead_sensor", context.getString(R.string.title_NOT_FOR_PRODUCTION_USE), default = false, subtitle = context.getString(R.string.summary_allow_testing_with_dead_sensor))
+        SwitchPref(state, "aggressive_service_restart", context.getString(R.string.aggressive_service_restarts), default = true, subtitle = context.getString(R.string.repeatedly_restart_collection_service))
+        SwitchPref(state, "interpret_raw", context.getString(R.string.interpret_raw), default = false, subtitle = context.getString(R.string.interpret_share_raw))
+        SwitchPref(state, "show_data_tables", context.getString(R.string.show_datatables), default = false, subtitle = context.getString(R.string.show_datatables_in_app_drawer))
+        SwitchPref(state, "display_bridge_battery", context.getString(R.string.display_bridge_battery), default = true, subtitle = context.getString(R.string.summary_Choose_to_display_the_bridge_battery_level))
+        SwitchPref(state, "disable_battery_warning", context.getString(R.string.disable_battery_warning), default = false, subtitle = context.getString(R.string.disable_log_transmitter_battery_warning))
+        SwitchPref(state, "save_db_ondemand", context.getString(R.string.daily_save_db), default = false, subtitle = context.getString(R.string.allow_daily_db_save))
+        EditPref(
+            state,
+            "retention_days_bg_reading",
+            "${context.getString(R.string.title_Glucose_Retention)} (${state.string("retention_days_bg_reading", "180")})",
+            default = "180",
+            numeric = true,
+            subtitle = context.getString(R.string.summary_Erase_data_older_than_this_many_days),
+        )
     }
 }
 
@@ -301,3 +285,84 @@ private fun calibrationPluginChoices(context: Context): Pair<List<String>, List<
     val values = listPreference.entryValues?.map { it.toString() } ?: emptyList()
     return entries to values
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun SpeakReadingsScreenPreview() {
+    XdripPreview { SpeakReadingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun InterAppScreenPreview() {
+    XdripPreview { InterAppScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun HealthConnectScreenPreview() {
+    XdripPreview { HealthConnectScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun ExtraStatusLineScreenPreview() {
+    XdripPreview { ExtraStatusLineScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun CalibrationSettingsScreenPreview() {
+    XdripPreview { CalibrationSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BluetoothSettingsScreenPreview() {
+    XdripPreview { BluetoothSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BlueReaderSettingsScreenPreview() {
+    XdripPreview { BlueReaderSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun Libre2SettingsScreenPreview() {
+    XdripPreview { Libre2SettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun LoggingSettingsScreenPreview() {
+    XdripPreview { LoggingSettingsScreen() }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun OtherMiscSettingsScreenPreview() {
+    XdripPreview { OtherMiscSettingsScreen(onNavigate = {}) }
+}
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun CollectorInForegroundScreenPreview() {
+    XdripPreview { CollectorInForegroundScreen() }
+}
+
+// endregion

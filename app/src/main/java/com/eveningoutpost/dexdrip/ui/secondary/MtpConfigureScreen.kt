@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import androidx.activity.ComponentActivity
@@ -23,10 +24,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.MtpConfigure
 import com.eveningoutpost.dexdrip.utilitymodels.NanoStatus
 import com.eveningoutpost.dexdrip.utils.usb.UsbTools
@@ -114,3 +117,16 @@ private fun firstForegroundColor(spannable: SpannableString?): Int? {
         .firstOrNull()
         ?.foregroundColor
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun MtpConfigureScreenPreview() {
+    XdripPreview {
+        MtpConfigureScreen(onBack = {}, statusProvider = { "" }, colorProvider = { null }, usbAttempt = {})
+    }
+}
+
+// endregion

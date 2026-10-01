@@ -29,7 +29,8 @@ class SettingsActivityTest {
     fun unitsSubScreenWritesPref() {
         Pref.setString("units", "mgdl")
 
-        // Root -> units sub-screen -> units list dialog.
+        // Root -> General category -> units sub-screen -> units list dialog.
+        composeRule.onNodeWithTag("setting_category_general").performClick()
         composeRule.onNodeWithTag("setting_glucose_units").performClick()
         composeRule.onNodeWithTag("setting_units").performClick()
         composeRule.onNodeWithText("mmol/L").performClick()
@@ -39,6 +40,7 @@ class SettingsActivityTest {
 
     @Test
     fun editTextRowOpensDialog() {
+        composeRule.onNodeWithTag("setting_category_general").performClick()
         composeRule.onNodeWithTag("setting_glucose_units").performClick()
         composeRule.onNodeWithTag("setting_highValue").performClick()
 
@@ -50,9 +52,9 @@ class SettingsActivityTest {
     fun notificationSwitchWritesPref() {
         Pref.setBoolean("smart_snoozing", true)
 
-        composeRule.onNodeWithTag("setting_notifications").performClick()
-        composeRule.onNodeWithText("Glucose Alerts Settings").performClick()
-        composeRule.onNodeWithText("Smart Snoozing").performClick()
+        composeRule.onNodeWithTag("setting_category_alarms").performClick()
+        composeRule.onNodeWithTag("setting_bg_alerts").performScrollTo().performClick()
+        composeRule.onNodeWithText("Smart Snoozing").performScrollTo().performClick()
 
         assertThat(Pref.getBoolean("smart_snoozing", true)).isFalse()
     }
@@ -61,17 +63,17 @@ class SettingsActivityTest {
     fun dependentRowDisabledUntilMasterEnabled() {
         Pref.setBoolean("disable_alerts_stale_data", false)
 
-        composeRule.onNodeWithTag("setting_notifications").performClick()
-        composeRule.onNodeWithText("Glucose Alerts Settings").performClick()
+        composeRule.onNodeWithTag("setting_category_alarms").performClick()
+        composeRule.onNodeWithTag("setting_bg_alerts").performScrollTo().performClick()
         composeRule.onNodeWithText("Suppress Alerts if missed readings").performScrollTo().performClick()
 
         // Master off -> dependent numeric row does not react.
-        composeRule.onNodeWithTag("setting_stale_minutes").performClick()
+        composeRule.onNodeWithTag("setting_stale_minutes").performScrollTo().performClick()
         composeRule.onNodeWithText("OK").assertDoesNotExist()
 
         // Master on -> dependent row opens its dialog.
-        composeRule.onNodeWithTag("setting_stale_enabled").performClick()
-        composeRule.onNodeWithTag("setting_stale_minutes").performClick()
+        composeRule.onNodeWithTag("setting_stale_enabled").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_stale_minutes").performScrollTo().performClick()
         composeRule.onNodeWithText("OK").assertExists()
     }
 
@@ -87,6 +89,7 @@ class SettingsActivityTest {
     fun themeEditorSetsAndResetsOverride() {
         ThemeColorStore.clearAll()
 
+        composeRule.onNodeWithTag("setting_category_appearance").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_theme").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_theme_PRIMARY").performScrollTo().performClick()
         composeRule.onNodeWithText("OK").performClick()
@@ -102,6 +105,7 @@ class SettingsActivityTest {
     fun themeGlobalResetClearsOverrides() {
         ThemeColorStore.setOverride(ThemeColor.PRIMARY, 0xFF123456.toInt())
 
+        composeRule.onNodeWithTag("setting_category_appearance").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_theme").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_theme_reset_all").performClick()
 
@@ -112,6 +116,7 @@ class SettingsActivityTest {
     fun dataSourceWebFollowGateHiddenByDefault() {
         Pref.setString("dex_collection_method", "BluetoothWixel")
 
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_web_follow").assertDoesNotExist()
@@ -122,6 +127,7 @@ class SettingsActivityTest {
     fun dataSourceWebFollowGateVisibleForWebFollow() {
         Pref.setString("dex_collection_method", "WebFollower")
 
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_web_follow").assertExists()
@@ -131,15 +137,18 @@ class SettingsActivityTest {
     fun dataSourceNfcGateVisibleForLibre() {
         Pref.setString("dex_collection_method", "LimiTTer")
 
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_device").performScrollTo().assertExists().performClick()
 
         composeRule.onNodeWithTag("setting_nfc").assertExists()
     }
 
     @Test
     fun dataSyncAutoConfigReachable() {
-        composeRule.onNodeWithTag("setting_data_sync").performScrollTo().performClick()
-        composeRule.onNodeWithTag("setting_auto_config").performClick()
+        composeRule.onNodeWithTag("setting_category_data").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_cloud_sync").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_auto_config").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_auto_configure").assertExists()
     }
@@ -148,8 +157,9 @@ class SettingsActivityTest {
     fun webDepositHiddenWithoutEngineeringMode() {
         Pref.setBoolean("engineering_mode", false)
 
-        composeRule.onNodeWithTag("setting_data_sync").performScrollTo().performClick()
-        composeRule.onNodeWithTag("setting_cloud_upload").performClick()
+        composeRule.onNodeWithTag("setting_category_data").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_cloud_sync").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_cloud_upload").performScrollTo().performClick()
 
         composeRule.onNodeWithText("Web Deposit").assertDoesNotExist()
     }
@@ -158,17 +168,17 @@ class SettingsActivityTest {
     fun advancedExtraStatusLineToggleWritesPref() {
         Pref.setBoolean("extra_status_line", false)
 
-        composeRule.onNodeWithTag("setting_less_common").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_category_appearance").performScrollTo().performClick()
         composeRule.onNodeWithTag("setting_nav_extra_status_line").performScrollTo().performClick()
-        composeRule.onNodeWithTag("setting_extra_status_line").performClick()
+        composeRule.onNodeWithTag("setting_extra_status_line").performScrollTo().performClick()
 
         assertThat(Pref.getBoolean("extra_status_line", false)).isTrue()
     }
 
     @Test
     fun advancedCalibrationPluginRowPresent() {
-        composeRule.onNodeWithTag("setting_less_common").performScrollTo().performClick()
-        composeRule.onNodeWithText("Advanced Calibration").performClick()
+        composeRule.onNodeWithTag("setting_category_advanced").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_calibration").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_calibration_plugin").assertExists()
     }

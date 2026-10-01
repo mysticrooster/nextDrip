@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
 import androidx.databinding.ObservableMap
@@ -28,6 +30,7 @@ import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.cloud.backup.Backup
 import com.eveningoutpost.dexdrip.cloud.backup.BackupActivity
 import com.eveningoutpost.dexdrip.ui.settings.SettingsSwitchRow
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
 private val META_KEYS = listOf("selectedLocation", "stext", "lastBackupTime", "lastAgoTime", "lastDevice")
 
@@ -235,3 +238,29 @@ internal fun BackupScreen(
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun BackupScreenPreview() {
+    XdripPreview {
+        BackupScreen(
+            status = "Idle",
+            idle = true,
+            showAuto = true,
+            metaData = mapOf("Last backup" to "never"),
+            automaticEnabled = false,
+            automaticMobile = false,
+            onSelectFile = {},
+            onBackupNow = {},
+            onRestoreNow = {},
+            onAutomaticEnabledChange = {},
+            onAutomaticMobileChange = {},
+            onBack = {},
+        )
+    }
+}
+
+// endregion

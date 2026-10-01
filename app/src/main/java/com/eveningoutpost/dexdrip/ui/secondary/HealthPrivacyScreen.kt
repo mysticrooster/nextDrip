@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,8 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 
 /**
  * Track V pass 2 — `HealthPrivacy`: static Health Connect privacy explanation.
@@ -47,3 +50,16 @@ internal fun HealthPrivacyScreen(onClose: () -> Unit) {
         }
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun HealthPrivacyScreenPreview() {
+    XdripPreview {
+        HealthPrivacyScreen(onClose = {})
+    }
+}
+
+// endregion

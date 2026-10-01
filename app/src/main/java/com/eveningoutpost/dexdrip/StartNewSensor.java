@@ -15,7 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.eveningoutpost.dexdrip.g5model.DexSyncKeeper;
@@ -35,7 +34,7 @@ import com.eveningoutpost.dexdrip.profileeditor.ProfileAdapter;
 import com.eveningoutpost.dexdrip.profileeditor.TimePickerFragment;
 import com.eveningoutpost.dexdrip.ui.dialog.G6CalibrationCodeDialog;
 import com.eveningoutpost.dexdrip.ui.dialog.G6EndOfLifeDialog;
-import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
+import com.eveningoutpost.dexdrip.ui.secondary.StartNewSensorScreen;
 import com.eveningoutpost.dexdrip.utils.DexCollectionHelper;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
 import com.eveningoutpost.dexdrip.utils.LocationHelper;
@@ -47,38 +46,34 @@ import java.util.Locale;
 
 import lombok.val;
 
-public class StartNewSensor extends ActivityWithMenu {
-    // public static String menu_name = "Start Sensor";
+/**
+ * Start a new sensor (Track V pass 5, now Compose). The activity keeps the insertion-time/date
+ * prompts (the shared legacy picker fragments, retired in V11), permission handling and the
+ * collector-specific start flows.
+ */
+public class StartNewSensor extends BaseAppCompatActivity {
     private static final String TAG = "StartNewSensor";
-    private Button button;
-    //private DatePicker dp;
-    // private TimePicker tp;
     final Activity activity = this;
     Calendar ucalendar = Calendar.getInstance();
+
     private int transmitterAgeInDays() { // Transmitter days reported by the transmitter; 0 on day 1; -1 if unknown due to no connectivity.
         return DexTimeKeeper.getTransmitterAgeInDays(getTransmitterID());
     }
 
     private void activitySetupView() {
-        JoH.fixActionBar(this);
-        setContentView(R.layout.activity_start_new_sensor);
-        button = findViewById(R.id.startNewSensor);
+        StartNewSensorScreen.installStartNewSensor(this);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (DexCollectionType.isG7()) {
-            //JoH.static_toast_long(getString(R.string.g7_should_start_automatically));
             activitySetupView();
             getIntent().putExtra(FINISH_ACTIVITY_ON_DIALOG_DISMISS, true);
             DexCollectionHelper.assistance(this, DexCollectionType.DexcomG5);
         } else {
             if (!Sensor.isActive()) {
-               activitySetupView();
-                //dp = (DatePicker)findViewById(R.id.datePicker);
-                //tp = (TimePicker)findViewById(R.id.timePicker);
-                addListenerOnButton();
+                activitySetupView();
             } else {
                 Intent intent = new Intent(this, StopSensor.class);
                 startActivity(intent);
@@ -87,28 +82,18 @@ public class StartNewSensor extends ActivityWithMenu {
         }
     }
 
-    @Override
-    public String getMenuName() {
-        return getString(R.string.start_sensor);
-    }
-
-    public void addListenerOnButton() {
-        button = (Button) findViewById(R.id.startNewSensor);
-
-        button.setOnClickListener(v -> {
-
-            if (DexCollectionType.hasBluetooth()) {
-                if (!LocationHelper.locationPermission(StartNewSensor.this)) {
-                    LocationHelper.requestLocationForBluetooth(StartNewSensor.this);
-                } else {
-                    sensorButtonClick();
-                }
+    /** Entry point from the Compose start button. */
+    public void startSensor() {
+        if (DexCollectionType.hasBluetooth()) {
+            if (!LocationHelper.locationPermission(StartNewSensor.this)) {
+                LocationHelper.requestLocationForBluetooth(StartNewSensor.this);
             } else {
                 sensorButtonClick();
             }
-        });
+        } else {
+            sensorButtonClick();
+        }
     }
-
 
     private void sensorButtonClick() {
 
@@ -276,37 +261,4 @@ public class StartNewSensor extends ActivityWithMenu {
             }
         }
     }
-
-    /*public void oldaddListenerOnButton() {
-
-        button = (Button)findViewById(R.id.startNewSensor);
-
-        button.setOnClickListener(new View.OnClickListener() {
-          public void onClick(View v) {
-
-              Calendar calendar = Calendar.getInstance();
-              calendar.set(dp.getYear(), dp.getMonth(), dp.getDayOfMonth(),
-              tp.getCurrentHour(), tp.getCurrentMinute(), 0);
-              long startTime = calendar.getTime().getTime();
-
-              Sensor.create(startTime);
-              Log.d("NEW SENSOR", "Sensor started at " + startTime);
-
-              Toast.makeText(getApplicationContext(), gs(R.string.new_sensor_started), Toast.LENGTH_LONG).show();
-              CollectionServiceStarter.newStart(getApplicationContext());
-              SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-              Intent intent;
-              if(prefs.getBoolean("store_sensor_location",true)) {
-                  intent = new Intent(getApplicationContext(), NewSensorLocation.class);
-              } else {
-                  intent = new Intent(getApplicationContext(), Home.class);
-              }
-
-              startActivity(intent);
-              finish();
-          }
-
-        });
-
-    }*/
 }

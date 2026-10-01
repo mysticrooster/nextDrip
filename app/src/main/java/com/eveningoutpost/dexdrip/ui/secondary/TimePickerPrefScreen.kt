@@ -2,6 +2,7 @@
 
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,8 +10,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.ui.settings.TimeOfDayDialog
+import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import java.util.Locale
 
@@ -38,3 +41,16 @@ internal fun TimePickerPrefScreen(prefName: String, onDone: () -> Unit) {
         )
     }
 }
+
+// region Previews
+
+@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
+@Composable
+private fun TimePickerPrefScreenPreview() {
+    XdripPreview {
+        TimePickerPrefScreen(prefName = "preview_time", onDone = {})
+    }
+}
+
+// endregion

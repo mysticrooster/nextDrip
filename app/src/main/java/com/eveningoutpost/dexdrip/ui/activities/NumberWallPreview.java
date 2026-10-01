@@ -8,7 +8,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import android.view.View;
+
+import androidx.databinding.ObservableField;
 
 import com.eveningoutpost.dexdrip.BestGlucose;
 import com.eveningoutpost.dexdrip.models.JoH;
@@ -20,11 +21,11 @@ import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewImpl;
 import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewString;
 import com.eveningoutpost.dexdrip.utilitymodels.Unitized;
 import com.eveningoutpost.dexdrip.adapters.ObservableBackground;
-import com.eveningoutpost.dexdrip.databinding.ActivityNumberWallPreviewBinding;
 import com.eveningoutpost.dexdrip.ui.LockScreenWallPaper;
 import com.eveningoutpost.dexdrip.ui.NumberGraphic;
 import com.eveningoutpost.dexdrip.ui.dialog.ColorPreferenceDialog;
 import com.eveningoutpost.dexdrip.ui.helpers.BitmapUtil;
+import com.eveningoutpost.dexdrip.ui.secondary.NumberWallPreviewScreen;
 import com.eveningoutpost.dexdrip.utils.FileUtils;
 import com.eveningoutpost.dexdrip.utils.SdcardImportExport;
 
@@ -42,6 +43,9 @@ import static com.eveningoutpost.dexdrip.utilitymodels.ColorCache.getCol;
  * jamorham
  * <p>
  * Configuration page for Number Wall feature
+ *
+ * Track V V5: rendered in Compose (NumberWallPreviewScreen); the activity keeps the bitmap
+ * rendering, the SAF image pick and the colour-dialog actions.
  */
 
 public class NumberWallPreview extends AppCompatActivity {
@@ -51,23 +55,26 @@ public class NumberWallPreview extends AppCompatActivity {
     private static final int LOAD_IMAGE_RESULTS = 35021;
     private static final int ASK_FILE_PERMISSION = 35020;
 
-    private ActivityNumberWallPreviewBinding binding;
+    public final ObservableField<Integer> refreshTick = new ObservableField<>(0);
+    public final ViewModel viewModel = new ViewModel(this);
+    public final PrefsViewImpl prefs = new PrefsViewImpl().setRefresh(() -> {
+        try {
+            viewModel.refreshBitmap();
+        } catch (NullPointerException e) {
+            //
+        }
+    });
+    public final PrefsViewStringSnapDefaultsRefresh sprefs = new PrefsViewStringSnapDefaultsRefresh(viewModel);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityNumberWallPreviewBinding.inflate(getLayoutInflater());
-        binding.setPrefs(new PrefsViewImpl().setRefresh(() -> {
-            try {
-                binding.getVm().refreshBitmap();
-            } catch (NullPointerException e) {
-                //
-            }
-        }));
-        binding.setVm(new ViewModel(this));
-        binding.setSprefs(new PrefsViewStringSnapDefaultsRefresh(binding.getVm()));
-        setContentView(binding.getRoot());
-        JoH.fixActionBar(this);
+        NumberWallPreviewScreen.installNumberWallPreview(this);
+    }
+
+    /** Kotlin cannot see the Lombok-generated getter on ObservableBackground. */
+    public Bitmap backgroundBitmap() {
+        return viewModel.background.getMBitmap();
     }
 
     @Override
@@ -80,8 +87,8 @@ public class NumberWallPreview extends AppCompatActivity {
             if (pickedImage != null) {
                 File destinationFolder = new File(this.getFilesDir().getAbsolutePath() + File.separator + FOLDER_NAME);
                 String path = BitmapUtil.copyBackgroundImage(pickedImage, destinationFolder);
-                binding.getSprefs().put(ViewModel.PREF_numberwall_background, path);
-                binding.getVm().refreshBitmap();
+                sprefs.put(ViewModel.PREF_numberwall_background, path);
+                viewModel.refreshBitmap();
             }
         }
     }
@@ -92,7 +99,7 @@ public class NumberWallPreview extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == ASK_FILE_PERMISSION) {
             if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                binding.getVm().folderImageButtonClick(); // must be the only functionality which calls for permission
+                viewModel.folderImageButtonClick(); // must be the only functionality which calls for permission
             } else {
                 JoH.static_toast_long(this, "Cannot choose file without storage permission");
             }
@@ -132,7 +139,7 @@ public class NumberWallPreview extends AppCompatActivity {
                     }
                 }
             } else {
-                binding.getSprefs().put(PREF_numberwall_background, null);
+                sprefs.put(PREF_numberwall_background, null);
                 File backgroundFolder = new File(activity.getFilesDir().getAbsolutePath() + File.separator + FOLDER_NAME);
                 FileUtils.deleteDirWithFiles(backgroundFolder);
                 refreshBitmap();
@@ -143,9 +150,8 @@ public class NumberWallPreview extends AppCompatActivity {
             ColorPreferenceDialog.pick(NumberWallPreview.this, ColorCache.X.color_number_wall.getInternalName(), "Text Color", this::refreshBitmap);
         }
 
-        public boolean paletteImageButtonLongClick(View v) {
+        public void paletteImageButtonLongClick() {
             ColorPreferenceDialog.pick(NumberWallPreview.this, ColorCache.X.color_number_wall_shadow.getInternalName(), "Shadow Color", this::refreshBitmap);
-            return false;
         }
 
 
@@ -157,6 +163,8 @@ public class NumberWallPreview extends AppCompatActivity {
             final Bitmap bitmap = BitmapUtil.getTiled(NumberGraphic.getLockScreenBitmap(dg.unitized, dg.delta_arrow, false, getCol(ColorCache.X.color_number_wall)), getScreenWidth(), getScreenHeight(), isLockScreenBitmapTiled(), Pref.getString(ViewModel.PREF_numberwall_background, null));
             background.setBitmap(bitmap);
             Inevitable.task("refresh-lock-number-wall", 500, LockScreenWallPaper::setIfEnabled);
+            final Integer current = refreshTick.get();
+            refreshTick.set((current == null ? 0 : current) + 1);
         }
     }
 
