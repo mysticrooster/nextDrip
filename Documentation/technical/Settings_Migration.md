@@ -406,10 +406,13 @@ Plan: `.kilo/plans/1790818203174-settings-ia-redesign.md`.
   delete-all-BG, test feature → Advanced; Libre trend → Appearance; check-update/feedback/crowd →
   About) and the three-dots speak toggle is the Accessibility → Speak readings switch.
 - **New destinations**: 8 category screens (`GeneralCategory` … `AdvancedCategory`), plus
-  `NotificationStyle` (high-priority/public + AOD chip), `Backups`,
-  `About`, `Version`, `HomeScreen`, and per-source `DexcomDevice`, `LibreDevice`, `MedtrumDevice`,
-  `BluetoothBridge`. `DataSource` is now a picker that links to the active source's bounded screen.
-  `NotificationChannels` was folded into `NotificationStyle` (it only held the AOD chip).
+  `Notifications` (high-priority/public/AOD chip + ongoing notification), `Backups`,
+  `About`, `Version`, `HomeScreen`, and per-source `DexcomDevice`, `LibreOptions`,
+  `MedtrumDevice`, `BluetoothBridge`. `DataSource` is now a picker that links to the active
+  source's bounded screen.
+  `NotificationChannels` was folded into `Notifications` (it only held the AOD chip); the
+  `compact_persistent_notification` and `use_proper_ongoing` rows moved here from Advanced → Other
+  settings, and changing the AOD chip style now restarts the collector (parity with legacy).
 - **Appearance → Home screen** surfaces the `home-shelf-*` shelf toggles through `Pref` (keys
   unchanged); the long-press popup still works but does not live-update (documented deviation).
 - **Theme presets** (`Material You` = `clearAll`, `Classic xDrip` = seed legacy defaults) are
@@ -417,7 +420,19 @@ Plan: `.kilo/plans/1790818203174-settings-ia-redesign.md`.
 - Search switched to a derived destination index (`SettingsSearch.kt` over `SettingsScreen.entries`),
   replacing the hand-maintained `SETTINGS_SEARCH_INDEX`. It keeps aliases for the retired umbrella
   names (`extra settings`, `less common`, `other settings`) and covers the new destinations
-  (`Home Screen`, `Notification Style`, `Backups`, `About`, `Version`, per-device) automatically.
+  (`Home Screen`, `Notifications`, `Backups`, `About`, `Version`, per-device) automatically.
+- **Advanced Libre options** (`LibreOptions`, replaces the LibreReceiver-only `Libre2Settings`):
+  a single `setting_libre_options` row lives inside `DataSourceScreen`'s `hasLibre` block (i.e.
+  under Devices → Hardware Data Source) and is shown reactively for any Libre collection method
+  (`SettingsVisibility.hasLibre(SettingsVisibility.collectionType(state))`). The screen strictly
+  filters its rows by the active Libre method: `external_blukon_algorithm` /
+  `retrieve_blukon_history` (`enabled = !external_blukon_algorithm`) for `LimiTTer`,
+  `LimiTTerWifi`, `LibreWifi` and `LibreReceiver`; `detect_libre_sn_changes` for the three hardware
+  methods; `use_non_fixed_li_parameters` for `LimiTTer` only; `libre_use_smoothed_data` for
+  `LibreAlarm` only; and `calibrate_external_libre_2_algorithm_type`, `libre_one_minute`,
+  `Libre2_showRawGraph`, `Libre2_showSensors` for `LibreReceiver` only. These keys were **moved**,
+  not duplicated: the five were removed from `OtherMiscSettings` and two from `CalibrationSettings`.
+  NFC Scan features stay a separate screen. Keys/defaults unchanged.
 
 ### Known deviations / follow-ups
 

@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -189,5 +190,100 @@ class SettingsActivityTest {
         composeRule.onNodeWithTag("setting_calibration").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_calibration_plugin").assertExists()
+    }
+
+    @Test
+    fun libreOptionsRowVisibleForLibreCollectionMethod() {
+        Pref.setString("dex_collection_method", "LimiTTer")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().assertExists()
+    }
+
+    @Test
+    fun libreOptionsRowHiddenForNonLibreCollectionMethod() {
+        Pref.setString("dex_collection_method", "BluetoothWixel")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_libre_options").assertDoesNotExist()
+    }
+
+    @Test
+    fun libreOptionsShowsOnlyLimiTTerRows() {
+        Pref.setString("dex_collection_method", "LimiTTer")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        listOf(
+            "setting_external_blukon_algorithm",
+            "setting_retrieve_blukon_history",
+            "setting_libre_sn_changes",
+            "setting_non_fixed_li_parameters",
+        ).forEach { composeRule.onNodeWithTag(it).performScrollTo().assertExists() }
+        listOf(
+            "setting_libre_smoothed_data",
+            "setting_libre_one_minute",
+            "setting_libre2_show_raw_graph",
+            "setting_calibrate_libre_algorithm",
+        ).forEach { composeRule.onNodeWithTag(it).assertDoesNotExist() }
+    }
+
+    @Test
+    fun libreOptionsShowsOnlyLibreReceiverRows() {
+        Pref.setString("dex_collection_method", "LibreReceiver")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        listOf(
+            "setting_external_blukon_algorithm",
+            "setting_retrieve_blukon_history",
+            "setting_calibrate_libre_algorithm",
+            "setting_libre_one_minute",
+            "setting_libre2_show_raw_graph",
+            "setting_libre2_show_sensors",
+        ).forEach { composeRule.onNodeWithTag(it).performScrollTo().assertExists() }
+        composeRule.onNodeWithTag("setting_non_fixed_li_parameters").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_libre_sn_changes").assertDoesNotExist()
+    }
+
+    @Test
+    fun libreOptionsShowsOnlyLibreAlarmRows() {
+        Pref.setString("dex_collection_method", "LibreAlarm")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_libre_smoothed_data").performScrollTo().assertExists()
+        composeRule.onNodeWithTag("setting_libre_sn_changes").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_libre_one_minute").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_external_blukon_algorithm").assertDoesNotExist()
+    }
+
+    @Test
+    fun libreOneMinuteToggleWritesPref() {
+        Pref.setString("dex_collection_method", "LibreReceiver")
+        Pref.setBoolean("libre_one_minute", false)
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_one_minute").performScrollTo().performClick()
+
+        assertThat(Pref.getBoolean("libre_one_minute", false)).isTrue()
+    }
+
+    @Test
+    fun retrieveBlukonHistoryDisabledWhileExternalAlgorithmEnabled() {
+        Pref.setString("dex_collection_method", "LimiTTer")
+        Pref.setBoolean("external_blukon_algorithm", true)
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_retrieve_blukon_history").performScrollTo()
+            .assertIsNotEnabled()
     }
 }

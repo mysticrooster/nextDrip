@@ -42,7 +42,6 @@ import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShowChart
 import androidx.compose.material.icons.outlined.Straighten
-import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.Subject
 import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material.icons.outlined.SystemUpdate
@@ -88,6 +87,7 @@ import com.eveningoutpost.dexdrip.models.Profile
 import com.eveningoutpost.dexdrip.models.UserNotification
 import com.eveningoutpost.dexdrip.profileeditor.BasalProfileEditor
 import com.eveningoutpost.dexdrip.profileeditor.ProfileEditor
+import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.LibreTrendGraph
 import com.eveningoutpost.dexdrip.utils.TestFeature
@@ -107,7 +107,7 @@ internal fun titleFor(context: Context, screen: SettingsScreen): String =
         SettingsScreen.AdvancedCategory -> "Advanced"
         SettingsScreen.Units -> context.getString(R.string.glucose_units)
         SettingsScreen.Theme -> context.getString(R.string.theme_colors)
-        SettingsScreen.NotificationStyle -> "Notification Style"
+        SettingsScreen.Notifications -> "Notifications"
         SettingsScreen.BgAlerts -> context.getString(R.string.glucose_alerts_settings)
         SettingsScreen.SuppressAlerts -> context.getString(R.string.suppress_alerts_if_missed_readings)
         SettingsScreen.AscendingVolume -> context.getString(R.string.title_ascending_volume)
@@ -150,10 +150,9 @@ internal fun titleFor(context: Context, screen: SettingsScreen): String =
         SettingsScreen.CalibrationSettings -> context.getString(R.string.advanced_calibration)
         SettingsScreen.BluetoothSettings -> context.getString(R.string.bluetooth_settings)
         SettingsScreen.BlueReaderSettings -> context.getString(R.string.advanced_bluereader_settings)
-        SettingsScreen.Libre2Settings -> context.getString(R.string.title_advanced_settings_4_Lib2)
+        SettingsScreen.LibreOptions -> "Advanced Libre options"
         SettingsScreen.LoggingSettings -> context.getString(R.string.extra_logging)
         SettingsScreen.OtherMiscSettings -> context.getString(R.string.title_Other_misc_options)
-        SettingsScreen.CollectorInForeground -> context.getString(R.string.title_collector_in_foreground)
         SettingsScreen.SmartWatchOptions -> context.getString(R.string.smart_watch_features)
         SettingsScreen.SmartwatchSensors -> context.getString(R.string.title_Smartwatch_Sensors)
         SettingsScreen.WearSettings -> context.getString(R.string.android_wear_integration)
@@ -207,7 +206,7 @@ internal fun SettingsScreenContent(
         SettingsScreen.AdvancedCategory -> AdvancedCategoryScreen(onNavigate)
         SettingsScreen.Units -> UnitsScreen()
         SettingsScreen.Theme -> ThemeEditorScreen()
-        SettingsScreen.NotificationStyle -> NotificationStyleScreen()
+        SettingsScreen.Notifications -> NotificationsScreen()
         SettingsScreen.BgAlerts -> BgAlertsScreen(onNavigate)
         SettingsScreen.SuppressAlerts -> SuppressAlertsScreen()
         SettingsScreen.AscendingVolume -> AscendingVolumeScreen()
@@ -250,10 +249,9 @@ internal fun SettingsScreenContent(
         SettingsScreen.CalibrationSettings -> CalibrationSettingsScreen()
         SettingsScreen.BluetoothSettings -> BluetoothSettingsScreen()
         SettingsScreen.BlueReaderSettings -> BlueReaderSettingsScreen()
-        SettingsScreen.Libre2Settings -> Libre2SettingsScreen()
+        SettingsScreen.LibreOptions -> LibreOptionsScreen()
         SettingsScreen.LoggingSettings -> LoggingSettingsScreen()
-        SettingsScreen.OtherMiscSettings -> OtherMiscSettingsScreen(onNavigate)
-        SettingsScreen.CollectorInForeground -> CollectorInForegroundScreen()
+        SettingsScreen.OtherMiscSettings -> OtherMiscSettingsScreen()
         SettingsScreen.SmartWatchOptions -> SmartWatchOptionsScreen(onNavigate)
         SettingsScreen.SmartwatchSensors -> SmartwatchSensorsScreen()
         SettingsScreen.WearSettings -> WearSettingsScreen()
@@ -427,10 +425,11 @@ private fun GeneralCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
             modifier = Modifier.testTag("setting_emergency_messages"),
         )
         SettingsActionRow(
-            title = "Notification Style",
-            icon = Icons.Outlined.Style,
-            onClick = { onNavigate(SettingsScreen.NotificationStyle) },
-            modifier = Modifier.testTag("setting_notification_style"),
+            title = "Notifications",
+            subtitle = "Priority, visibility and the ongoing glucose notification",
+            icon = Icons.Outlined.Notifications,
+            onClick = { onNavigate(SettingsScreen.Notifications) },
+            modifier = Modifier.testTag("setting_notifications"),
         )
     }
 }
@@ -647,14 +646,6 @@ private fun DevicesCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
                 icon = Icons.Outlined.Bluetooth,
                 onClick = { onNavigate(SettingsScreen.BlueReaderSettings) },
                 modifier = Modifier.testTag("setting_bluereader"),
-            )
-        }
-        if (SettingsVisibility.isLibreReceiver()) {
-            SettingsActionRow(
-                title = context.getString(R.string.title_advanced_settings_4_Lib2),
-                icon = Icons.Outlined.Sensors,
-                onClick = { onNavigate(SettingsScreen.Libre2Settings) },
-                modifier = Modifier.testTag("setting_libre2"),
             )
         }
     }
@@ -893,23 +884,26 @@ private fun UnitsScreen() {
 }
 
 @Composable
-private fun NotificationStyleScreen() {
+private fun NotificationsScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
-    SettingsCategory("Notification Style") {
+    val engineering = SettingsVisibility.isEngineeringMode(state)
+    SettingsCategory("Notification style") {
         SwitchPref(
             state,
             "high_priority_notifications",
             context.getString(R.string.title_high_priority_notifications),
             default = true,
-            subtitle = context.getString(R.string.summary_high_priority_notifications)
+            subtitle = context.getString(R.string.summary_high_priority_notifications),
+            tag = "setting_high_priority_notifications",
         )
         SwitchPref(
             state,
             "public_notifications",
             context.getString(R.string.title_public_notifications),
             default = false,
-            subtitle = context.getString(R.string.summary_public_notifications)
+            subtitle = context.getString(R.string.summary_public_notifications),
+            tag = "setting_public_notifications",
         )
         SwitchPref(
             state = state,
@@ -917,6 +911,30 @@ private fun NotificationStyleScreen() {
             title = "Use AOD chip style",
             default = false,
             subtitle = "Display notification chip and lockscreen notification. Android 16+ only",
+            tag = "setting_aod_chip",
+            onCheckedChange = {
+                state.setBool("ongoing_notification_aodchipstyle", it)
+                CollectionServiceStarter.restartCollectionServiceBackground()
+            },
+        )
+    }
+    SettingsCategory("Ongoing notification") {
+        SwitchPref(
+            state,
+            "compact_persistent_notification",
+            context.getString(R.string.title_compact_ongoing_notification),
+            default = false,
+            subtitle = context.getString(R.string.summary_compact_ongoing_notification),
+            tag = "setting_compact_ongoing",
+        )
+        SwitchPref(
+            state,
+            "use_proper_ongoing",
+            "Proper ongoing",
+            default = true,
+            subtitle = "Use proper ongoing notification. Disabling this causes collector problems on Android 8+",
+            enabled = engineering,
+            tag = "setting_proper_ongoing",
         )
     }
 }
@@ -1780,8 +1798,8 @@ private fun UnitsScreenPreview() {
     heightDp = 800
 )
 @Composable
-private fun NotificationStyleScreenPreview() {
-    XdripPreview { NotificationStyleScreen() }
+private fun NotificationsScreenPreview() {
+    XdripPreview { NotificationsScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)

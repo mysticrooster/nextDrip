@@ -66,6 +66,15 @@ class SettingsSearchTest {
     }
 
     @Test
+    fun libreOptionsHiddenUnlessLibreCollectionMethod() {
+        Pref.setString("dex_collection_method", "BluetoothWixel")
+        assertThat(results("libre options")).doesNotContain(SettingsScreen.LibreOptions)
+
+        Pref.setString("dex_collection_method", "LimiTTer")
+        assertThat(results("libre options")).contains(SettingsScreen.LibreOptions)
+    }
+
+    @Test
     fun webDepositHiddenUntilEngineeringMode() {
         Pref.setBoolean("engineering_mode", false)
         assertThat(results("web deposit")).doesNotContain(SettingsScreen.WebDeposit)

@@ -63,7 +63,7 @@ internal fun searchSettings(
 private fun isAvailable(screen: SettingsScreen, state: SettingsState): Boolean = when (screen) {
     SettingsScreen.WebDeposit -> SettingsVisibility.isEngineeringMode(state)
     SettingsScreen.BlueReaderSettings -> SettingsVisibility.isBlueReader()
-    SettingsScreen.Libre2Settings -> SettingsVisibility.isLibreReceiver()
+    SettingsScreen.LibreOptions -> SettingsVisibility.hasLibre(SettingsVisibility.collectionType(state))
     else -> true
 }
 
@@ -128,6 +128,17 @@ internal val SETTINGS_SEARCH_KEYWORDS: Map<SettingsScreen, List<String>> = mapOf
     SettingsScreen.BluetoothBridge to listOf("bridge", "wixel", "parakeet"),
     SettingsScreen.WebFollow to listOf("webfollow", "proxy"),
     SettingsScreen.NfcSettings to listOf("nfc", "libre", "scan", "expiry"),
+    SettingsScreen.LibreOptions to listOf(
+        "libre",
+        "libre 2",
+        "algorithm",
+        "external",
+        "blukon",
+        "serial",
+        "smoothed",
+        "one minute",
+        "smoothing"
+    ),
     SettingsScreen.DataSync to listOf(
         "cloud",
         "cloud sync",
@@ -156,13 +167,15 @@ internal val SETTINGS_SEARCH_KEYWORDS: Map<SettingsScreen, List<String>> = mapOf
     SettingsScreen.BluetoothSettings to listOf("bluetooth", "gatt", "watchdog"),
     SettingsScreen.ExtraStatusLine to listOf("status line", "a1c", "average"),
     SettingsScreen.AlarmsCategory to listOf("notifications", "alerts", "sounds"),
-    SettingsScreen.NotificationStyle to listOf(
+    SettingsScreen.Notifications to listOf(
         "notifications",
         "high priority",
         "public",
         "aod",
         "chip",
-        "channels"
+        "channels",
+        "compact ongoing",
+        "proper ongoing"
     ),
     SettingsScreen.BgAlerts to listOf("alert profile", "audio focus", "snooze"),
     SettingsScreen.SuppressAlerts to listOf("stale data"),
@@ -307,6 +320,5 @@ internal val SETTINGS_SEARCH_KEYWORDS: Map<SettingsScreen, List<String>> = mapOf
     SettingsScreen.AutoConfig to listOf("auto configure", "qr"),
     SettingsScreen.RestApi to listOf("api"),
     SettingsScreen.HealthConnect to listOf("google fit", "fit"),
-    SettingsScreen.CollectorInForeground to listOf("foreground service"),
     SettingsScreen.LoggingSettings to listOf("logs", "debug"),
 )
