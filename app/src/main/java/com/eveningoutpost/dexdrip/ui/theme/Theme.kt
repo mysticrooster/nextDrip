@@ -11,6 +11,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import com.eveningoutpost.dexdrip.utilitymodels.ColorCacheBridge
 
 /**
@@ -28,8 +29,9 @@ fun XdripTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
+    val inspectionMode = LocalInspectionMode.current
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor && !inspectionMode && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
