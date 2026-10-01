@@ -15,31 +15,22 @@ import android.provider.ContactsContract;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import android.view.View;
 
-import com.eveningoutpost.dexdrip.BR;
 import com.eveningoutpost.dexdrip.BaseAppCompatActivity;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.ui.secondary.EmergencyAssistScreen;
 import com.eveningoutpost.dexdrip.utilitymodels.Constants;
 import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
 import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewImpl;
-import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewString;
-import com.eveningoutpost.dexdrip.databinding.ActivityEmergencyAssistBinding;
-import com.eveningoutpost.dexdrip.ui.dialog.GenericConfirmDialog;
 import com.eveningoutpost.dexdrip.utils.LocationHelper;
 import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.List;
 
-import me.tatarka.bindingcollectionadapter2.ItemBinding;
-
 import static android.provider.ContactsContract.CommonDataKinds.Phone;
 import static com.eveningoutpost.dexdrip.eassist.EmergencyAssist.EMERGENCY_ASSIST_PREF;
-import static com.eveningoutpost.dexdrip.eassist.EmergencyAssist.EMERGENCY_HIGH_MINS_PREF;
-import static com.eveningoutpost.dexdrip.eassist.EmergencyAssist.EMERGENCY_LOW_MINS_PREF;
-
 import static com.eveningoutpost.dexdrip.xdrip.gs;
 
 /*
@@ -47,6 +38,8 @@ import static com.eveningoutpost.dexdrip.xdrip.gs;
  *
  * Display settings page for Emergency Assist Message feature
  *
+ * Track V: rendered in Compose (EmergencyAssistScreen); this activity keeps the permission,
+ * contact-picker and preference-validation flows.
  */
 
 public class EmergencyAssistActivity extends BaseAppCompatActivity {
@@ -56,26 +49,16 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
     private static final int MY_PERMISSIONS_REQUEST_CONTACTS = 46913;
     private static final int MY_PERMISSIONS_REQUEST_SMS = 46914;
 
-    private final EmergencyAssist model = new EmergencyAssist(EmergencyAssist.Reason.TESTING_FEATURE, Constants.HOUR_IN_MS);
-    private final PrefsViewImpl prefs = new PrefsViewImpl();
-    private final PrefsViewString sprefs = new PrefsViewStringSnapDefaults();
-
-    private ActivityEmergencyAssistBinding binding;
+    public final EmergencyAssist model = new EmergencyAssist(EmergencyAssist.Reason.TESTING_FEATURE, Constants.HOUR_IN_MS);
+    public final PrefsViewImpl prefs = new PrefsViewImpl();
+    public final ContactModel contactModel = new ContactModel();
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityEmergencyAssistBinding.inflate(getLayoutInflater());
-        binding.setActivity(this);
-        binding.setPrefs(prefs);
-        binding.setSprefs(sprefs);
-        binding.setModel(model);
-        binding.setContactModel(new ContactModel(this));
-        setContentView(binding.getRoot());
-
+        EmergencyAssistScreen.installEmergencyAssist(this);
         model.getLocation();
-        JoH.fixActionBar(this);
     }
 
     @Override
@@ -152,7 +135,7 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
 
     }
 
-    public void chooseContact(View v) {
+    public void chooseContact() {
         if (checkContactsPermission()) {
             try {
                 final Intent intent = new Intent(Intent.ACTION_PICK, Uri.parse("content://contacts"));
@@ -164,7 +147,7 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
         }
     }
 
-    public void testButton(View v) {
+    public void testButton() {
         EmergencyAssist.test(EmergencyAssist.Reason.TESTING_FEATURE, Constants.HOUR_IN_MS);
     }
 
@@ -193,7 +176,7 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
     }
 
     private boolean atLeastOneContact() {
-        final boolean result = binding.getContactModel().items.size() > 0;
+        final boolean result = contactModel.items.size() > 0;
         if (!result) {
             JoH.static_toast_long("Add at least one contact below to send messages to");
         }
@@ -223,7 +206,7 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
 
                             if (name.length() > 0) {
                                 if (number.length() > 5) {
-                                    binding.getContactModel().add(name, number);
+                                    contactModel.add(name, number);
                                 } else {
                                     JoH.static_toast_long("Cannot add " + name + " as number is invalid!");
                                 }
@@ -252,7 +235,7 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == MY_PERMISSIONS_REQUEST_CONTACTS) {
             if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                chooseContact(null); // must be the only functionality which calls for permission
+                chooseContact(); // must be the only functionality which calls for permission
             } else {
                 JoH.static_toast_long(this, "Cannot choose contact without read contacts permission");
             }
@@ -268,34 +251,22 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
 
     }
 
-    public void askRemove(EmergencyContact contact) {
-        GenericConfirmDialog.show(this, "Remove?",
-                "Remove " + contact.name + " from emergency text message receivers list?",
-                () -> {
-                    binding.getContactModel().remove(contact);
-                    masterEnable();
-                });
+    public void removeContact(EmergencyContact contact) {
+        contactModel.remove(contact);
+        masterEnable();
     }
 
     // Contact Model
 
     public class ContactModel {
         public final ObservableList<EmergencyContact> items = new ObservableArrayList<>();
-        public final ItemBinding<EmergencyContact> itemBinding = ItemBinding.of(BR.item, R.layout.emergency_contact_item);
-        public Activity activity;
 
-        {
-            itemBinding.bindExtra(BR.contactModelItem, this);
-        }
-
-        ContactModel(Activity activity, List<EmergencyContact> items) {
-            this.activity = activity;
-            itemBinding.bindExtra(BR.activityItem, activity);
+        ContactModel(List<EmergencyContact> items) {
             this.items.addAll(items);
         }
 
-        ContactModel(Activity activity) {
-            this(activity, EmergencyContact.load());
+        ContactModel() {
+            this(EmergencyContact.load());
         }
 
         void add(String name, String number) {
@@ -306,32 +277,6 @@ public class EmergencyAssistActivity extends BaseAppCompatActivity {
         public void remove(EmergencyContact emergencyContact) {
             items.remove(emergencyContact);
             EmergencyContact.save(items);
-        }
-
-    }
-
-    // drag to 0 snaps to default and default overrides 0
-    public class PrefsViewStringSnapDefaults extends PrefsViewString {
-
-        @Override
-        public String get(Object key) {
-            String result = super.get(key);
-            if (result.length() == 0 || result.equals("0")) {
-                switch ((String) key) {
-                    case EMERGENCY_LOW_MINS_PREF:
-                        result = "60";
-                        break;
-                    case EMERGENCY_HIGH_MINS_PREF:
-                        result = "240";
-                        break;
-                    case "emergency_assist_inactivity_minutes":
-                        result = "1440";
-                        break;
-
-                }
-                super.put((String) key, result);
-            }
-            return result;
         }
 
     }

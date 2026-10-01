@@ -9,13 +9,10 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-
 // jamorham
 
 // Manage lightweight database of names and numbers for EmergencyAssist message feature
 
-@AllArgsConstructor
 public class EmergencyContact {
 
     private static final String PREF_NAME = "Emergency-Contact-List";
@@ -24,6 +21,11 @@ public class EmergencyContact {
     public String name;
     @Expose
     public String number;
+
+    public EmergencyContact(String name, String number) {
+        this.name = name;
+        this.number = number;
+    }
 
 
     public static List<EmergencyContact> load() {
