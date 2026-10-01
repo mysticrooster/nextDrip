@@ -544,6 +544,15 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+        <service
+            android:name=".cgm.ilet.ILetService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice|dataSync" />
+        <activity
+            android:name=".cgm.ilet.ILetLoginActivity"
+            android:exported="false"
+            android:label="iLet" />
 
         <activity
             android:name=".ShareTest"

@@ -52,6 +52,7 @@ public enum DexCollectionType {
     WebFollow("WebFollower"),
     CLFollow("CLFollower"),
     Medtrum("Medtrum"),
+    ILet("iLet"),
     UiBased("UiBased"),
     GluPro("GluPro"),
     Disabled("Disabled"),
@@ -90,20 +91,20 @@ public enum DexCollectionType {
             mapToInternalName.put(dct.internalName, dct);
         }
 
-        Collections.addAll(usesBluetooth, BluetoothWixel, DexcomShare, DexbridgeWixel, LimiTTer, WifiBlueToothWixel, DexcomG5, WifiDexBridgeWixel, LimiTTerWifi, Medtrum, GluPro);
-        Collections.addAll(usesBluetoothScan, BluetoothWixel, DexcomShare, DexbridgeWixel, LimiTTer, WifiBlueToothWixel, WifiDexBridgeWixel, LimiTTerWifi, Medtrum);
+        Collections.addAll(usesBluetooth, BluetoothWixel, DexcomShare, DexbridgeWixel, LimiTTer, WifiBlueToothWixel, DexcomG5, WifiDexBridgeWixel, LimiTTerWifi, Medtrum, GluPro, ILet);
+        Collections.addAll(usesBluetoothScan, BluetoothWixel, DexcomShare, DexbridgeWixel, LimiTTer, WifiBlueToothWixel, WifiDexBridgeWixel, LimiTTerWifi, Medtrum, ILet);
         Collections.addAll(usesBtWixel, BluetoothWixel, LimiTTer, WifiBlueToothWixel, LimiTTerWifi); // Name is misleading here, should probably be using dexcollectionservice
         Collections.addAll(usesWifi, WifiBlueToothWixel, WifiWixel, WifiDexBridgeWixel, Mock, LimiTTerWifi, LibreWifi);
         Collections.addAll(usesXbridge, DexbridgeWixel, WifiDexBridgeWixel);
         Collections.addAll(usesFiltered, DexbridgeWixel, WifiDexBridgeWixel, DexcomG5, WifiWixel, Follower, Mock); // Bluetooth and Wifi+Bluetooth need dynamic mode
         Collections.addAll(usesLibre, LimiTTer, LibreAlarm, LimiTTerWifi, LibreWifi, LibreReceiver);
         Collections.addAll(isPassive, NSEmulator, NSFollow, SHFollow, WebFollow, LibreReceiver, UiBased, CLFollow, AidexReceiver);
-        Collections.addAll(canNotStartStopOrCal, NSFollow, SHFollow, WebFollow, UiBased, CLFollow, Disabled); // Collectors that cannot start/stop sensor or submit calibration
+        Collections.addAll(canNotStartStopOrCal, NSFollow, SHFollow, WebFollow, UiBased, CLFollow, Disabled, ILet); // Collectors that cannot start/stop sensor or submit calibration
         Collections.addAll(alwaysNativeCal, Follower, GluPro); // always allow calibration entry
         Collections.addAll(usesBattery, BluetoothWixel, DexbridgeWixel, WifiBlueToothWixel, WifiDexBridgeWixel, Follower, LimiTTer, LibreAlarm, LimiTTerWifi, LibreWifi); // the wifi uploader battery is separate
         Collections.addAll(usesDexcomRaw, BluetoothWixel, DexbridgeWixel, WifiWixel, WifiBlueToothWixel, DexcomG5, WifiDexBridgeWixel, Mock);
         Collections.addAll(usesTransmitterBattery, WifiWixel, BluetoothWixel, DexbridgeWixel, WifiBlueToothWixel, WifiDexBridgeWixel); // G4 transmitter battery
-        Collections.addAll(newerCollector, NSFollow, SHFollow, WebFollow, CLFollow, GluPro);
+        Collections.addAll(newerCollector, NSFollow, SHFollow, WebFollow, CLFollow, GluPro, ILet);
     }
 
 
@@ -228,6 +229,8 @@ public enum DexCollectionType {
                 return WifiCollectionService.class;
             case Medtrum:
                 return MedtrumCollectionService.class;
+            case ILet:
+                return com.eveningoutpost.dexdrip.cgm.ilet.ILetService.class;
             case Follower:
             case LibreReceiver:
                 return DoNothingService.class;
@@ -324,6 +327,8 @@ public enum DexCollectionType {
 
             case CLFollow:
                 return "CareLink";
+            case ILet:
+                return "iLet";
             default:
                 return dct.name();
         }
@@ -381,6 +386,8 @@ public enum DexCollectionType {
                 return libreOneMinute ? 60_000 : 300_000;
             case NSEmulator:
                 return EversenseOneMinute ? 60_000 : 300_000;
+            case ILet:
+                return 300_000; // iLet CGM sample period
             case NSFollow:
                 long samplePeriodInMinutes = Pref.getStringToInt("nsfollow_sample_period_in_minutes", 5);
                 return Constants.MINUTE_IN_MS * Math.max(1, samplePeriodInMinutes);

@@ -101,6 +101,7 @@ public class MissedReadingService extends IntentService {
             BluetoothGlucoseMeter.immortality();
             XdripWebService.immortality(); //
             InPenEntry.immortality();
+            com.eveningoutpost.dexdrip.cgm.ilet.ILetEntry.immortality();
             DesertSync.pullAsEnabled();
             NanoStatus.keepFollowerUpdated();
             LockScreenWallPaper.timerPoll();
