@@ -105,9 +105,10 @@ specific features.
   **Track V pass 1** (settings sub-menu quick wins), **pass 2** (trivial screens: `Agreement`,
   calibration check-in/override, double calibration, daydream settings, health privacy, fake
   numbers), **pass 3** (Medium small Data-Binding screens: `MtpConfigureActivity`,
-  `DatabaseAdmin`, `GluProActivity`) and **pass 4** (rich Medium: `EmergencyAssistActivity`,
-  `BackupActivity`) are done as in-place Compose (`ui/secondary/`); remaining secondary views
-  (alert/editor/table/admin) are deferred.
+  `DatabaseAdmin`, `GluProActivity`), **pass 4** (rich Medium: `EmergencyAssistActivity`,
+  `BackupActivity`) and **pass 5** (sensor/calibration forms: `NewSensorLocation`, `StopSensor`,
+  `AddCalibration`, `StartNewSensor`, `SnoozeActivity`) are done as in-place Compose
+  (`ui/secondary/`); remaining secondary views (alert/editor/table/admin) are deferred.
   Next: **S6** retire the legacy settings subsystem (deferred until on-device testing). Track V
   (secondary views) continues.
 - **Phase 2 (Home)** is paused (header rendering reverted pending redesign); **Phase 3 (charts →

@@ -86,7 +86,7 @@ The work did **not** follow the nominal 0→5 order. This is the real sequence a
 | 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **Paused** (state extracted, rendering reverted pending redesign) |
 | 3 | Charts → Vico (line graphs; basal column editor last) | Planned (unblocks Phase 2) |
 | 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **In progress** (S0–S5b done; S6 remain) |
-| 5 | Secondary views → Compose (long tail; same doc) | **In progress** — Track V passes 1–4 done (quick wins, trivial, Medium Data-Binding, rich Medium `EmergencyAssistActivity`/`BackupActivity`); see `Settings_Migration.md` §7 |
+| 5 | Secondary views → Compose (long tail; same doc) | **In progress** — Track V passes 1–5 done (quick wins, trivial, Medium Data-Binding, rich Medium, sensor/calibration forms); see `Settings_Migration.md` §7 |
 
 ### Parallel modernization tracks (own backlog, not UI phases)
 

@@ -264,8 +264,21 @@ activity; the `ViewModel`'s `ObservableField`s, metadata `ObservableArrayMap` an
 automatic-backup prefs are bridged into Compose. Both binding layouts and their item layouts are
 deleted.
 
-**Remaining:** `ErrorsActivity`, `NewSensorLocation`, `StopSensor`, `StartNewSensor`,
-`AddCalibration`, `SnoozeActivity`, `FollowerManagementActivity`, `AlertList` + `EditAlertActivity`,
+**Pass 5 — done (V4 sensor & calibration forms).** `NewSensorLocation` (radio list + Other field),
+`StopSensor` (confirm-gated stop + reset calibrations; G6/G7 copy and the `resettableCals`
+predicate kept in the activity), `AddCalibration` (blood glucose entry; automated-calibration
+intent handling and the blood-test/calibration side effects kept in the activity, which returns
+the legacy validation error), `StartNewSensor` (start action; Bluetooth location permission,
+insertion date/time prompts and collector-specific start chain kept in the activity) and
+`SnoozeActivity` (status/visibility derived in Compose from the alert and disabled-until prefs;
+M3 slider + list dialogs replace the NumberPickers; static snooze helpers and per-type
+disable/clear/remote actions kept). All five dropped `ActivityWithMenu` for `BaseAppCompatActivity`
++ `SecondaryScreen` (matching the earlier `CalibrationOverride`/`DoubleCalibrationActivity`
+handling), and their layouts were deleted. Retained for the not-yet-migrated alert/reminder
+screens: `SnoozeActivity.SetSnoozePickerValues` + `snooze_picker.xml` and the shared
+`DatePickerFragment`/`TimePickerFragment` (retire with V6/V11).
+
+**Remaining:** `ErrorsActivity`, `FollowerManagementActivity`, `AlertList` + `EditAlertActivity`,
 `ProfileEditor`, `BasalProfileEditor`, `NumberWallPreview`, `DisplayQRCode`, `SdcardImportExport`,
 `SendFeedBack`, `BTGlucoseMeterActivity`, plus the app-wide/drawer surfaces and the Data-Binding /
 `NanoStatus` group (`EventLogActivity`, `NoteSearch`, `PhoneKeypadInputActivity`, `MegaStatus`,
@@ -313,6 +326,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | V2 Track V trivial screens | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V3 Track V medium (DB screens) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V4 Track V rich Medium | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| V5 Track V sensor/calibration forms | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 (H = search and J = retirement are app-wide and tracked above.)
 
