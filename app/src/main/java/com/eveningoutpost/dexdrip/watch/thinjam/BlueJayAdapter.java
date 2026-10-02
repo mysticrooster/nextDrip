@@ -2,12 +2,8 @@ package com.eveningoutpost.dexdrip.watch.thinjam;
 
 // jamorham
 
-import android.preference.Preference;
-
 import com.eveningoutpost.dexdrip.models.JoH;
-import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
-import com.eveningoutpost.dexdrip.xdrip;
 
 public class BlueJayAdapter {
 
@@ -37,7 +33,7 @@ public class BlueJayAdapter {
 
     /**
      * Guard for `bluejay_run_as_phone_collector` (BlueJay occupies the phone slot). Shared by the
-     * legacy preference listener and the Compose settings screen.
+     * Compose settings screen.
      */
     public static boolean canUsePhoneSlot(final boolean newValue) {
         if (!newValue) {
@@ -65,7 +61,7 @@ public class BlueJayAdapter {
 
     /**
      * Guard for `bluejay_run_phone_collector` (phone runs the standard collector). Shared by the
-     * legacy preference listener and the Compose settings screen.
+     * Compose settings screen.
      */
     public static boolean canRunPhoneCollector(final boolean newValue) {
         if (!newValue) {
@@ -82,60 +78,9 @@ public class BlueJayAdapter {
         return true;
     }
 
-    public static Preference.OnPreferenceChangeListener sBindPreferenceTitleAppendToBlueJayTimeoutValueListener = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-
-            boolean do_update = false;
-            // detect not first run
-            if (preference.getTitle().toString().contains("(")) {
-                do_update = true;
-            }
-
-            try {
-                final int ivalue = (int) value;
-                if (ivalue > -1) {
-                    final String seconds = xdrip.gs(R.string.unit_seconds);
-                    preference.setTitle(preference.getTitle().toString().replaceAll("  \\([a-z0-9A-Z ]+" + seconds + "\\)$", "") + "  (" + screenTimeoutValueToSeconds(ivalue) + " " + seconds + ")");
-                    if (do_update) {
-                        preference.getEditor().putInt(preference.getKey(), ivalue).apply(); // update prefs now
-                    }
-                }
-            } catch (Exception e) {
-                //
-            }
-            return true;
-        }
-    };
-
-
-    public static Preference.OnPreferenceChangeListener changeToPhoneSlotListener = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            try {
-                return canUsePhoneSlot((boolean) value);
-            } catch (Exception e) {
-                //
-            }
-            return true;
-        }
-    };
-
     private static boolean alwaysAllowPhoneSlot() {
         final int specifiedSlot = Pref.getBooleanDefaultFalse("engineering_mode") ? Pref.getStringToInt("dex_specified_slot", -1) : -1;
         return specifiedSlot == 3;
     }
-
-    public static Preference.OnPreferenceChangeListener changeToPhoneCollectorListener = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            try {
-                return canRunPhoneCollector((boolean) value);
-            } catch (Exception e) {
-                //
-            }
-            return true;
-        }
-    };
 
 }

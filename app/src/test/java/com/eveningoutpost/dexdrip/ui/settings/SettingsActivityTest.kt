@@ -187,8 +187,8 @@ class SettingsActivityTest {
     fun dataSourceWebFollowGateHiddenByDefault() {
         Pref.setString("dex_collection_method", "BluetoothWixel")
 
+        // Devices inlines the data-source screen; the collection rows render directly.
         composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
-        composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_web_follow").assertDoesNotExist()
         composeRule.onNodeWithTag("setting_share_key").assertDoesNotExist()
@@ -199,7 +199,6 @@ class SettingsActivityTest {
         Pref.setString("dex_collection_method", "WebFollower")
 
         composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
-        composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_web_follow").assertExists()
     }
@@ -209,8 +208,6 @@ class SettingsActivityTest {
         Pref.setString("dex_collection_method", "LimiTTer")
 
         composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
-        composeRule.onNodeWithTag("setting_data_source").performScrollTo().performClick()
-        composeRule.onNodeWithTag("setting_libre_device").performScrollTo().assertExists().performClick()
 
         composeRule.onNodeWithTag("setting_nfc").assertExists()
     }

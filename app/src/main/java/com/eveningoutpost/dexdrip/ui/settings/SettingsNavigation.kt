@@ -12,7 +12,7 @@ import com.eveningoutpost.dexdrip.R
  * from this declaration.
  *
  * The migration keeps a lightweight in-Compose screen stack (see
- * `Documentation/technical/Settings_And_Secondary_Views_Compose.md`); this will become a
+ * `Documentation/technical/Settings_Migration.md`); this will become a
  * `navigation-compose` graph once the full set of categories is migrated.
  *
  * Entries set exactly one of [titleRes]/[titleLiteral]. Keyword lists are inlined deliberately:

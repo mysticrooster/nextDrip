@@ -65,7 +65,7 @@ class SettingsIaTest {
 
     @Test
     fun formerOverflowActionsAreReachable() {
-        category("setting_category_alarms")
+        category("setting_category_general")
         composeRule.onNodeWithTag("setting_reminders").performScrollTo().assertExists()
         composeRule.onNodeWithTag("setting_emergency_messages").performScrollTo().assertExists()
     }

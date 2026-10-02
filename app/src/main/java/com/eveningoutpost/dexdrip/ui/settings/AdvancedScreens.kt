@@ -1,7 +1,6 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
 import android.app.Activity
-import android.content.Context
 import android.content.res.Configuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -479,7 +478,7 @@ internal fun CalibrationSettingsScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     val engineering = SettingsVisibility.isEngineeringMode(state)
-    val pluginChoices = remember { calibrationPluginChoices(context) }
+    val pluginChoices = remember { calibrationPluginChoices() }
     SettingsCategory(context.getString(R.string.advanced_calibration)) {
         ListPref(
             state,
@@ -982,13 +981,10 @@ internal fun OtherMiscSettingsScreen() {
     }
 }
 
-/** Calibration plugin entries/values, reusing the legacy `PluggableCalibration` population. */
-private fun calibrationPluginChoices(context: Context): Pair<List<String>, List<String>> {
-    val listPreference = android.preference.ListPreference(context)
-    PluggableCalibration.setListPreferenceData(listPreference)
-    val entries = listPreference.entries?.map { it.toString() } ?: emptyList()
-    val values = listPreference.entryValues?.map { it.toString() } ?: emptyList()
-    return entries to values
+/** Calibration plugin entries/values from the pure `PluggableCalibration` accessor. */
+private fun calibrationPluginChoices(): Pair<List<String>, List<String>> {
+    val choices = PluggableCalibration.getPluginEntriesAndValues()
+    return choices.first.map { it.toString() } to choices.second.map { it.toString() }
 }
 
 // region Previews

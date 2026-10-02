@@ -15,7 +15,7 @@ now), **Planned**, **Keep** (no Compose equivalent needed / deliberate retention
 | **hellocharts** (dead local AAR) | All charts (Home, notifications, widget, lockscreen, previews) | **[Vico](https://github.com/patrykandpatrick/vico)** (`com.patrykandpatrick.vico:compose-m3`); alternatives: KoalaPlot, ComposeCharts (ehsannarmani), YCharts | `Home` chart, `BgGraphBuilder`, `ui/chart/Horizontal*LineChartView` stopgaps, `prefs_example_chart_layout` (kept; inflated by `ThemeEditorScreen`'s `SettingsExampleChartView`; the `ExampleChartPreferenceView` class was deleted in S6), notification big-picture, `XDripDreamService`, widget `RemoteViews` | **Phase 3** (Compose surfaces); **Wrapped** for the settings preview (`ThemeEditorScreen` `AndroidView`); RemoteViews/Bitmap surfaces stay on the legacy renderer until a non-Compose drawing path exists |
 | **colorpicker** AAR | `ColorPickerPreference` dialogs on the legacy colour screen | **[colorpicker-compose](https://github.com/skydoves/colorpicker-compose)** (`com.github.skydoves:colorpicker-compose:1.1.2`) — `SettingsColorRow` + shared `ColorPickerDialog`, also used by NumberWallPreview | Legacy `xdrip_plus_color_settings` (deleted) | **Done (S6)** — AAR and `ColorPickerPreference`/`ui/dialog/ColorPreferenceDialog` deleted; `checker_background` recreated locally |
 | **search-preference** AAR | Legacy settings search | Hand-rolled Compose search (`SettingsSearch.kt` index over all destinations + root search field) | Legacy `Preferences` screen | **Done (S6)** — AAR deleted with the legacy activity |
-| **barista** (androidTest) | Espresso test DSL | Compose test APIs (`createAndroidComposeRule`, `onNodeWithTag`) | `app/src/androidTest` | **Planned** — replace remaining barista tests before S6 |
+| **barista** (androidTest) | Espresso test DSL | Compose test APIs (`createAndroidComposeRule`, `onNodeWithTag`) | `app/src/androidTest/.../HomeEspressoTest.java` (the only remaining user) | **Planned** — replace in the Home/charts phase (S6 is done and did not touch it) |
 | **zxing-android-embedded** | QR display/scan | Keep, or Compose wrappers (`qrose`, `QRKit`) | `utils/DisplayQRCode`, barcode scanner | **Keep** |
 | **appauth** | OAuth via Custom Tabs | Keep (no Compose UI needed) | OAuth flows | **Keep** |
 | **ns-sdk / usb-serial / mongo / influx** | Non-UI | Keep | — | **Keep** |
@@ -25,13 +25,13 @@ now), **Planned**, **Keep** (no Compose equivalent needed / deliberate retention
 Material 3 Compose equivalents: `DatePicker`/`TimePicker`, `AlertDialog`, `Canvas`, and **Glance**
 for app widgets. Track V (`Settings_Migration.md` §7) migrates these.
 
-| View/activity | Replacement |
+| View/activity | Replacement / status |
 | --- | --- |
-| `ProfileEditor`, `BasalProfileEditor` | Compose editors (charts/columns last) |
-| `NumberWallPreview`, `NumberGraphic` | Compose screens/`Canvas` |
-| `SendFeedBack`, `Agreement` | Compose screens |
+| `ProfileEditor`, `BasalProfileEditor` | Compose editors — **Blocked on Phase 3 (Vico)** (charts/columns last) |
+| `NumberWallPreview`, `NumberGraphic` | `NumberWallPreview` **Done (pass 6)** (bitmap preview kept via `SecondaryScreenFill`); `NumberGraphic` bitmap renderer **kept** until the chart renderer is replaced |
+| `SendFeedBack`, `Agreement` | **Done** — `SendFeedBack` **pass 6**, `Agreement` **pass 2** |
 | `ExampleChartPreferenceView` | Deleted (S6); `SettingsExampleChartView` inflates `prefs_example_chart_layout` in an `AndroidView`; Vico later |
-| `localeTasker/ui/EditActivity` | Compose form (optional Pass D; Tasker plugin `Bundle` contract) |
+| `localeTasker/ui/EditActivity` | **Optional Pass D, not migrated** — Compose form (Tasker plugin `Bundle` contract) |
 | **Done — Track V pass 1** | `TimePickerPrefActivity` + `TimePickerFragment` (→ `TimeOfDayDialog`), `LicenseAgreementActivity`, `SelectAudioDevice`, `InsulinProfileEditor`, `MissedReadingActivity`, `NightscoutBackfillActivity`, `DepositActivity` — Compose content in the existing activities, dedicated layouts deleted |
 | **Done — Track V pass 2** | `Agreement`, `CalibrationCheckInActivity`, `CalibrationOverride`, `DoubleCalibrationActivity`, `XDripDreamSettingsActivity`, `HealthPrivacy`, `FakeNumbers` — same in-place Compose, layouts + Data Binding removed |
 | **Done — Track V pass 3 (Medium)** | `MtpConfigureActivity`, `DatabaseAdmin`, `GluProActivity` — Compose UI, `NanoStatus`/`ObservableField`/`ObservableArrayList` bridged into Compose state; layouts deleted (GluPro `item_glupro_device` + `ViewModel` adapter kept for the service) |

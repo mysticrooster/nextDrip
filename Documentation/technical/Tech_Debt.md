@@ -28,7 +28,7 @@ screens migrate. The settings/secondary-views phases are planned in
 | `search-preference` (local AAR) | 1 file | Compose search/settings UI | Compose / Phase 4 | Low | **Done (S6)** — AAR deleted with the legacy `Preferences` activity |
 | `com.github.amlcurran.showcaseview` | 13 files | Compose tooltips/coach-marks (or drop) | Compose / Phase 2–5 | Medium | Not started |
 | `androidx.preference` | settings screens | Compose settings | Compose / Phase 4 | Medium | Keep — `preference:1.2.1` stays for `PreferenceManager.getDefaultSharedPreferences`/`setDefaultValues`; the `android.preference` UI no longer uses it |
-| `android.preference` settings UI (`Preferences.java`, `BasePreferenceActivity`, `pref_*.xml`) | main settings screen | Compose settings host | Compose / Phase 4 (S6) | High | **Done (S6)** — activity/XML/custom widgets deleted; non-UI API extracted to `SettingsSupport`, defaults to `SettingsDefaults` (fixture-tested), entry points and listeners repointed |
+| `android.preference` settings UI (`Preferences.java`, `BasePreferenceActivity`, `pref_*.xml`) | main settings screen | Compose settings host | Compose / Phase 4 (S6) | High | **Done (S6)** — activity/XML/custom widgets deleted; non-UI API extracted to `SettingsSupport`, defaults to `SettingsDefaults` (fixture-tested), entry points and listeners repointed. The residual UI-class references (`MiBandEntry`, `BlueJayAdapter`, `LockScreenWallPaper`, `PluggableCalibration`) were removed in the status-refresh pass, so `android.preference` now remains only via the `PreferenceManager` data API |
 | `com.github.skydoves:colorpicker-compose:1.1.2` | new (S6) | `HsvColorPicker`/`AlphaSlider`/`BrightnessSlider` in the shared `ColorPickerDialog` + NumberWallPreview | Compose / Phase 4 | — | Adopted — survives R8 (`assembleFastDebug`); pulls Kotlin 2.0.0 + Compose Multiplatform 1.6.11, which resolve to the AndroidX BOM (no duplicate classes). Revisit with the Kotlin 2.4 / BOM 2026 track |
 | `androidx.recyclerview` | 8 files | `LazyColumn` / `LazyRow` | Compose / cross-cutting | Medium | Not started |
 | `androidx.cardview` | legacy layouts | `Card` / `Surface` | Compose / cross-cutting | Low | Not started |
@@ -193,10 +193,15 @@ APIs (e.g. `FirebaseInstanceId`); schedule it as its own task rather than a driv
   `compileSdk` 36 and the matching activity/navigation bumps. Once that lands, a newer
   `colorpicker-compose` can replace the pinned `1.1.2` (which is built against Kotlin 2.0.0 /
   Compose Multiplatform 1.6.11). Tracked separately, not part of S6.
-- **Stale settings tests:** the IA redesign (`6b426510b`) left three red tests unrelated to S6 —
-  `SettingsActivityTest`'s `setting_data_source` tag expectations, `SettingsIaTest`'s
-  `setting_reminders`-under-Alarms expectation, and `CollectionMethodArraysTest`'s
-  `DexCollectionMethodValues` count. They should be reconciled with the current navigation/arrays.
+- **Stale settings tests — reconciled:** the IA redesign (`6b426510b`) had left three red tests
+  unrelated to S6: `SettingsActivityTest`'s `setting_data_source`/`setting_libre_device` tag
+  expectations, `SettingsIaTest`'s `setting_reminders`-under-Alarms expectation, and
+  `CollectionMethodArraysTest`'s `DexCollectionMethodValues` count. All three now match the current
+  navigation/arrays — Devices inlines `DataSourceScreen` (no intermediate `setting_data_source`
+  row), reminders/emergency live under General, and the collection arrays are the consolidated
+  16-entry pair.
+- **Leaf-pref search (pass H remainder):** destination-level search is done, but indexing individual
+  leaf preferences and jump-to-row still needs a pref-key/title catalog.
 
 ---
 

@@ -1,7 +1,7 @@
 package com.eveningoutpost.dexdrip.calibrations;
 
-import android.preference.ListPreference;
 import android.util.Log;
+import android.util.Pair;
 
 import com.eveningoutpost.dexdrip.models.BgReading;
 import com.eveningoutpost.dexdrip.models.JoH;
@@ -90,8 +90,8 @@ public class PluggableCalibration {
         }
     }
 
-    // populate a ListPreference with plugin choices
-    public static void setListPreferenceData(ListPreference p) {
+    // build the plugin choices without a UI container
+    public static Pair<CharSequence[], CharSequence[]> getPluginEntriesAndValues() {
         final Type[] types = Type.values();
         final CharSequence[] entries = new CharSequence[types.length];
         final CharSequence[] entryValues = new CharSequence[types.length];
@@ -104,8 +104,7 @@ public class PluggableCalibration {
             entries[i] = (plugin != null) ? plugin.getNiceNameAndDescription() : "None";
             entryValues[i] = types[i].toString();
         }
-        p.setEntries(entries);
-        p.setEntryValues(entryValues);
+        return new Pair<>(entries, entryValues);
     }
 
     // get calibration plugin instance by name

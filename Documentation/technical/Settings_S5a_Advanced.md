@@ -181,4 +181,5 @@ Per section, run the passes from
     behaviour) because the legacy `removePreference` matrix differs between inflation and
     on-change; the MiBand debug section is placed in the sub-settings screen (matching where the
     legacy `removePreference` looked for it) and gated on engineering mode.
-- **S5a complete.** Next: S5b (`xdrip_plus_prefs.xml`).
+- **S5a complete.** S5b (`xdrip_plus_prefs.xml`) and S6 (legacy settings retirement) have since
+  landed — see `Settings_Migration.md` §3 — so no outbound work remains from this annex.

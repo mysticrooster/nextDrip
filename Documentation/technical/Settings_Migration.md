@@ -257,7 +257,9 @@ still inflates the former). The manifest `.utils.Preferences` activity is gone.
   jump/highlight remains open.
 - **Custom widgets**: multi-select / tree-selector / PIN dialogs (the chart preview is the
   `AndroidView`-wrapped `prefs_example_chart_layout.xml` in the theme editor).
-- **Icons**: legacy sub-screens carry `android:icon`; add leading icons to `SettingsActionRow`.
+- **Icons**: done at category/submenu level — the IA redesign added `leadingContent` to
+  `SettingsActionRow` and the `SettingsCategoryButton` root tiles (icons on every category button
+  and submenu row); deeper leaf screens can be extended the same way.
 - **Live pref-change listeners**: the legacy activity registered service/watch/collector listeners
   while open. The collection-method reactions were reproduced **explicitly** in S3; the **watch**
   listeners (`MiBandEntry`/`LeFunEntry`/`BlueJayEntry`), the **number-wall** listener
@@ -382,7 +384,7 @@ in-place via `SecondaryScreen`, in four ordered sub-passes:
 `MegaStatus`, `BluetoothScan`, `NoteSearch`, `ThinJamActivity`, Pebble installers. `NoteSearch`
 and `MegaStatus` remain the last `PrefsView*` users besides `Home` (and `BackupActivity`/
 `EmergencyAssistActivity`/`NumberWallPreview` for the snapping wrappers). `localeTasker/ui/EditActivity`
-(Tasker plugin form) is the optional Pass D and is not migrated yet.
+(Tasker plugin form) is the only optional non-AAR Pass D left and is not migrated yet.
 
 
 ---
@@ -413,8 +415,10 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 - **I — Theming.** Material You defaults, overrides win, no literals. *Ready (`ThemeColorTest`).*
 - **J — Legacy interop/retirement.** S6 artefacts deleted, no dangling users. *Done (S6) — grep
   clean for `utils.Preferences`, `BasePreferenceActivity`, `AllPrefsFragment`, `R.xml.pref_*`,
-  `menu_preferences`, `rarepebble`, `ColorPickerView`, `TimePreference`, `ExampleChartPreferenceView`
-  and the `colorpicker`/`search-preference` AARs.*
+  `menu_preferences`, `rarepebble`, `ColorPickerView`, `TimePreference`, `ExampleChartPreferenceView`,
+  the `colorpicker`/`search-preference` AARs, and (after the residual cleanup) every
+  `android.preference` UI import — only the `android.preference.PreferenceManager` data API
+  remains.*
 - **K — Global regression.** Full suite + `assembleFastDebug` (R8) + backup/restore. *Run every pass.*
 
 ### Passes × category matrix
@@ -543,4 +547,26 @@ Plan: `.kilo/plans/1790818203174-settings-ia-redesign.md`.
   profile/target/threshold side effects stay in parity with the legacy screen. An idempotent
   `IdempotentMigrations.reconcileGlucoseUnits()` repair runs at startup to reconcile stale High/Low
   units left by earlier builds.
+
+---
+
+## 13. What's next
+
+Settings and the AAR-free secondary views are done; the remaining work is roadmap, not part of the
+S0–S6 / Track V change sets. Ordered by leverage:
+
+1. **Phase 3 — charts → Vico** (the main unblocker). Replaces `hellocharts` on Compose surfaces,
+   deletes the `ui/chart/Horizontal*LineChartView` stopgaps, and unblocks Phase 2 `Home` plus the
+   AAR-blocked Track V screens below. RemoteViews/Bitmap surfaces need a non-Compose drawing path.
+2. **Phase 2 — Home dashboard** redesign, reading the already-extracted `HomeGlucoseState` flags.
+3. **Track V tail:** the AAR-blocked screens (`Home`, charts, `Reminders`, `MegaStatus`,
+   `BluetoothScan`, `NoteSearch`, `ThinJamActivity`, `ProfileEditor`/`BasalProfileEditor`, Pebble
+   installers) once Vico lands; the optional Tasker `localeTasker/ui/EditActivity` Pass D needs no
+   AAR work.
+4. **Search pass H remainder:** leaf-pref indexing + jump-to-row (needs a pref-key/title catalog).
+5. **Dependency modernization track:** Kotlin 2.4, Compose BOM 2026.x, Material3 1.4,
+   `compileSdk` 36, then unpin `colorpicker-compose` from 1.1.2.
+6. **`android.preference.PreferenceManager` → `androidx.preference`** cleanup (larger, deferred;
+   note it is the data API only, not UI).
+7. **GMS stack upgrade** for the Play Services `PendingIntent` flags debt (`Tech_Debt.md` §7).
 

@@ -5,7 +5,6 @@ import android.app.WallpaperManager;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Build;
-import android.preference.Preference;
 
 import com.eveningoutpost.dexdrip.BestGlucose;
 import com.eveningoutpost.dexdrip.models.JoH;
@@ -130,14 +129,6 @@ public class LockScreenWallPaper {
 
     public static class PrefListener {
 
-        private Preference summaryPreference;
-
-        public void setSummaryPreference(Preference pref) {
-            summaryPreference = pref;
-            updateSummary();
-
-        }
-
         public final SharedPreferences.OnSharedPreferenceChangeListener prefListener = (prefs, key) -> {
             switch (key) {
                 case PREF_ENABLED:
@@ -161,9 +152,6 @@ public class LockScreenWallPaper {
         }
 
         private void updateSummary() {
-            if (summaryPreference != null) {
-                summaryPreference.setTitle(summaryPreference.getTitle().toString().replaceAll("  \\(.+\\)$", "") + "  (" + TimeRangeUtils.getNiceStartStopString("number_wall") + ")");
-            }
             Inevitable.task("update-number-wall", 1000, () -> setIfEnabled());
         }
 

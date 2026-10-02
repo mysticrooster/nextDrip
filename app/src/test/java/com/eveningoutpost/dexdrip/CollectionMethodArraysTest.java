@@ -12,6 +12,8 @@ import lombok.val;
  * item from either array silently reassigns the collection method of every user whose choice sits
  * after it.
  *
+ * <p>The arrays were consolidated to 16 entries; this pins the current labels/values pair in order.
+ *
  * @author Asbjørn Aarrestad - 2026.08
  */
 public class CollectionMethodArraysTest extends RobolectricTestWithConfig {
@@ -31,12 +33,11 @@ public class CollectionMethodArraysTest extends RobolectricTestWithConfig {
         // :: Verify
         assertWithMessage("the stored collection method values are unchanged and in order")
                 .that(values).asList().containsExactly(
-                        "BluetoothWixel", "DexbridgeWixel", "WifiWixel", "WifiBlueToothWixel",
-                        "WifiDexbridgeWixel", "DexcomG5", "LimiTTer", "LimiTTerWifi", "LibreWifi",
-                        "Follower", "LibreAlarm", "LibreReceiver", "NSEmulator", "Medtrum",
-                        "NSFollower", "SHFollower", "WebFollower", "UiBased", "GluPro",
-                        "AidexReceiver", "CLFollower", "Disabled").inOrder();
-        assertWithMessage("every stored value has a label to pair with")
+                        "DexcomG5", "LimiTTer", "LibreWifi", "Follower", "LibreAlarm",
+                        "LibreReceiver", "NSEmulator", "Medtrum", "NSFollower", "SHFollower",
+                        "WebFollower", "UiBased", "GluPro", "AidexReceiver", "CLFollower",
+                        "Disabled").inOrder();
+        assertWithMessage("every stored value has a label to pair with (labels/values both 16)")
                 .that(entries.length).isEqualTo(values.length);
     }
 }

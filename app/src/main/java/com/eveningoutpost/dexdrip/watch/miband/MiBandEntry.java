@@ -2,12 +2,10 @@ package com.eveningoutpost.dexdrip.watch.miband;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.preference.Preference;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
-import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
 import com.eveningoutpost.dexdrip.utilitymodels.Intents;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
@@ -83,10 +81,6 @@ public class MiBandEntry {
         return new Date(Pref.getLong(PREF_MIBAND_NIGHTMODE_END, 0));
     }
 
-    public static void setNightModeInterval(int val) {
-        Pref.setInt(PREF_MIBAND_NIGHTMODE_INTERVAL, val);
-    }
-
     public static int getNightModeInterval() {
         return (Pref.getInt(PREF_MIBAND_NIGHTMODE_INTERVAL, 0) + 1) * NIGHT_MODE_INTERVAL_STEP;
     }
@@ -130,29 +124,6 @@ public class MiBandEntry {
             });
         }
     }
-
-    public static Preference.OnPreferenceChangeListener sBindMibandPreferenceChangeListener = new Preference.OnPreferenceChangeListener() {
-        @Override
-        public boolean onPreferenceChange(Preference preference, Object value) {
-            try {
-                String key = preference.getKey();
-                if (key.equals(MiBandEntry.PREF_MIBAND_NIGHTMODE_INTERVAL)) {
-                    setNightModeInterval((int) value);
-                    final String minutes = xdrip.gs(R.string.unit_minutes);
-                    final String title_text = xdrip.gs(R.string.title_miband_interval_in_nightmode);
-
-                    Integer nightModeInterval = MiBandEntry.getNightModeInterval();
-                    if (nightModeInterval == MiBandEntry.NIGHT_MODE_INTERVAL_STEP)
-                        preference.setTitle(String.format("%s (%s)", title_text, "live"));
-                    else
-                        preference.setTitle(String.format("%s (%d %s)", title_text, nightModeInterval, minutes));
-                }
-            } catch (Exception e) {
-                //
-            }
-            return true;
-        }
-    };
 
     public static SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         public void onSharedPreferenceChanged(SharedPreferences prefs, String key) {

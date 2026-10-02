@@ -34,13 +34,17 @@ verified running on the emulator (including background collection restarts).
 Phase 2 has its component library seeded and the header state extracted, but the
 header *rendering* was reverted to the original design pending a proper redesign.
 
-**Phase 4 (settings) is in progress:** a Compose settings host
-(`ui/settings/SettingsActivity`) with a hand-rolled row library renders the **General**,
-**Alarms and Alerts**, **Data Source**, **Data Sync**, the whole **Advanced** category
-(Other settings and Smart watch features), the **Theme editor** (Compose colour picker, ringtone/
-time/slider rows, root search, legacy colour-group parity) and the **xDrip+ Extra Settings** tree
-(Copying, Update, Motion, Pens, Prediction, Sync, Display/graph/number-wall), and links to the
-legacy settings activity for the rest. The theme now provides the app's data colours
+**Phase 4 (settings) is done:** the Compose settings host
+(`ui/settings/SettingsActivity`) with a hand-rolled row library is now the live settings entry
+point, covering the **General**, **Alarms and Alerts**, **Data Source**, **Data Sync**, the whole
+**Advanced** category (Other settings and Smart watch features), the **Theme editor** (Compose
+colour picker, ringtone/time/slider rows, root search, legacy colour-group parity) and the
+**xDrip+ Extra Settings** tree (Copying, Update, Motion, Pens, Prediction, Sync,
+Display/graph/number-wall). The IA redesign landed (9 root categories, Home overflow absorbed,
+per-device screens) and the legacy `android.preference` UI, pref XMLs and settings AARs were
+retired (S6). Track V passes 1–7 are done, so the settings-linked secondary screens
+(trivial/medium Data-Binding, sensor/calibration forms, admin quick wins and the remaining
+AAR-free screens) are Compose too. The theme now provides the app's data colours
 (`LocalXdripColors`) to Compose. Plan, status board and verification passes live in
 [`Settings_Migration.md`](./Settings_Migration.md); the large Advanced phase has its own annex
 [`Settings_S5a_Advanced.md`](./Settings_S5a_Advanced.md). Legacy UI libraries/widgets and their
@@ -84,9 +88,9 @@ The work did **not** follow the nominal 0→5 order. This is the real sequence a
 | 0 | Foundation: dependency upgrades, Compose setup, `targetSdk 34` + AGP 9.4.1 upgrade + runtime correctness sweep | **Done** |
 | 1 | Theme (Material You) + interop patterns + drawer content migration | **Done** |
 | 2 | Home dashboard (component library + slice-by-slice; charts via `AndroidView`) | **Paused** (state extracted, rendering reverted pending redesign) |
-| 3 | Charts → Vico (line graphs; basal column editor last) | Planned (unblocks Phase 2) |
-| 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **In progress** (S0–S5b done; S6 remain) |
-| 5 | Secondary views → Compose (long tail; same doc) | **In progress** — Track V passes 1–6 done (quick wins, trivial, Medium Data-Binding, rich Medium, sensor/calibration forms, admin quick wins); see `Settings_Migration.md` §7 |
+| 3 | Charts → Vico (line graphs; basal column editor last) | Planned (unblocks Phase 2 and the AAR-blocked tail) |
+| 4 | Settings → Compose ([`Settings_Migration.md`](./Settings_Migration.md)) | **Done** (S0–S6 + IA redesign; Track V passes 1–7) |
+| 5 | Secondary views → Compose (long tail; same doc) | **In progress / largely done** — Track V passes 1–7 done; remaining screens (`Home`, charts, `Reminders`, `MegaStatus`, `BluetoothScan`, `NoteSearch`, `ThinJamActivity`, profile/basal editors, Pebble installers) are AAR-blocked on Phase 3 (Vico); optional Tasker `EditActivity` Pass D outstanding. See `Settings_Migration.md` §7 |
 
 ### Parallel modernization tracks (own backlog, not UI phases)
 
