@@ -160,7 +160,7 @@ internal fun BackupsScreen() {
 }
 
 @Composable
-internal fun AboutScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -> Unit) {
+internal fun AboutScreen(onNavigate: (SettingsScreen) -> Unit) {
     val context = LocalContext.current
     SettingsCategory("About") {
         SettingsActionRow(
@@ -212,13 +212,6 @@ internal fun AboutScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: ()
             onClick = { context.startActivity(Intent(context, LicenseAgreementActivity::class.java)) },
             modifier = Modifier.testTag("setting_license"),
         )
-        SettingsActionRow(
-            title = "Classic settings",
-            subtitle = "Screens not yet migrated to the new UI",
-            icon = Icons.Outlined.Settings,
-            onClick = onOpenClassic,
-            modifier = Modifier.testTag("setting_classic"),
-        )
     }
 }
 
@@ -231,13 +224,6 @@ internal fun VersionScreen() {
         SettingsInfoRow(title = "Build type", value = BuildConfig.BUILD_TYPE)
         SettingsInfoRow(title = "Flavour", value = BuildConfig.FLAVOR)
         SettingsInfoRow(title = "Target SDK", value = BuildConfig.targetSDK.toString())
-        SettingsActionRow(
-            title = "Classic settings",
-            subtitle = "Screens not yet migrated to the new UI",
-            icon = Icons.Outlined.Settings,
-            onClick = { context.startActivity(Intent(context, com.eveningoutpost.dexdrip.utils.Preferences::class.java)) },
-            modifier = Modifier.testTag("setting_version_classic"),
-        )
     }
 }
 
@@ -269,7 +255,7 @@ private fun BackupsScreenPreview() {
 @Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true, widthDp = 400, heightDp = 800)
 @Composable
 private fun AboutScreenPreview() {
-    XdripPreview { AboutScreen(onNavigate = {}, onOpenClassic = {}) }
+    XdripPreview { AboutScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)

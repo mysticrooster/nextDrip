@@ -11,7 +11,7 @@ import com.eveningoutpost.dexdrip.models.BgReading;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.R;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.utils.SettingsSupport;
 import com.eveningoutpost.dexdrip.utils.SdcardImportExport;
 import com.eveningoutpost.dexdrip.xdrip;
 import com.google.common.collect.ImmutableSet;
@@ -128,7 +128,7 @@ public class Experience {
                             advanceStep();
                             dialog.dismiss();
                             Pref.setString("units", "mmol");
-                            Preferences.handleUnitsChange(null, "mmol", null);
+                            SettingsSupport.handleUnitsChange("mmol");
                             Home.staticRefreshBGCharts();
                             JoH.static_toast_long(getString(R.string.settings_updated_to_mmol));
 

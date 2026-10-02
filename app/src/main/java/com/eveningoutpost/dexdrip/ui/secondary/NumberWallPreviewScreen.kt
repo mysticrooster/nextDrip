@@ -40,7 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.ui.activities.NumberWallPreview
+import com.eveningoutpost.dexdrip.ui.settings.ColorPickerDialog
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
+import com.eveningoutpost.dexdrip.utilitymodels.ColorCache
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utilitymodels.PrefsViewString
 import kotlin.math.roundToInt
@@ -83,6 +85,10 @@ fun installNumberWallPreview(activity: NumberWallPreview) {
         var y by remember { mutableStateOf(readSnapped(sprefs, PREF_Y, 30)) }
         var spacer by remember { mutableStateOf(readSnapped(sprefs, PREF_S, 10)) }
 
+        val textColorKey = ColorCache.X.color_number_wall.internalName
+        val shadowColorKey = ColorCache.X.color_number_wall_shadow.internalName
+        var pickerTarget by remember { mutableStateOf<String?>(null) }
+
         NumberWallPreviewScreen(
             bitmap = backgroundBitmap,
             backgroundSet = backgroundSet,
@@ -93,13 +99,28 @@ fun installNumberWallPreview(activity: NumberWallPreview) {
             onWidthChange = { x = writeSnapped(sprefs, PREF_X, it) },
             onHeightChange = { y = writeSnapped(sprefs, PREF_Y, it) },
             onSpacerChange = { spacer = writeSnapped(sprefs, PREF_S, it) },
-            onPaletteClick = { vm.paletteImageButtonClick() },
-            onPaletteLongClick = { vm.paletteImageButtonLongClick() },
+            onPaletteClick = { pickerTarget = textColorKey },
+            onPaletteLongClick = { pickerTarget = shadowColorKey },
             onFolderClick = { vm.folderImageButtonClick() },
             onMultiClick = { prefs.togglebool(PREF_MULTI) },
             onBack = { activity.finish() },
             title = context.getString(R.string.number_wall_config),
         )
+
+        pickerTarget?.let { key ->
+            val isShadow = key == shadowColorKey
+            ColorPickerDialog(
+                title = if (isShadow) "Shadow Color" else "Text Color",
+                initialArgb = ColorCache.getCol(if (isShadow) ColorCache.X.color_number_wall_shadow else ColorCache.X.color_number_wall),
+                onDismiss = { pickerTarget = null },
+                onColorPicked = {
+                    Pref.setInt(key, it)
+                    ColorCache.invalidateCache()
+                    vm.refreshBitmap()
+                    pickerTarget = null
+                },
+            )
+        }
     }
 }
 

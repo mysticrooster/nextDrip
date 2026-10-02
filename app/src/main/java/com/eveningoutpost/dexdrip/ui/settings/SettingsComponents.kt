@@ -45,14 +45,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -64,6 +65,10 @@ import androidx.compose.ui.unit.dp
 import com.eveningoutpost.dexdrip.EditAlertActivity
 import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
+import com.github.skydoves.colorpicker.compose.AlphaSlider
+import com.github.skydoves.colorpicker.compose.BrightnessSlider
+import com.github.skydoves.colorpicker.compose.HsvColorPicker
+import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import java.util.Calendar
 import kotlin.math.roundToInt
 
@@ -623,7 +628,7 @@ fun SettingsColorRow(
     if (showDialog) {
         ColorPickerDialog(
             title = title,
-            initial = color,
+            initialArgb = color,
             onDismiss = { showDialog = false },
             onColorPicked = { onColorChanged(it); showDialog = false },
             onReset = onReset?.let { r -> { r(); showDialog = false } },
@@ -632,18 +637,20 @@ fun SettingsColorRow(
 }
 
 @Composable
-private fun ColorPickerDialog(
+internal fun ColorPickerDialog(
     title: String,
-    initial: Int,
+    initialArgb: Int,
     onDismiss: () -> Unit,
     onColorPicked: (Int) -> Unit,
     onReset: (() -> Unit)? = null,
 ) {
-    val hsv = remember { FloatArray(3).also { android.graphics.Color.colorToHSV(initial, it) } }
-    var hue by remember { mutableFloatStateOf(hsv[0]) }
-    var saturation by remember { mutableFloatStateOf(hsv[1]) }
-    var value by remember { mutableFloatStateOf(hsv[2]) }
-    val color = android.graphics.Color.HSVToColor(floatArrayOf(hue, saturation, value))
+    val controller = rememberColorPickerController()
+    // Seed the whole colour (hue, saturation, value and alpha) into the controller. Passing
+    // initialColor to HsvColorPicker only positions the wheel; without this the attached
+    // brightness/alpha sliders default to 1.0 and confirming rewrites the colour.
+    LaunchedEffect(initialArgb) {
+        controller.selectByColor(Color(initialArgb), false)
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -652,21 +659,33 @@ private fun ColorPickerDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
-                        .background(Color(color)),
+                        .height(40.dp)
+                        .background(controller.selectedColor.value),
                 )
-                ColorSlider("Hue", hue, 0f..360f) { hue = it }
-                ColorSlider("Saturation", saturation, 0f..1f) { saturation = it }
-                ColorSlider("Brightness", value, 0f..1f) { value = it }
+                HsvColorPicker(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    controller = controller,
+                    initialColor = Color(initialArgb),
+                )
+                AlphaSlider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    controller = controller,
+                )
+                BrightnessSlider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    controller = controller,
+                )
             }
         },
         confirmButton = {
-            TextButton(onClick = { onColorPicked(color) }) {
-                Text(
-                    stringResource(
-                        android.R.string.ok
-                    )
-                )
+            TextButton(onClick = { onColorPicked(controller.selectedColor.value.toArgb()) }) {
+                Text(stringResource(android.R.string.ok))
             }
         },
         dismissButton = {
@@ -678,17 +697,6 @@ private fun ColorPickerDialog(
             }
         },
     )
-}
-
-@Composable
-private fun ColorSlider(
-    label: String,
-    value: Float,
-    range: ClosedFloatingPointRange<Float>,
-    onChange: (Float) -> Unit
-) {
-    Text(label, style = MaterialTheme.typography.labelMedium)
-    Slider(value = value, onValueChange = onChange, valueRange = range)
 }
 
 @Composable
@@ -915,7 +923,7 @@ private fun ColorPickerDialogPreview() {
     XdripPreview {
         ColorPickerDialog(
             title = "High color",
-            initial = 0xFFFFBB33.toInt(),
+            initialArgb = 0xFFFFBB33.toInt(),
             onDismiss = {},
             onColorPicked = {},
             onReset = {},

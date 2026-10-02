@@ -24,11 +24,12 @@ screens migrate. The settings/secondary-views phases are planned in
 | Dependency | Usage | Replace with | Track / Phase | Effort | Status |
 | --- | --- | --- | --- | --- | --- |
 | `hellocharts` (local AAR) | 17 files | [Vico](https://github.com/patrykandpatrick/vico) | Compose / Phase 3 | High | Not started — Home pan clamped horizontal by `ui/chart/Horizontal*LineChartView` stopgaps (delete with Vico) |
-| `colorpicker` AAR (`com.rarepebble.colorpicker`) | 3 files + prefs XML | Compose-native color picker | Compose / Phase 4 | Low | Partial — Compose picker + theme editor (`SettingsColorRow`, `ThemeEditorScreen`) and the number-wall colours now on the Number Wall screen; AAR remains for the legacy color page + `NumberWallPreview` until migrated |
-| `search-preference` (local AAR) | 1 file | Compose search/settings UI | Compose / Phase 4 | Low | Partial — root search over migrated settings added; AAR remains for the legacy settings until retired |
+| `colorpicker` AAR (`com.rarepebble.colorpicker`) | 3 files + prefs XML | Compose-native color picker | Compose / Phase 4 | Low | **Done (S6)** — AAR, `ColorPicker`/`ColorPreferenceDialog` and the legacy colour page deleted; all picks use `com.github.skydoves:colorpicker-compose:1.1.2` |
+| `search-preference` (local AAR) | 1 file | Compose search/settings UI | Compose / Phase 4 | Low | **Done (S6)** — AAR deleted with the legacy `Preferences` activity |
 | `com.github.amlcurran.showcaseview` | 13 files | Compose tooltips/coach-marks (or drop) | Compose / Phase 2–5 | Medium | Not started |
-| `androidx.preference` | settings screens | Compose settings | Compose / Phase 4 | Medium | In progress — Compose host reads/writes via `Pref`; legacy UI still in use for unmigrated screens |
-| `android.preference` settings UI (`Preferences.java`, `BasePreferenceActivity`, `pref_*.xml`) | main settings screen | Compose settings host | Compose / Phase 4 (S6) | High | In progress — General/Alerts/Data Source/Data Sync/Advanced + watches + `xdrip_plus_prefs` (S5b) migrated; delete in S6 |
+| `androidx.preference` | settings screens | Compose settings | Compose / Phase 4 | Medium | Keep — `preference:1.2.1` stays for `PreferenceManager.getDefaultSharedPreferences`/`setDefaultValues`; the `android.preference` UI no longer uses it |
+| `android.preference` settings UI (`Preferences.java`, `BasePreferenceActivity`, `pref_*.xml`) | main settings screen | Compose settings host | Compose / Phase 4 (S6) | High | **Done (S6)** — activity/XML/custom widgets deleted; non-UI API extracted to `SettingsSupport`, defaults to `SettingsDefaults` (fixture-tested), entry points and listeners repointed |
+| `com.github.skydoves:colorpicker-compose:1.1.2` | new (S6) | `HsvColorPicker`/`AlphaSlider`/`BrightnessSlider` in the shared `ColorPickerDialog` + NumberWallPreview | Compose / Phase 4 | — | Adopted — survives R8 (`assembleFastDebug`); pulls Kotlin 2.0.0 + Compose Multiplatform 1.6.11, which resolve to the AndroidX BOM (no duplicate classes). Revisit with the Kotlin 2.4 / BOM 2026 track |
 | `androidx.recyclerview` | 8 files | `LazyColumn` / `LazyRow` | Compose / cross-cutting | Medium | Not started |
 | `androidx.cardview` | legacy layouts | `Card` / `Surface` | Compose / cross-cutting | Low | Not started |
 | `androidx.constraintlayout` | 9 layouts | Compose layouts | Compose / cross-cutting | Medium | Not started |
@@ -163,13 +164,12 @@ modern `targetSdk` (flag-less dynamic `registerReceiver`; `PendingIntent` withou
 | `amazfitcommunication` AAR | `TransporterClassic.get` used flag-less 2-arg `registerReceiver` | `Amazfitservice` passes a `FlaggedReceiverContext` wrapper forcing `RECEIVER_EXPORTED` |
 | FGS types | `ExternalStatusService`, `WifiCollectionService`, `G5CollectionService`, `DexShareCollectionService`, `WebFollowService` had no `android:foregroundServiceType` (Android 14 `MissingForegroundServiceTypeException`) | types added (`dataSync` / `connectedDevice`) in `AndroidManifest.xml`; runtime calls already pass `FOREGROUND_SERVICE_TYPE_MANIFEST` or the manifest type applies |
 
-**Clean (verified, no action):** `appauth`, `barista`, `colorpicker`, `hellocharts`,
-`ns-sdk-full`, `search-preference`, `influxdb-java`, `mongo-java-driver`,
-`usb-serial-for-android`, `xdrip-cloud`; library modules `:libglupro`, `:libkeks`,
-`:ipluginda`, `:localeapi`; app `PendingIntent` call sites (all flagged);
-Nordic BLE / RxAndroidBle / zxing / Joda `registerReceiver` calls (protected
-broadcasts); Sentry system-event breadcrumbs (integration disabled +
-`catch(Throwable)`).
+**Clean (verified, no action):** `appauth`, `barista`, `hellocharts`, `ns-sdk-full`,
+`influxdb-java`, `mongo-java-driver`, `usb-serial-for-android`, `xdrip-cloud`; library modules
+`:libglupro`, `:libkeks`, `:ipluginda`, `:localeapi`; app `PendingIntent` call sites (all flagged);
+Nordic BLE / RxAndroidBle / zxing / Joda `registerReceiver` calls (protected broadcasts); Sentry
+system-event breadcrumbs (integration disabled + `catch(Throwable)`). (`colorpicker` and
+`search-preference` were also clean but have since been removed in S6.)
 
 **Open third-party risk — Play Services 15.x `PendingIntent` flags** (not fixable
 without a GMS upgrade; reachable on error-resolution paths, notably on devices with
@@ -184,6 +184,19 @@ Recommendation: upgrade the GMS stack (`play-services-base`/`-basement` ≥ 18.x
 `play-services-wearable` ≥ 18.x). This is a broader migration because the app pins
 `play-services-auth`/`-location`/`firebase-messaging` at 15.0.0 and newer majors change
 APIs (e.g. `FirebaseInstanceId`); schedule it as its own task rather than a drive-by bump.
+
+---
+
+## 8. Follow-ups unlocked by S6
+
+- **Dependency modernization track:** Kotlin 2.4, Compose BOM 2026.x, Material3 1.4,
+  `compileSdk` 36 and the matching activity/navigation bumps. Once that lands, a newer
+  `colorpicker-compose` can replace the pinned `1.1.2` (which is built against Kotlin 2.0.0 /
+  Compose Multiplatform 1.6.11). Tracked separately, not part of S6.
+- **Stale settings tests:** the IA redesign (`6b426510b`) left three red tests unrelated to S6 —
+  `SettingsActivityTest`'s `setting_data_source` tag expectations, `SettingsIaTest`'s
+  `setting_reminders`-under-Alarms expectation, and `CollectionMethodArraysTest`'s
+  `DexCollectionMethodValues` count. They should be reconciled with the current navigation/arrays.
 
 ---
 

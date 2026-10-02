@@ -92,6 +92,7 @@ import com.eveningoutpost.dexdrip.tables.CalibrationDataTable
 import com.eveningoutpost.dexdrip.profileeditor.ProfileEditor
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.LibreTrendGraph
+import com.eveningoutpost.dexdrip.utils.SettingsSupport
 import com.eveningoutpost.dexdrip.utils.TestFeature
 import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
@@ -195,10 +196,9 @@ internal fun titleFor(context: Context, screen: SettingsScreen): String =
 internal fun SettingsScreenContent(
     screen: SettingsScreen,
     onNavigate: (SettingsScreen) -> Unit,
-    onOpenClassic: () -> Unit,
 ) {
     when (screen) {
-        SettingsScreen.Root -> RootScreen(onNavigate, onOpenClassic)
+        SettingsScreen.Root -> RootScreen(onNavigate)
         SettingsScreen.GeneralCategory -> GeneralCategoryScreen(onNavigate)
         SettingsScreen.AlarmsCategory -> AlarmsCategoryScreen(onNavigate)
         SettingsScreen.YourDataCategory -> YourDataCategoryScreen(onNavigate)
@@ -229,7 +229,7 @@ internal fun SettingsScreenContent(
         SettingsScreen.PreemptiveRestart -> PreemptiveRestartScreen()
         SettingsScreen.DataSync -> DataSyncScreen(onNavigate)
         SettingsScreen.Backups -> BackupsScreen()
-        SettingsScreen.About -> AboutScreen(onNavigate, onOpenClassic)
+        SettingsScreen.About -> AboutScreen(onNavigate)
         SettingsScreen.Version -> VersionScreen()
         SettingsScreen.HomeScreen -> HomeScreenSettingsScreen()
         SettingsScreen.AutoConfig -> AutoConfigScreen()
@@ -293,7 +293,7 @@ internal fun SettingsScreenContent(
 }
 
 @Composable
-private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -> Unit) {
+private fun RootScreen(onNavigate: (SettingsScreen) -> Unit) {
     val context = LocalContext.current
     val state = rememberSettingsState()
     val index = remember(context) { buildSettingsSearchIndex(context) }
@@ -314,10 +314,10 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit, onOpenClassic: () -
         val results = searchSettings(index, query, state)
         if (results.isEmpty()) {
             SettingsCategory("No matches") {
-                SettingsActionRow(
-                    title = "No migrated setting matches \"$query\"",
-                    subtitle = "Open classic settings to search everything",
-                    onClick = onOpenClassic,
+                SettingsInfoRow(
+                    title = "No setting matches \"$query\"",
+                    value = "",
+                    subtitle = "Only migrated settings are searchable",
                 )
             }
         } else {
@@ -884,7 +884,10 @@ private fun UnitsScreen() {
             entries = entries,
             values = values,
             selectedValue = state.string("units", SettingsPrefs.UNIT_MGDL),
-            onSelected = { state.setString("units", it) },
+            onSelected = {
+                state.setString("units", it)
+                SettingsSupport.handleUnitsChange(it)
+            },
             modifier = Modifier.testTag("setting_units"),
         )
         SettingsEditTextRow(
@@ -1544,11 +1547,11 @@ private fun glucoseInputValidator(context: Context): (String) -> Boolean =
                     R.string.the_value_must_be_between_min_and_max,
                     EditAlertActivity.unitsConvert2Disp(
                         doMgdl,
-                        com.eveningoutpost.dexdrip.utils.Preferences.MIN_GLUCOSE_INPUT
+                        com.eveningoutpost.dexdrip.utils.SettingsSupport.MIN_GLUCOSE_INPUT
                     ),
                     EditAlertActivity.unitsConvert2Disp(
                         doMgdl,
-                        com.eveningoutpost.dexdrip.utils.Preferences.MAX_GLUCOSE_INPUT
+                        com.eveningoutpost.dexdrip.utils.SettingsSupport.MAX_GLUCOSE_INPUT
                     ),
                 )
             )
@@ -1568,7 +1571,7 @@ private fun glucoseInputValidator(context: Context): (String) -> Boolean =
 )
 @Composable
 private fun RootScreenPreview() {
-    XdripPreview { RootScreen(onNavigate = {}, onOpenClassic = {}) }
+    XdripPreview { RootScreen(onNavigate = {}) }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
@@ -1585,7 +1588,6 @@ private fun SettingsScreenContentRootPreview() {
         SettingsScreenContent(
             screen = SettingsScreen.Root,
             onNavigate = {},
-            onOpenClassic = {},
         )
     }
 }
@@ -1604,7 +1606,6 @@ private fun SettingsScreenContentCategoryPreview() {
         SettingsScreenContent(
             screen = SettingsScreen.GeneralCategory,
             onNavigate = {},
-            onOpenClassic = {},
         )
     }
 }

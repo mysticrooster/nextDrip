@@ -23,7 +23,6 @@ import com.eveningoutpost.dexdrip.utilitymodels.Unitized;
 import com.eveningoutpost.dexdrip.adapters.ObservableBackground;
 import com.eveningoutpost.dexdrip.ui.LockScreenWallPaper;
 import com.eveningoutpost.dexdrip.ui.NumberGraphic;
-import com.eveningoutpost.dexdrip.ui.dialog.ColorPreferenceDialog;
 import com.eveningoutpost.dexdrip.ui.helpers.BitmapUtil;
 import com.eveningoutpost.dexdrip.ui.secondary.NumberWallPreviewScreen;
 import com.eveningoutpost.dexdrip.utils.FileUtils;
@@ -145,15 +144,6 @@ public class NumberWallPreview extends AppCompatActivity {
                 refreshBitmap();
             }
         }
-
-        public void paletteImageButtonClick() {
-            ColorPreferenceDialog.pick(NumberWallPreview.this, ColorCache.X.color_number_wall.getInternalName(), "Text Color", this::refreshBitmap);
-        }
-
-        public void paletteImageButtonLongClick() {
-            ColorPreferenceDialog.pick(NumberWallPreview.this, ColorCache.X.color_number_wall_shadow.getInternalName(), "Shadow Color", this::refreshBitmap);
-        }
-
 
         // create demo bitmap
         public void refreshBitmap() {

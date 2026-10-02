@@ -241,6 +241,11 @@ enum class ThemeColor(
         @JvmStatic
         fun fromLegacyKey(key: String?): ThemeColor? =
             if (key == null) null else entries.firstOrNull { it.legacyColor?.internalName == key }
+
+        /** The legacy `color_*` XML defaults keyed by preference key, for `SettingsDefaults`. */
+        @JvmStatic
+        fun legacyColorDefaultsMap(): Map<String, Int> =
+            legacyColorDefaults.entries.associate { it.key.internalName to it.value }
     }
 }
 

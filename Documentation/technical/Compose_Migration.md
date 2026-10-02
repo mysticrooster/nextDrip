@@ -321,9 +321,11 @@ Two-layer color model:
 `ColorCache` is a static cache with manual `invalidateCache()` and no observers, so it
 needs a change-notification bridge to be reactive in Compose: a Kotlin `StateFlow`-based
 bridge (`ColorCacheBridge`) updates `LocalXdripColors` on invalidation so Compose recomposes
-when a color is picked. Legacy `ColorPicker` changes are mirrored into overrides via a
+when a color is picked. Legacy `color_*` writes are mirrored into overrides via a
 preference-change listener, and a one-time migration copies any non-default legacy colour
 into an override so existing customisations survive the switch to Material You defaults.
+S6 replaced the legacy colour widgets with `com.github.skydoves:colorpicker-compose` (the
+shared `ColorPickerDialog`), so the `color_*` keys are now written directly by Compose.
 
 ---
 
@@ -337,9 +339,10 @@ candidate Compose replacement → files → phase) lives in
 
 Highlights:
 
-- `hellocharts` → Vico (Phase 3), `colorpicker` / `search-preference` → Compose
-  (Phase 4). `ExampleChartPreferenceView` is temporarily `AndroidView`-wrapped; the
-  RemoteViews/lockscreen/dream chart surfaces need a non-Compose drawing path (see the map).
+- `hellocharts` → Vico (Phase 3); `colorpicker` / `search-preference` → Compose and **removed**
+  in S6 (colour picks now use `colorpicker-compose`). The chart preview inflates
+  `prefs_example_chart_layout` inside an `AndroidView`; the RemoteViews/lockscreen/dream chart
+  surfaces need a non-Compose drawing path (see the map).
 - ActiveAndroid ORM → Room is **done** (all 28 tables + `Libre2Sensors` on Room; ActiveAndroid
   retired). The data layer is now a good foundation for the Home/chart Compose work; a future
   `Flow` pass over the DAOs will make Compose screens reactive (see `Tech_Debt.md` §5).

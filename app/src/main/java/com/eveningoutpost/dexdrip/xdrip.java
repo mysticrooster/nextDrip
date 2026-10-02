@@ -31,6 +31,7 @@ import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utilitymodels.VersionTracker;
 import com.eveningoutpost.dexdrip.calibrations.PluggableCalibration;
 import com.eveningoutpost.dexdrip.utils.SentryCrashReporting;
+import com.eveningoutpost.dexdrip.utils.SettingsDefaults;
 import com.eveningoutpost.dexdrip.utils.jobs.DailyJob;
 import com.eveningoutpost.dexdrip.watch.lefun.LeFunEntry;
 import com.eveningoutpost.dexdrip.watch.miband.MiBandEntry;
@@ -92,13 +93,7 @@ public class xdrip extends Application {
 
         IdempotentMigrations.migrateOOP2CalibrationPreferences(); // needs to run before preferences get defaults
 
-        PreferenceManager.setDefaultValues(this, R.xml.pref_general, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_sync, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_advanced_settings, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_notifications, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_source, true);
-        PreferenceManager.setDefaultValues(this, R.xml.xdrip_plus_defaults, true);
-        PreferenceManager.setDefaultValues(this, R.xml.xdrip_plus_prefs, true);
+        SettingsDefaults.apply(this);
         ColorCache.setDefaultsLoaded();
 
         // Keep the Compose theme overrides in sync with legacy ColorPicker changes.

@@ -157,7 +157,8 @@ import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
 import com.eveningoutpost.dexdrip.utils.DisplayQRCode;
 import com.eveningoutpost.dexdrip.utils.LibreTrendGraph;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.ui.settings.SettingsActivity;
+import com.eveningoutpost.dexdrip.ui.settings.SettingsScreen;
 import com.eveningoutpost.dexdrip.utils.SdcardImportExport;
 import com.eveningoutpost.dexdrip.utils.TestFeature;
 import com.eveningoutpost.dexdrip.wearintegration.Amazfitservice;
@@ -2662,7 +2663,9 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
                         builder.setMessage(String.format(gs(R.string.start_sensor_confirmation), DexCollectionType.getBestCollectorHardwareName()));
                         builder.setNegativeButton(gs(R.string.change_settings), (dialog, which) -> {
                             dialog.dismiss();
-                            startActivity(new Intent(context, Preferences.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                            startActivity(new Intent(context, SettingsActivity.class)
+                                    .putExtra(SettingsActivity.EXTRA_SETTINGS_SCREEN, SettingsScreen.DataSource.name())
+                                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                         });
                         builder.setPositiveButton(R.string.start_sensor, (dialog, which) -> {
                             dialog.dismiss();

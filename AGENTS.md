@@ -114,8 +114,12 @@ specific features.
   alert list + editor) are done as in-place Compose (`ui/secondary/`), keeping class/manifest/
   intent/extras and deleting the legacy layouts. Dead screens `FollowerManagementActivity`,
   `tables/SensorDataTable` and `languageeditor/LanguageEditor` were removed; `HelpActivity` and
-  `ShareTest` were kept (live caller / used type). Next: **S6** retire the legacy settings
-  subsystem (deferred until on-device testing); remaining Track V screens are AAR-blocked
+  `ShareTest` were kept (live caller / used type). **S6 is now done**: the legacy
+  `Preferences`/`BasePreferenceActivity` activities, the 8 pref XMLs, the custom widgets and the
+  `search-preference`/`colorpicker` AARs are deleted; the non-UI API moved to `SettingsSupport`, the
+  pref defaults to `SettingsDefaults` (fixture-tested), colour picks use
+  `com.github.skydoves:colorpicker-compose`, and the host owns the legacy listeners + QR scan
+  handling. Remaining Track V screens are AAR-blocked
   (`Home`, charts, `Reminders`, `MegaStatus`, `BluetoothScan`, `NoteSearch`, `ThinJamActivity`,
   `ProfileEditor`/`BasalProfileEditor`) plus the optional Tasker-plugin Pass D.
 - **Phase 2 (Home)** is paused (header rendering reverted pending redesign); **Phase 3 (charts →

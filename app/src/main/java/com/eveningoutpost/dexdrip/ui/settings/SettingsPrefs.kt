@@ -6,7 +6,7 @@ import androidx.compose.runtime.remember
 import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.utilitymodels.Constants
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
-import com.eveningoutpost.dexdrip.utils.Preferences
+import com.eveningoutpost.dexdrip.utils.SettingsSupport
 
 /**
  * Pref access + formatting helpers shared by the Compose settings screens.
@@ -24,7 +24,7 @@ object SettingsPrefs {
 
     fun unitSuffix(): String = if (isMgdl()) "mg/dl" else "mmol/l"
 
-    fun isNumeric(value: String): Boolean = Preferences.isNumeric(value)
+    fun isNumeric(value: String): Boolean = SettingsSupport.isNumeric(value)
 
     /** Summary used by the legacy `sBindNumericPreferenceSummaryToValueListener`. */
     fun numericSummary(value: String): String = value
@@ -37,13 +37,13 @@ object SettingsPrefs {
      * converted to mg/dL, fall within the accepted glucose input range.
      */
     fun isValidGlucoseInput(value: String): Boolean {
-        if (!Preferences.isNumeric(value)) return false
+        if (!SettingsSupport.isNumeric(value)) return false
         val mgdl = if (isMgdl()) {
             JoH.tolerantParseDouble(value)
         } else {
             JoH.tolerantParseDouble(value) * Constants.MMOLL_TO_MGDL
         }
-        return mgdl in Preferences.MIN_GLUCOSE_INPUT..Preferences.MAX_GLUCOSE_INPUT
+        return mgdl in SettingsSupport.MIN_GLUCOSE_INPUT..SettingsSupport.MAX_GLUCOSE_INPUT
     }
 }
 

@@ -16,7 +16,7 @@ import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.store.FastStore;
 import com.eveningoutpost.dexdrip.store.KeyStore;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.utils.SettingsSupport;
 import com.eveningoutpost.dexdrip.xdrip;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
@@ -192,7 +192,7 @@ public abstract class PebbleDisplayAbstract implements PebbleDisplayInterface {
 
 
     public boolean getBooleanValue(String key, boolean defaultValue) {
-        return Preferences.getBooleanPreferenceViaContextWithoutException(this.context, key, defaultValue);
+        return SettingsSupport.getBooleanPreferenceViaContextWithoutException(this.context, key, defaultValue);
     }
 
 

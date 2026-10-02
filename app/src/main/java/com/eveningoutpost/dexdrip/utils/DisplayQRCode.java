@@ -177,7 +177,7 @@ public class DisplayQRCode extends BaseAppCompatActivity {
     }
 
     public synchronized void showGKey() {
-        showQrCodeFromBinaryPrefsMap("G Key settings\n\n" + Preferences.getMapKeysString(binaryPrefsMap).replace("\n", " ") + "\n\nHash: " + mapChecksum.substring(0, 16));
+        showQrCodeFromBinaryPrefsMap("G Key settings\n\n" + SettingsSupport.getMapKeysString(binaryPrefsMap).replace("\n", " ") + "\n\nHash: " + mapChecksum.substring(0, 16));
     }
 
     public static synchronized void uploadBytes(byte[] result, final int callback_option) {

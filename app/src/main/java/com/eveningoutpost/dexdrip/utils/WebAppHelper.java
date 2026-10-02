@@ -23,10 +23,10 @@ public class WebAppHelper extends AsyncTask<String, Integer, Integer> {
     private final OkHttpClient client = OkHttpWrapper.getClient().newBuilder()
             .writeTimeout(30, TimeUnit.SECONDS)
             .build();
-    private final Preferences.OnServiceTaskCompleted listener;
+    private final SettingsSupport.OnServiceTaskCompleted listener;
     private byte[] body = new byte[0];
 
-    public WebAppHelper(Preferences.OnServiceTaskCompleted listener) {
+    public WebAppHelper(SettingsSupport.OnServiceTaskCompleted listener) {
         this.listener = listener;
     }
 

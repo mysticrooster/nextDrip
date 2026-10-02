@@ -1,8 +1,8 @@
 package com.eveningoutpost.dexdrip.utilitymodels;
 
 import static com.eveningoutpost.dexdrip.services.DexCollectionService.MAX_BT_WDG;
-import static com.eveningoutpost.dexdrip.utils.Preferences.MAX_GLUCOSE_INPUT;
-import static com.eveningoutpost.dexdrip.utils.Preferences.MIN_GLUCOSE_INPUT;
+import static com.eveningoutpost.dexdrip.utils.SettingsSupport.MAX_GLUCOSE_INPUT;
+import static com.eveningoutpost.dexdrip.utils.SettingsSupport.MIN_GLUCOSE_INPUT;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -17,7 +17,7 @@ import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.SnoozeActivity;
 import com.eveningoutpost.dexdrip.stats.FirstPageFragment;
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.utils.SettingsSupport;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -195,8 +195,8 @@ public class IdempotentMigrations {
     // Correct preference setting values if the values are out of range.
     // Include new preference settings here that represent glucose values.
     private static void prefSettingRangeVerification() {
-        Preferences.applyPrefSettingRange("persistent_high_threshold", "170", MIN_GLUCOSE_INPUT, MAX_GLUCOSE_INPUT);
-        Preferences.applyPrefSettingRange("forecast_low_threshold", "70", MIN_GLUCOSE_INPUT, MAX_GLUCOSE_INPUT);
+        SettingsSupport.applyPrefSettingRange("persistent_high_threshold", "170", MIN_GLUCOSE_INPUT, MAX_GLUCOSE_INPUT);
+        SettingsSupport.applyPrefSettingRange("forecast_low_threshold", "70", MIN_GLUCOSE_INPUT, MAX_GLUCOSE_INPUT);
     }
 
     // Set new settings such that a version update does not cause a surprise

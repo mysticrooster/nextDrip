@@ -1,11 +1,10 @@
 package com.eveningoutpost.dexdrip.utilitymodels;
 
 import android.graphics.Color;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.models.UserError;
+import com.eveningoutpost.dexdrip.utils.SettingsDefaults;
 import com.eveningoutpost.dexdrip.xdrip;
 
 import java.util.EnumMap;
@@ -41,7 +40,7 @@ public class ColorCache {
             if (!defaultsLoaded) {
                 try {
                     the_cache.clear();
-                    PreferenceManager.setDefaultValues(xdrip.getAppContext(), R.xml.xdrip_plus_prefs, false);
+                    SettingsDefaults.apply(xdrip.getAppContext());
                     setDefaultsLoaded();
                 } catch (Exception e) {
                     //

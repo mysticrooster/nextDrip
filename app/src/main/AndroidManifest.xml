@@ -561,11 +561,6 @@
             android:name=".ShareTest"
             android:label="@string/title_activity_share_test" />
         <activity
-            android:name=".utils.Preferences"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/settings"
-            android:theme="@style/OldAppTheme" />
-        <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/settings" />

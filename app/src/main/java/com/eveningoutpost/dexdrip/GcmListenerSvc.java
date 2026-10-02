@@ -41,7 +41,7 @@ import com.eveningoutpost.dexdrip.utilitymodels.StatusItem;
 import com.eveningoutpost.dexdrip.utilitymodels.WholeHouse;
 import com.eveningoutpost.dexdrip.utils.CheckBridgeBattery;
 import com.eveningoutpost.dexdrip.utils.CipherUtils;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.utils.SettingsSupport;
 import com.eveningoutpost.dexdrip.utils.WebAppHelper;
 import com.eveningoutpost.dexdrip.utils.bt.Mimeograph;
 import com.eveningoutpost.dexdrip.wearintegration.ExternalStatusService;
@@ -644,7 +644,7 @@ public class GcmListenerSvc extends JamListenerSvc {
         return source.replaceAll("[^a-zA-Z0-9 _.-]", "");
     }
 
-    public class ServiceCallback implements Preferences.OnServiceTaskCompleted {
+    public class ServiceCallback implements SettingsSupport.OnServiceTaskCompleted {
         @Override
         public void onTaskCompleted(byte[] result) {
             final PowerManager.WakeLock wl = JoH.getWakeLock("xdrip-gcm-callback", 60000);

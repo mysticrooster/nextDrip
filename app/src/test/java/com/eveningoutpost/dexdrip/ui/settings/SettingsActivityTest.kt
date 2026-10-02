@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [BuildConfig.targetSDK], application = TestingApplication::class)
@@ -94,6 +95,7 @@ class SettingsActivityTest {
     }
 
     @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     fun themeEditorSetsAndResetsOverride() {
         ThemeColorStore.clearAll()
 

@@ -39,7 +39,7 @@ import com.eveningoutpost.dexdrip.ui.dialog.GenericConfirmDialog;
 import com.eveningoutpost.dexdrip.ui.dialog.QuickSettingsDialogs;
 import com.eveningoutpost.dexdrip.utils.AndroidBarcode;
 import com.eveningoutpost.dexdrip.utils.LocationHelper;
-import com.eveningoutpost.dexdrip.utils.Preferences;
+import com.eveningoutpost.dexdrip.ui.settings.SettingsActivity;
 import com.eveningoutpost.dexdrip.utils.bt.BtCallBack2;
 import com.eveningoutpost.dexdrip.utils.bt.ScanMeister;
 import com.eveningoutpost.dexdrip.watch.thinjam.BlueJay;
@@ -287,7 +287,7 @@ public class ThinJamActivity extends AppCompatActivity implements BtCallBack2, A
                     break;
 
                 case "launchsettings":
-                    xdrip.getAppContext().startActivity(JoH.getStartActivityIntent(Preferences.class).setAction("bluejay_preference_screen").addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
+                    xdrip.getAppContext().startActivity(JoH.getStartActivityIntent(SettingsActivity.class).setAction(SettingsActivity.ACTION_BLUEJAY_PREFERENCE_SCREEN).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
                 break;
 
 

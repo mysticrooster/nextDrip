@@ -31,7 +31,6 @@ import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.utilitymodels.JamorhamShowcaseDrawer;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utilitymodels.ShotStateStore;
-import com.eveningoutpost.dexdrip.utils.Preferences;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.Target;
 import com.google.gson.Gson;
@@ -275,10 +274,6 @@ public class ProfileEditor extends BaseAppCompatActivity {
 
         if (dataChanged) {
             Profile.reloadPreferences();
-            Intent intent = new Intent(ProfileEditor.this, Preferences.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            intent.putExtra("refresh", "");
-            startActivity(intent);
         }
     }
 

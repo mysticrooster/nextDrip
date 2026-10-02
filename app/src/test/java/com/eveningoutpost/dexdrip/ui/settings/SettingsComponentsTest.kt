@@ -12,6 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [BuildConfig.targetSDK], application = TestingApplication::class)
@@ -21,13 +22,16 @@ class SettingsComponentsTest {
     val composeRule = createComposeRule()
 
     @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     fun colorRowOpensPickerAndReturnsColor() {
         var picked = -1
+        // Translucent and not full-brightness, so the picker must preserve value/alpha.
+        val initial = 0x8033B5E6.toInt()
         composeRule.setContent {
             XdripTheme {
                 SettingsColorRow(
                     title = "Chart color",
-                    color = 0xFF00FF00.toInt(),
+                    color = initial,
                     onColorChanged = { picked = it },
                 )
             }
@@ -36,9 +40,11 @@ class SettingsComponentsTest {
         composeRule.onNodeWithText("Chart color").performClick()
         composeRule.onNodeWithText("OK").performClick()
 
-        // Green survives the HSV round-trip (alpha forced opaque).
         assertThat(picked).isNotEqualTo(-1)
-        assertThat(picked ushr 24).isEqualTo(0xFF)
+        // Alpha survives the round-trip (not forced opaque).
+        assertThat(picked ushr 24).isEqualTo(0x80)
+        // Brightness is not forced to maximum (input blue channel is 0xE6, not 0xFF).
+        assertThat(picked and 0xFF).isLessThan(0xF0)
     }
 
     @Test

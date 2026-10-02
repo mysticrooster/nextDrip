@@ -113,7 +113,7 @@ cheapest/self-contained → hardware-heavy, deleting the legacy UI only after pa
 | **S5a** | `pref_advanced_settings` | **Done** — "Other settings" and watches | `274fd4e6e`, watches pass |
 | **S5b** | `xdrip_plus_prefs` | **Done** — Extra Settings tree + theme-editor colour parity | this pass |
 | **IA** | Settings IA redesign: 9 categories, Home overflow absorbed, per-device screens, theme presets, Home-shelf screen | **Done** — see §12 | this pass |
-| **S6** | Retire legacy settings | Todo | — |
+| **S6** | Retire legacy settings | **Done** — legacy UI/XML/AARs deleted, defaults ported, colour pickers on colorpicker-compose, QR scan handling moved to the host | this pass |
 
 Also landed: a host scroll-reset fix (`274fd4e6e`); long-list dialogs now scroll
 (`81ad2805d`).
@@ -203,29 +203,67 @@ here and `TimePickerPrefActivity` seconds-as-String rows, number icon, `show_hom
 `color_basal_tbr` and the `ExampleChartPreferenceView` preview; number-wall colours render on the
 Number Wall screen instead.
 
-### S6 — Retire legacy settings — todo
-After parity: delete `Preferences.java`/`BasePreferenceActivity`/`TimePreference`/
-`ExampleChartPreferenceView` + the pref XMLs; remove `search-preference` and (if unused)
-`colorpicker`; retire the `PrefsView*` settings usage; point widgets/shortcuts/deep links at the
-Compose host.
+### S6 — Retire legacy settings — done
+Deleted `Preferences.java`/`BasePreferenceActivity`/`TimePreference`/`ExampleChartPreferenceView`/
+`utilitymodels/ColorPicker`/`ui/dialog/ColorPreferenceDialog` + the 8 pref XMLs, `pref_headers.xml`
+and `menu_preferences.xml`, and removed the `search-preference` and `colorpicker` AARs
+(`prefs_example_chart_layout.xml` and `strings_activity_preferences.xml` are kept — the theme editor
+still inflates the former). The manifest `.utils.Preferences` activity is gone.
+
+- **Non-UI API** moved to `utils/SettingsSupport.java` (`MIN/MAX_GLUCOSE_INPUT`, `isNumeric`,
+  `applyPrefSettingRange`, `handleUnitsChange`, `getMapKeysString`,
+  `getBooleanPreferenceViaContextWithoutException`, `OnServiceTaskCompleted`); callers in
+  `IdempotentMigrations`/`Experience`/`DisplayQRCode`/`PebbleDisplayAbstract`/`GcmListenerSvc`/
+  `WebAppHelper` and the Compose `SettingsPrefs`/`SettingsScreens` repointed.
+- **Defaults** ported mechanically to `utils/SettingsDefaults.java` (475 typed entries + the
+  `color_*` set sourced from `ThemeColor.legacyColorDefaultsMap()`), replacing
+  `PreferenceManager.setDefaultValues` in `xdrip.java` and `ColorCache`. A checked-in fixture
+  (`app/src/test/resources/settings_defaults_fixture.tsv`, captured from the live XMLs) proves
+  key/type/value parity.
+- **Entry points** repointed: `Home` "change settings" → `SettingsActivity` deep-linked to
+  `DataSource`; `ThinJamActivity` `launchsettings` → the `bluejay_preference_screen` action →
+  `BlueJaySettings`; `ProfileEditor.onPause` no longer reopens the legacy activity. The two
+  "Classic settings" rows and the `onOpenClassic` plumbing were removed; the no-match search result
+  is now an informational row.
+- **Compose parity gaps closed**: `UnitsScreen` now calls `SettingsSupport.handleUnitsChange(it)`
+  (high/low/insulin-sensitivity/target/persistent-high/forecast-low conversion); `SettingsActivity`
+  registers the full legacy listener set (`Cpref`, `BroadcastService`, `UiBasedCollector`, `Registry`
+  in addition to the watch/motion/cloud/number-wall ones), calls
+  `UiBasedCollector.onEnableCheckPermission` on create, requests Bluetooth location, and handles
+  `onActivityResult` scans via `utils/QrScanProcessor` (settings QR import/wizard, BlueJay,
+  Nightscout/NightLite cloud config, Dexcom Share key).
+- **Colour pickers** now use `com.github.skydoves:colorpicker-compose:1.1.2` (shared
+  `ColorPickerDialog` in `SettingsComponents.kt`; NumberWall text/shadow picks use it too). The
+  legacy `com.rarepebble` `checker_background` drawable is recreated locally.
+- **Verification** passes A–K: no dangling `android.preference`/`rarepebble`/`search-preference`
+  references; `SettingsSupport`/`SettingsDefaults`/units tests green; `assembleFastDebug` (R8) green.
+  Pre-existing, unrelated reds remain: the stale `setting_data_source` tag expectations in
+  `SettingsActivityTest`, `setting_reminders` under General in `SettingsIaTest`, and the
+  `DexCollectionMethodValues` array count in `CollectionMethodArraysTest` (all predate this pass and
+  are untouched by it).
 
 ---
 
 ## 6. Cross-cutting leftovers
 
-- **Deep links**: `Preferences.jumpToScreen(key)` → a `SettingsScreen` argument on `SettingsActivity`.
+- **Deep links**: done in S6 — `SettingsActivity` maps the legacy `bluejay_preference_screen` action
+  and a `settings_screen` extra to a [SettingsScreen] destination (`screenFromIntent`); callers in
+  `Home`/`ThinJamActivity` use it.
 - **Search scope**: `SettingsSearch.kt` derives the index from every `SettingsScreen` destination
   (relevance-ranked, diacritics-insensitive, conservative availability filtering); leaf-pref
   indexing + jump/highlight remains open.
-- **Custom widgets**: `ExampleChartPreferenceView` row; multi-select / tree-selector / PIN dialogs.
+- **Custom widgets**: multi-select / tree-selector / PIN dialogs (the chart preview is the
+  `AndroidView`-wrapped `prefs_example_chart_layout.xml` in the theme editor).
 - **Icons**: legacy sub-screens carry `android:icon`; add leading icons to `SettingsActionRow`.
 - **Live pref-change listeners**: the legacy activity registered service/watch/collector listeners
   while open. The collection-method reactions were reproduced **explicitly** in S3; the **watch**
   listeners (`MiBandEntry`/`LeFunEntry`/`BlueJayEntry`), the **number-wall** listener
-  (`LockScreenWallPaper.PrefListener`), the **motion** listener (`ActivityRecognizedService`), and
-  the **cloud** listener (`use_xdrip_cloud_sync` → `Pusher.requestReconnect()` +
-  `CollectionServiceStarter.restartCollectionServiceBackground()`) are now registered for the
-  Compose host lifetime in `SettingsActivity` (S5a watches, S5b extras).
+  (`LockScreenWallPaper.PrefListener`), the **motion** listener (`ActivityRecognizedService`), the
+  **cloud** listener (`use_xdrip_cloud_sync` → `Pusher.requestReconnect()` +
+  `CollectionServiceStarter.restartCollectionServiceBackground()`), and (S6) `Cpref.prefListener`,
+  `BroadcastService.prefListener`, `UiBasedCollector.getListener(activity)` and `Registry.prefListener`
+  are registered for the Compose host lifetime in `SettingsActivity`, which also calls
+  `UiBasedCollector.onEnableCheckPermission` on create and requests Bluetooth location.
 - **`summaryOn`/`summaryOff`**: switch state text is currently rendered as a computed `subtitle`.
 
 ---
@@ -368,7 +406,10 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
   diacritics, conservative gating), matching `search-preference` at destination level. Leaf-pref
   indexing/jump-to-row still open (requires a pref-key/title catalog). *Destination parity done.*
 - **I — Theming.** Material You defaults, overrides win, no literals. *Ready (`ThemeColorTest`).*
-- **J — Legacy interop/retirement.** S6 artefacts deleted, no dangling users. *Pending (S6).*
+- **J — Legacy interop/retirement.** S6 artefacts deleted, no dangling users. *Done (S6) — grep
+  clean for `utils.Preferences`, `BasePreferenceActivity`, `AllPrefsFragment`, `R.xml.pref_*`,
+  `menu_preferences`, `rarepebble`, `ColorPickerView`, `TimePreference`, `ExampleChartPreferenceView`
+  and the `colorpicker`/`search-preference` AARs.*
 - **K — Global regression.** Full suite + `assembleFastDebug` (R8) + backup/restore. *Run every pass.*
 
 ### Passes × category matrix
