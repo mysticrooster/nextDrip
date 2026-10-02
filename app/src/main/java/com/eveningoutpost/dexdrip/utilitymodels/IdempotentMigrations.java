@@ -7,7 +7,9 @@ import static com.eveningoutpost.dexdrip.utils.SettingsSupport.MIN_GLUCOSE_INPUT
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
+
 import androidx.preference.PreferenceManager;
+
 import android.util.Log;
 
 import com.eveningoutpost.dexdrip.db.LegacyDataImporter;
@@ -49,6 +51,7 @@ public class IdempotentMigrations {
         CompatibleApps.notifyAboutCompatibleApps();
         legacySettingsMoveLanguageFromNoToNb();
         settingsFix();
+        reconcileGlucoseUnits();
         FirstPageFragment.defineDefaults(); // Define the statistics page visibility defaults.
         prefSettingRangeVerification();
         inheritPrefSettingsAfterUpdate();
@@ -58,22 +61,22 @@ public class IdempotentMigrations {
 
     private void migrateBGAlerts() {
         // Migrate away from old style notifications to Tzachis new Alert system
-       // AlertType.CreateStaticAlerts(); // jamorham weird problem auto-calibrations
-        if(prefs.getBoolean("bg_notifications", true)){
-            double highMark = Double.parseDouble(prefs.getString("highValue", "170"))+54; // make default alert not too fatiguing
+        // AlertType.CreateStaticAlerts(); // jamorham weird problem auto-calibrations
+        if (prefs.getBoolean("bg_notifications", true)) {
+            double highMark = Double.parseDouble(prefs.getString("highValue", "170")) + 54; // make default alert not too fatiguing
             double lowMark = Double.parseDouble(prefs.getString("lowValue", "70"));
 
             boolean doMgdl = (prefs.getString("units", "mgdl").compareTo("mgdl") == 0);
 
-            if(!doMgdl) {
+            if (!doMgdl) {
                 highMark = highMark * Constants.MMOLL_TO_MGDL;
                 lowMark = lowMark * Constants.MMOLL_TO_MGDL;
             }
             boolean bg_sound_in_silent = prefs.getBoolean("bg_sound_in_silent", true);
             String bg_notification_sound = prefs.getString("bg_notification_sound", "default");
 
-            int bg_high_snooze = Integer.parseInt(prefs.getString("bg_snooze",  Integer.toString(SnoozeActivity.getDefaultSnooze(true))));
-            int bg_low_snooze = Integer.parseInt(prefs.getString("bg_snooze",  Integer.toString(SnoozeActivity.getDefaultSnooze(false))));
+            int bg_high_snooze = Integer.parseInt(prefs.getString("bg_snooze", Integer.toString(SnoozeActivity.getDefaultSnooze(true))));
+            int bg_low_snooze = Integer.parseInt(prefs.getString("bg_snooze", Integer.toString(SnoozeActivity.getDefaultSnooze(false))));
 
 
             AlertType.add_alert(null, mContext.getString(R.string.high_alert), true, highMark, true, 1, bg_notification_sound, 0, 0, bg_sound_in_silent, true, bg_high_snooze, true, true);
@@ -99,7 +102,7 @@ public class IdempotentMigrations {
 
         StringBuilder newUris = new StringBuilder();
 
-        for (Iterator<String> i = baseURIs.iterator(); i.hasNext();) {
+        for (Iterator<String> i = baseURIs.iterator(); i.hasNext(); ) {
             String uriString = i.next();
             if (uriString.contains("@http")) {
                 String[] uriParts = uriString.split("@");
@@ -187,8 +190,20 @@ public class IdempotentMigrations {
     private static void legacySettingsMoveLanguageFromNoToNb() {
         // Check if the user's language preference is set to "no"
         if ("no".equals(Pref.getString("forced_language", ""))) {
-        // Update the language preference to "nb"
-        Pref.setString("forced_language", "nb");
+            // Update the language preference to "nb"
+            Pref.setString("forced_language", "nb");
+        }
+    }
+
+    // Repair high/low thresholds left in the wrong unit by an earlier units change
+    public void reconcileGlucoseUnits() {
+        final String units = prefs.getString("units", "mgdl");
+        final boolean doMgdl = units.equals("mgdl");
+        final double high = JoH.tolerantParseDouble(prefs.getString("highValue", "170"), 170);
+        final double low = JoH.tolerantParseDouble(prefs.getString("lowValue", "70"), 70);
+        if (doMgdl ? (high < 36 || low < 36) : (high > 35 || low > 35)) {
+            Log.i(TAG, "Reconciling high/low glucose values with units=" + units);
+            SettingsSupport.handleUnitsChange(units);
         }
     }
 

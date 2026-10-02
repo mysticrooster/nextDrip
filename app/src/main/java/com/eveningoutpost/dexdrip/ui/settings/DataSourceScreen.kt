@@ -73,13 +73,12 @@ internal fun DataSourceScreen(onNavigate: (SettingsScreen) -> Unit) {
             onClick = { onNavigate(SettingsScreen.NfcSettings) },
             modifier = Modifier.testTag("setting_nfc"),
         )
-        if (SettingsVisibility.isLibreReceiver()) {
-            SettingsActionRow(
-                title = context.getString(R.string.title_advanced_settings_4_Lib2),
-                onClick = { onNavigate(SettingsScreen.Libre2Settings) },
-                modifier = Modifier.testTag("setting_libre2"),
-            )
-        }
+        SettingsActionRow(
+            title = "Advanced Libre options",
+            icon = Icons.Outlined.Sensors,
+            onClick = { onNavigate(SettingsScreen.LibreOptions) },
+            modifier = Modifier.testTag("setting_libre_options"),
+        )
     }
 
     if (ct == DexCollectionType.DexcomShare || ct == DexCollectionType.DexcomG5) {

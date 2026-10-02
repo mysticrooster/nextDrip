@@ -13,6 +13,7 @@ import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.calibrations.PluggableCalibration
 import com.eveningoutpost.dexdrip.healthconnect.HealthGamut
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
+import com.eveningoutpost.dexdrip.utils.DexCollectionType
 
 /**
  * S5a — Other settings (`pref_advanced_settings.xml` → `other_category`).
@@ -556,20 +557,6 @@ internal fun CalibrationSettingsScreen() {
         )
         SwitchPref(
             state,
-            "use_non_fixed_li_parameters",
-            context.getString(R.string.title_Non_fixed_Libre_slopes),
-            default = true,
-            subtitle = context.getString(R.string.summary_Enable_to_allow_variable_slopes_with_Libre_collection_methods)
-        )
-        SwitchPref(
-            state,
-            "detect_libre_sn_changes",
-            "Check Libre Serial",
-            default = true,
-            subtitle = "Automatically stop if Libre serial changes unexpectedly"
-        )
-        SwitchPref(
-            state,
             "bypass_calibration_quality_check",
             context.getString(R.string.title_Bypass_quality_check),
             default = false,
@@ -739,25 +726,107 @@ internal fun BlueReaderSettingsScreen() {
     }
 }
 
+/**
+ * Advanced Libre options, reachable from Devices → Hardware Data Source for any Libre collection
+ * method. Rows are strictly filtered by the active method (see the plan table); keys and defaults
+ * are unchanged, so they are simply relocated out of Other/Calibration settings.
+ */
 @Composable
-internal fun Libre2SettingsScreen() {
+internal fun LibreOptionsScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
-    SettingsCategory(context.getString(R.string.title_advanced_settings_4_Lib2)) {
-        SwitchPref(
-            state,
-            "Libre2_showRawGraph",
-            context.getString(R.string.title_Lib2_show_raw_values),
-            default = false,
-            subtitle = context.getString(R.string.summary_Lib2_show_raw_values)
-        )
-        SwitchPref(
-            state,
-            "Libre2_showSensors",
-            context.getString(R.string.title_Lib2_show_sense_on_status),
-            default = false,
-            subtitle = context.getString(R.string.summary_Lib2_show_sense_on_status)
-        )
+    val ct = SettingsVisibility.collectionType(state)
+    val hardwareLibre = ct == DexCollectionType.LimiTTer ||
+            ct == DexCollectionType.LimiTTerWifi ||
+            ct == DexCollectionType.LibreWifi
+    val libreReceiver = ct == DexCollectionType.LibreReceiver
+
+    SettingsCategory("Advanced Libre options") {
+        if (hardwareLibre || libreReceiver) {
+            SwitchPref(
+                state,
+                "external_blukon_algorithm",
+                context.getString(R.string.use_external_blukon_algorithm),
+                default = false,
+                subtitle = context.getString(R.string.use_external_blukon_algorithm_summary),
+                tag = "setting_external_blukon_algorithm",
+            )
+            SwitchPref(
+                state,
+                "retrieve_blukon_history",
+                context.getString(R.string.retrieve_blukon_history_title),
+                default = false,
+                subtitle = context.getString(R.string.retrieve_blukon_history_summary),
+                enabled = !state.bool("external_blukon_algorithm", false),
+                tag = "setting_retrieve_blukon_history",
+            )
+        }
+        if (hardwareLibre) {
+            SwitchPref(
+                state,
+                "detect_libre_sn_changes",
+                "Check Libre Serial",
+                default = true,
+                subtitle = "Automatically stop if Libre serial changes unexpectedly",
+                tag = "setting_libre_sn_changes",
+            )
+        }
+        if (ct == DexCollectionType.LimiTTer) {
+            SwitchPref(
+                state,
+                "use_non_fixed_li_parameters",
+                context.getString(R.string.title_Non_fixed_Libre_slopes),
+                default = true,
+                subtitle = context.getString(R.string.summary_Enable_to_allow_variable_slopes_with_Libre_collection_methods),
+                tag = "setting_non_fixed_li_parameters",
+            )
+        }
+        if (ct == DexCollectionType.LibreAlarm) {
+            SwitchPref(
+                state,
+                "libre_use_smoothed_data",
+                context.getString(R.string.libre_use_smoothed_data_title),
+                default = false,
+                subtitle = context.getString(R.string.libre_use_smoothed_data_summary),
+                tag = "setting_libre_smoothed_data",
+            )
+        }
+        if (libreReceiver) {
+            ListPref(
+                state,
+                "calibrate_external_libre_2_algorithm_type",
+                context.getString(R.string.calibrate_external_libre_2_algorithm_title),
+                context.resources.getStringArray(R.array.CalibrateExternalLibre2).toList(),
+                context.resources.getStringArray(R.array.CalibrateExternalLibre2Values).toList(),
+                "calibrate_raw",
+                subtitle = context.getString(R.string.calibrate_external_libre_2_algorithm_summary),
+                tag = "setting_calibrate_libre_algorithm",
+            )
+            SwitchPref(
+                state,
+                "libre_one_minute",
+                context.getString(R.string.title_libre_one_minute_interval),
+                default = false,
+                subtitle = context.getString(R.string.summary_libre_one_minute_interval),
+                tag = "setting_libre_one_minute",
+            )
+            SwitchPref(
+                state,
+                "Libre2_showRawGraph",
+                context.getString(R.string.title_Lib2_show_raw_values),
+                default = false,
+                subtitle = context.getString(R.string.summary_Lib2_show_raw_values),
+                tag = "setting_libre2_show_raw_graph",
+            )
+            SwitchPref(
+                state,
+                "Libre2_showSensors",
+                context.getString(R.string.title_Lib2_show_sense_on_status),
+                default = false,
+                subtitle = context.getString(R.string.summary_Lib2_show_sense_on_status),
+                tag = "setting_libre2_show_sensors",
+            )
+        }
     }
 }
 
@@ -800,14 +869,11 @@ internal fun LoggingSettingsScreen() {
 }
 
 @Composable
-internal fun OtherMiscSettingsScreen(onNavigate: (SettingsScreen) -> Unit) {
+internal fun OtherMiscSettingsScreen() {
     val context = LocalContext.current
     val state = rememberSettingsState()
     val engineering = SettingsVisibility.isEngineeringMode(state)
     SettingsCategory(context.getString(R.string.title_Other_misc_options)) {
-        SettingsActionRow(
-            title = context.getString(R.string.title_collector_in_foreground),
-            onClick = { onNavigate(SettingsScreen.CollectorInForeground) })
         SwitchPref(
             state,
             "engineering_mode",
@@ -843,52 +909,6 @@ internal fun OtherMiscSettingsScreen(onNavigate: (SettingsScreen) -> Unit) {
             default = false,
             subtitle = context.getString(R.string.predictive_readings_old),
             enabled = engineering
-        )
-        SwitchPref(
-            state,
-            "use_proper_ongoing",
-            "Proper ongoing",
-            default = true,
-            subtitle = "Use proper ongoing notification. Disabling this causes collector problems on Android 8+",
-            enabled = engineering
-        )
-        SwitchPref(
-            state,
-            "external_blukon_algorithm",
-            context.getString(R.string.use_external_blukon_algorithm),
-            default = false,
-            subtitle = context.getString(R.string.use_external_blukon_algorithm_summary)
-        )
-        ListPref(
-            state,
-            "calibrate_external_libre_2_algorithm_type",
-            context.getString(R.string.calibrate_external_libre_2_algorithm_title),
-            context.resources.getStringArray(R.array.CalibrateExternalLibre2).toList(),
-            context.resources.getStringArray(R.array.CalibrateExternalLibre2Values).toList(),
-            "calibrate_raw",
-            subtitle = context.getString(R.string.calibrate_external_libre_2_algorithm_summary)
-        )
-        SwitchPref(
-            state,
-            "libre_use_smoothed_data",
-            context.getString(R.string.libre_use_smoothed_data_title),
-            default = false,
-            subtitle = context.getString(R.string.libre_use_smoothed_data_summary)
-        )
-        SwitchPref(
-            state,
-            "retrieve_blukon_history",
-            context.getString(R.string.retrieve_blukon_history_title),
-            default = false,
-            subtitle = context.getString(R.string.retrieve_blukon_history_summary),
-            enabled = !state.bool("external_blukon_algorithm", false)
-        )
-        SwitchPref(
-            state,
-            "libre_one_minute",
-            context.getString(R.string.title_libre_one_minute_interval),
-            default = false,
-            subtitle = context.getString(R.string.summary_libre_one_minute_interval)
         )
         SwitchPref(
             state,
@@ -958,21 +978,6 @@ internal fun OtherMiscSettingsScreen(onNavigate: (SettingsScreen) -> Unit) {
             default = "180",
             numeric = true,
             subtitle = context.getString(R.string.summary_Erase_data_older_than_this_many_days),
-        )
-    }
-}
-
-@Composable
-internal fun CollectorInForegroundScreen() {
-    val context = LocalContext.current
-    val state = rememberSettingsState()
-    SettingsCategory(context.getString(R.string.title_collector_in_foreground)) {
-        SwitchPref(
-            state,
-            "compact_persistent_notification",
-            context.getString(R.string.title_compact_ongoing_notification),
-            default = false,
-            subtitle = context.getString(R.string.summary_compact_ongoing_notification)
         )
     }
 }
@@ -1088,8 +1093,8 @@ private fun BlueReaderSettingsScreenPreview() {
     heightDp = 800
 )
 @Composable
-private fun Libre2SettingsScreenPreview() {
-    XdripPreview { Libre2SettingsScreen() }
+private fun LibreOptionsScreenPreview() {
+    XdripPreview { LibreOptionsScreen() }
 }
 
 @Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
@@ -1115,20 +1120,7 @@ private fun LoggingSettingsScreenPreview() {
 )
 @Composable
 private fun OtherMiscSettingsScreenPreview() {
-    XdripPreview { OtherMiscSettingsScreen(onNavigate = {}) }
-}
-
-@Preview(name = "Light", showBackground = true, widthDp = 400, heightDp = 800)
-@Preview(
-    name = "Dark",
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true,
-    widthDp = 400,
-    heightDp = 800
-)
-@Composable
-private fun CollectorInForegroundScreenPreview() {
-    XdripPreview { CollectorInForegroundScreen() }
+    XdripPreview { OtherMiscSettingsScreen() }
 }
 
 // endregion

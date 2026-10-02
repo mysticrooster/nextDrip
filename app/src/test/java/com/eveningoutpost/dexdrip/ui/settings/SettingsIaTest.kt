@@ -1,5 +1,7 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -100,6 +102,53 @@ class SettingsIaTest {
         composeRule.onNodeWithTag("setting_delete_all_bg_confirm").assertExists()
         composeRule.onNodeWithText("Cancel").performClick()
         composeRule.onNodeWithTag("setting_delete_all_bg_confirm").assertDoesNotExist()
+    }
+
+    @Test
+    fun notificationsScreenHoldsAllNotificationSettings() {
+        category("setting_category_general")
+        composeRule.onNodeWithTag("setting_notifications").performScrollTo().performClick()
+
+        listOf(
+            "setting_high_priority_notifications",
+            "setting_public_notifications",
+            "setting_aod_chip",
+            "setting_compact_ongoing",
+            "setting_proper_ongoing",
+        ).forEach { tag ->
+            composeRule.onNodeWithTag(tag).performScrollTo().assertExists()
+        }
+    }
+
+    @Test
+    fun compactOngoingToggleWritesPref() {
+        Pref.setBoolean("compact_persistent_notification", false)
+
+        category("setting_category_general")
+        composeRule.onNodeWithTag("setting_notifications").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_compact_ongoing").performScrollTo().performClick()
+
+        assertThat(Pref.getBoolean("compact_persistent_notification", false)).isTrue()
+    }
+
+    @Test
+    fun properOngoingDisabledWithoutEngineeringMode() {
+        Pref.setBoolean("engineering_mode", false)
+
+        category("setting_category_general")
+        composeRule.onNodeWithTag("setting_notifications").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_proper_ongoing").performScrollTo().assertIsNotEnabled()
+    }
+
+    @Test
+    fun properOngoingEnabledWithEngineeringMode() {
+        Pref.setBoolean("engineering_mode", true)
+
+        category("setting_category_general")
+        composeRule.onNodeWithTag("setting_notifications").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_proper_ongoing").performScrollTo().assertIsEnabled()
     }
 
     @Test

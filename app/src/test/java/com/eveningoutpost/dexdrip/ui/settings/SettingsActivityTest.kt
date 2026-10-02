@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip.ui.settings
 
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -8,14 +9,19 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import com.eveningoutpost.dexdrip.BuildConfig
 import com.eveningoutpost.dexdrip.TestingApplication
+import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColor
 import com.eveningoutpost.dexdrip.ui.theme.ThemeColorStore
+import com.eveningoutpost.dexdrip.utilitymodels.IdempotentMigrations
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
+import com.eveningoutpost.dexdrip.xdrip
 import com.google.common.truth.Truth.assertThat
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
@@ -25,6 +31,17 @@ class SettingsActivityTest {
 
     @get:Rule
     val composeRule = createAndroidComposeRule<SettingsActivity>()
+
+    @Before
+    fun alignAppContextAndPrefCache() {
+        // Robolectric reuses static app state across test methods; point the app context (used by
+        // Preferences.handleUnitsChange / IdempotentMigrations) and Pref's cached store at this
+        // test's application instance so writes are observed consistently.
+        xdrip.setContextAlways(RuntimeEnvironment.getApplication())
+        val field = Pref::class.java.getDeclaredField("prefs")
+        field.isAccessible = true
+        field.set(null, null)
+    }
 
     @Test
     fun unitsSubScreenWritesPref() {
@@ -37,6 +54,50 @@ class SettingsActivityTest {
         composeRule.onNodeWithText("mmol/L").performClick()
 
         assertThat(Pref.getString("units", "mgdl")).isEqualTo("mmol")
+    }
+
+    @Test
+    fun unitChangeConvertsHighAndLowValues() {
+        Pref.setString("units", "mgdl")
+        Pref.setString("highValue", "170")
+        Pref.setString("lowValue", "70")
+
+        composeRule.onNodeWithTag("setting_category_general").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_glucose_units").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_units").performScrollTo().performClick()
+        composeRule.onNodeWithText("mmol/L").performClick()
+
+        assertThat(Pref.getString("units", "mgdl")).isEqualTo("mmol")
+        assertThat(JoH.tolerantParseDouble(Pref.getString("highValue", "0"))).isWithin(0.2).of(9.4)
+        assertThat(JoH.tolerantParseDouble(Pref.getString("lowValue", "0"))).isWithin(0.2).of(3.9)
+    }
+
+    @Test
+    fun unitChangeBackToMgdlConvertsHighAndLowValues() {
+        Pref.setString("units", "mmol")
+        Pref.setString("highValue", "9.4")
+        Pref.setString("lowValue", "3.9")
+
+        composeRule.onNodeWithTag("setting_category_general").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_glucose_units").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_units").performScrollTo().performClick()
+        composeRule.onNodeWithText("mg/dL").performClick()
+
+        assertThat(Pref.getString("units", "mgdl")).isEqualTo("mgdl")
+        assertThat(JoH.tolerantParseDouble(Pref.getString("highValue", "0"))).isWithin(1.5).of(169.0)
+        assertThat(JoH.tolerantParseDouble(Pref.getString("lowValue", "0"))).isWithin(1.5).of(70.0)
+    }
+
+    @Test
+    fun reconcileGlucoseUnitsRepairsMismatchedValues() {
+        Pref.setString("units", "mmol")
+        Pref.setString("highValue", "170")
+        Pref.setString("lowValue", "70")
+
+        IdempotentMigrations(RuntimeEnvironment.getApplication()).reconcileGlucoseUnits()
+
+        assertThat(JoH.tolerantParseDouble(Pref.getString("highValue", "0"))).isWithin(0.2).of(9.4)
+        assertThat(JoH.tolerantParseDouble(Pref.getString("lowValue", "0"))).isWithin(0.2).of(3.9)
     }
 
     @Test
@@ -191,5 +252,100 @@ class SettingsActivityTest {
         composeRule.onNodeWithTag("setting_calibration").performScrollTo().performClick()
 
         composeRule.onNodeWithTag("setting_calibration_plugin").assertExists()
+    }
+
+    @Test
+    fun libreOptionsRowVisibleForLibreCollectionMethod() {
+        Pref.setString("dex_collection_method", "LimiTTer")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().assertExists()
+    }
+
+    @Test
+    fun libreOptionsRowHiddenForNonLibreCollectionMethod() {
+        Pref.setString("dex_collection_method", "BluetoothWixel")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_libre_options").assertDoesNotExist()
+    }
+
+    @Test
+    fun libreOptionsShowsOnlyLimiTTerRows() {
+        Pref.setString("dex_collection_method", "LimiTTer")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        listOf(
+            "setting_external_blukon_algorithm",
+            "setting_retrieve_blukon_history",
+            "setting_libre_sn_changes",
+            "setting_non_fixed_li_parameters",
+        ).forEach { composeRule.onNodeWithTag(it).performScrollTo().assertExists() }
+        listOf(
+            "setting_libre_smoothed_data",
+            "setting_libre_one_minute",
+            "setting_libre2_show_raw_graph",
+            "setting_calibrate_libre_algorithm",
+        ).forEach { composeRule.onNodeWithTag(it).assertDoesNotExist() }
+    }
+
+    @Test
+    fun libreOptionsShowsOnlyLibreReceiverRows() {
+        Pref.setString("dex_collection_method", "LibreReceiver")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        listOf(
+            "setting_external_blukon_algorithm",
+            "setting_retrieve_blukon_history",
+            "setting_calibrate_libre_algorithm",
+            "setting_libre_one_minute",
+            "setting_libre2_show_raw_graph",
+            "setting_libre2_show_sensors",
+        ).forEach { composeRule.onNodeWithTag(it).performScrollTo().assertExists() }
+        composeRule.onNodeWithTag("setting_non_fixed_li_parameters").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_libre_sn_changes").assertDoesNotExist()
+    }
+
+    @Test
+    fun libreOptionsShowsOnlyLibreAlarmRows() {
+        Pref.setString("dex_collection_method", "LibreAlarm")
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_libre_smoothed_data").performScrollTo().assertExists()
+        composeRule.onNodeWithTag("setting_libre_sn_changes").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_libre_one_minute").assertDoesNotExist()
+        composeRule.onNodeWithTag("setting_external_blukon_algorithm").assertDoesNotExist()
+    }
+
+    @Test
+    fun libreOneMinuteToggleWritesPref() {
+        Pref.setString("dex_collection_method", "LibreReceiver")
+        Pref.setBoolean("libre_one_minute", false)
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_one_minute").performScrollTo().performClick()
+
+        assertThat(Pref.getBoolean("libre_one_minute", false)).isTrue()
+    }
+
+    @Test
+    fun retrieveBlukonHistoryDisabledWhileExternalAlgorithmEnabled() {
+        Pref.setString("dex_collection_method", "LimiTTer")
+        Pref.setBoolean("external_blukon_algorithm", true)
+
+        composeRule.onNodeWithTag("setting_category_devices").performScrollTo().performClick()
+        composeRule.onNodeWithTag("setting_libre_options").performScrollTo().performClick()
+
+        composeRule.onNodeWithTag("setting_retrieve_blukon_history").performScrollTo()
+            .assertIsNotEnabled()
     }
 }
