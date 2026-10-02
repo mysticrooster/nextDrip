@@ -3,6 +3,7 @@ package com.eveningoutpost.dexdrip.ui.settings
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Brightness4
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Campaign
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.CloudSync
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Devices
@@ -38,6 +40,7 @@ import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.QrCode
 import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShowChart
@@ -58,6 +61,9 @@ import androidx.compose.material.icons.outlined.Wallpaper
 import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -68,6 +74,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
@@ -96,100 +103,6 @@ import com.eveningoutpost.dexdrip.utils.SettingsSupport
 import com.eveningoutpost.dexdrip.utils.TestFeature
 import com.eveningoutpost.dexdrip.ui.theme.LocalXdripColors
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
-
-internal fun titleFor(context: Context, screen: SettingsScreen): String =
-    when (screen) {
-        SettingsScreen.Root -> "Settings"
-        SettingsScreen.GeneralCategory -> context.getString(R.string.general_settings)
-        SettingsScreen.AlarmsCategory -> context.getString(R.string.alarms_and_alerts)
-        SettingsScreen.YourDataCategory -> "Your Data"
-        SettingsScreen.ProfileCategory -> "Profile"
-        SettingsScreen.DevicesCategory -> "Devices"
-        SettingsScreen.AppearanceCategory -> "Appearance"
-        SettingsScreen.AccessibilityCategory -> "Accessibility"
-        SettingsScreen.AdvancedCategory -> "Advanced"
-        SettingsScreen.Units -> context.getString(R.string.glucose_units)
-        SettingsScreen.Theme -> context.getString(R.string.theme_colors)
-        SettingsScreen.Notifications -> "Notifications"
-        SettingsScreen.BgAlerts -> context.getString(R.string.glucose_alerts_settings)
-        SettingsScreen.SuppressAlerts -> context.getString(R.string.suppress_alerts_if_missed_readings)
-        SettingsScreen.AscendingVolume -> context.getString(R.string.title_ascending_volume)
-        SettingsScreen.PersistentHigh -> context.getString(R.string.persistent_high_alert)
-        SettingsScreen.ForecastLow -> context.getString(R.string.forecasted_low_alert)
-        SettingsScreen.SensorExpiry -> context.getString(R.string.title_sens_expiry)
-        SettingsScreen.CalibrationAlerts -> context.getString(R.string.calibration_alerts)
-        SettingsScreen.OtherAlerts -> context.getString(R.string.other_alerts)
-        SettingsScreen.DataSource -> context.getString(R.string.data_source_settings)
-        SettingsScreen.DexcomDevice -> "Dexcom"
-        SettingsScreen.MedtrumDevice -> "Medtrum"
-        SettingsScreen.BluetoothBridge -> "Bluetooth Bridge"
-        SettingsScreen.WebFollow -> "Web Follower Settings"
-        SettingsScreen.NfcSettings -> context.getString(R.string.nfc_scan_features)
-        SettingsScreen.NsFollowDownload -> context.getString(R.string.title_nsfollow_download_treatments)
-        SettingsScreen.G5Debug -> context.getString(R.string.g5_debug_settings)
-        SettingsScreen.PreemptiveRestart -> context.getString(R.string.title_ob1_g5_preemptive_restart)
-        SettingsScreen.DataSync -> context.getString(R.string.data_sync)
-        SettingsScreen.Backups -> "Backups"
-        SettingsScreen.About -> "About"
-        SettingsScreen.Version -> "Version"
-        SettingsScreen.HomeScreen -> "Home Screen"
-        SettingsScreen.AutoConfig -> context.getString(R.string.auto_configure_title)
-        SettingsScreen.CloudUpload -> context.getString(R.string.cloud_upload)
-        SettingsScreen.RestApi -> context.getString(R.string.pref_title_api)
-        SettingsScreen.RestApiDownload -> context.getString(R.string.title_cloud_storage_api_download_enable)
-        SettingsScreen.RestApiExtra -> context.getString(R.string.title_rest_api_extra_options)
-        SettingsScreen.Mongo -> context.getString(R.string.pref_title_mongodb)
-        SettingsScreen.Influx -> context.getString(R.string.pref_title_influxdb)
-        SettingsScreen.DexcomUpload -> context.getString(R.string.dexcom_share_server_upload)
-        SettingsScreen.Tidepool -> context.getString(R.string.title_tidepool)
-        SettingsScreen.WebDeposit -> "Web Deposit"
-        SettingsScreen.NightLite -> "NightLite"
-        SettingsScreen.Nocturne -> context.getString(R.string.nocturne)
-        SettingsScreen.GlucoseMeters -> context.getString(R.string.glucose_meters)
-        SettingsScreen.SpeakReadings -> context.getString(R.string.speak_readings)
-        SettingsScreen.InterApp -> context.getString(R.string.interapp_settings)
-        SettingsScreen.HealthConnect -> context.getString(R.string.google_health_connect)
-        SettingsScreen.ExtraStatusLine -> context.getString(R.string.extra_status_line)
-        SettingsScreen.CalibrationSettings -> context.getString(R.string.advanced_calibration)
-        SettingsScreen.BluetoothSettings -> context.getString(R.string.bluetooth_settings)
-        SettingsScreen.BlueReaderSettings -> context.getString(R.string.advanced_bluereader_settings)
-        SettingsScreen.LibreOptions -> "Advanced Libre options"
-        SettingsScreen.LoggingSettings -> context.getString(R.string.extra_logging)
-        SettingsScreen.OtherMiscSettings -> context.getString(R.string.title_Other_misc_options)
-        SettingsScreen.SmartWatchOptions -> context.getString(R.string.smart_watch_features)
-        SettingsScreen.SmartwatchSensors -> context.getString(R.string.title_Smartwatch_Sensors)
-        SettingsScreen.WearSettings -> context.getString(R.string.android_wear_integration)
-        SettingsScreen.AmazfitSettings -> context.getString(R.string.amazfit_sync_service)
-        SettingsScreen.LeFunSettings -> context.getString(R.string.title_lefun_band)
-        SettingsScreen.LeFunFeatures -> context.getString(R.string.title_lefun_screens_features)
-        SettingsScreen.BlueJaySettings -> "BlueJay Watch"
-        SettingsScreen.BlueJayAdvanced -> "BlueJay Advanced Settings"
-        SettingsScreen.MiBandSettings -> context.getString(R.string.title_miband)
-        SettingsScreen.MiBandSubSettings -> context.getString(R.string.title_miband_screens_features)
-        SettingsScreen.PebbleSettings -> context.getString(R.string.pebble_integration)
-        SettingsScreen.XdripPlusDisplay -> context.getString(R.string.xdrip_plus_display_settings)
-        SettingsScreen.XdripPlusFont -> context.getString(R.string.title_font_settings)
-        SettingsScreen.XdripPlusLanguage -> context.getString(R.string.title_language)
-        SettingsScreen.XdripPlusGraphDisplay -> context.getString(R.string.title_xdrip_plus_graph_display_settings)
-        SettingsScreen.XdripPlusGraphSmoothing -> context.getString(R.string.graph_smoothing)
-        SettingsScreen.XdripPlusYAxis -> context.getString(R.string.title_yRange)
-        SettingsScreen.XdripPlusAccessibility -> context.getString(R.string.title_xdrip_plus_accessibility)
-        SettingsScreen.XdripPlusNumberWall -> context.getString(R.string.title_xdrip_plus_number_wall)
-        SettingsScreen.XdripPlusNumberIcon -> context.getString(R.string.title_xdrip_plus_number_icon)
-        SettingsScreen.XdripPlusCopying -> context.getString(R.string.copying_settings)
-        SettingsScreen.XdripPlusUpdate -> context.getString(R.string.xdrip_plus_update_settings)
-        SettingsScreen.XdripPlusMotion -> context.getString(R.string.xdrip_motion_tracking)
-        SettingsScreen.XdripPlusPens -> context.getString(R.string.insulin_pens)
-        SettingsScreen.XdripPlusNovopen -> context.getString(R.string.title_novopen_insulin_pen)
-        SettingsScreen.XdripPlusInpen -> context.getString(R.string.title_inpen_screen)
-        SettingsScreen.XdripPlusPendiq -> context.getString(R.string.title_pendiq_screen)
-        SettingsScreen.XdripPlusPrediction -> context.getString(R.string.xdrip_plus_prediction_settings)
-        SettingsScreen.XdripPlusMultipleInsulin -> context.getString(R.string.title_multiple_insulin_types_settings)
-        SettingsScreen.XdripPlusAdvPredict -> context.getString(R.string.low_prediction_values)
-        SettingsScreen.XdripPlusSync -> context.getString(R.string.xdrip_plus_sync_settings)
-        SettingsScreen.XdripPlusRemoteSnooze -> context.getString(R.string.remote_snoozing)
-        SettingsScreen.XdripPlusDesertSync -> context.getString(R.string.title_xdrip_plus_desert_sync_settings)
-    }
 
 @Composable
 internal fun SettingsScreenContent(
@@ -301,7 +214,24 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit) {
         value = query,
         onValueChange = { query = it },
         singleLine = true,
+        shape = MaterialTheme.shapes.extraLarge,
         placeholder = { Text("Search settings") },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { query = "" }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Clear,
+                        contentDescription = "Clear search",
+                    )
+                }
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -330,71 +260,82 @@ private fun RootScreen(onNavigate: (SettingsScreen) -> Unit) {
         }
         return
     }
-    SettingsCategoryButton(
-        title = context.getString(R.string.alarms_and_alerts),
-        subtitle = context.getString(R.string.glucose_calibration_and_other_alerts),
-        icon = Icons.Outlined.NotificationsActive,
-        onClick = { onNavigate(SettingsScreen.AlarmsCategory) },
-        modifier = Modifier.testTag("setting_category_alarms"),
-    )
-    SettingsCategoryButton(
-        title = "Devices",
-        subtitle = "Data sources, meters, pens and watches",
-        icon = Icons.Outlined.Devices,
-        onClick = { onNavigate(SettingsScreen.DevicesCategory) },
-        modifier = Modifier.testTag("setting_category_devices"),
-    )
-    SettingsCategoryButton(
-        title = "Your Data",
-        subtitle = "Cloud sync, backups and xDrip+ sync",
-        icon = Icons.Outlined.CloudSync,
-        onClick = { onNavigate(SettingsScreen.YourDataCategory) },
-        modifier = Modifier.testTag("setting_category_data"),
-    )
-    SettingsCategoryButton(
-        title = context.getString(R.string.general_settings),
-        subtitle = context.getString(R.string.mmol_or_mgdl_high_and_low),
-        icon = Icons.Outlined.Tune,
-        onClick = { onNavigate(SettingsScreen.GeneralCategory) },
-        modifier = Modifier.testTag("setting_category_general"),
-    )
-    SettingsCategoryButton(
-        title = "Profile",
-        subtitle = "Insulin, carb ratios and prediction",
-        icon = Icons.Outlined.Person,
-        onClick = { onNavigate(SettingsScreen.ProfileCategory) },
-        modifier = Modifier.testTag("setting_category_profile"),
-    )
-
-    SettingsCategoryButton(
-        title = "Appearance",
-        subtitle = "Theme, display, graph and home screen",
-        icon = Icons.Outlined.Palette,
-        onClick = { onNavigate(SettingsScreen.AppearanceCategory) },
-        modifier = Modifier.testTag("setting_category_appearance"),
-    )
-    SettingsCategoryButton(
-        title = "Accessibility",
-        subtitle = "Spoken readings and always-on display",
-        icon = Icons.Outlined.Accessibility,
-        onClick = { onNavigate(SettingsScreen.AccessibilityCategory) },
-        modifier = Modifier.testTag("setting_category_accessibility"),
-    )
-    SettingsCategoryButton(
-        title = "Advanced",
-        subtitle = "Bluetooth, logging, interop and maintenance",
-        icon = Icons.Outlined.Settings,
-        onClick = { onNavigate(SettingsScreen.AdvancedCategory) },
-        modifier = Modifier.testTag("setting_category_advanced"),
-    )
-    SettingsCategoryButton(
-        title = "About",
-        subtitle = "Version, help, updates and licence",
-        icon = Icons.Outlined.Info,
-        onClick = { onNavigate(SettingsScreen.About) },
-        modifier = Modifier.testTag("setting_category_about"),
-    )
+    ROOT_DESTINATION_BUTTONS.forEach { button ->
+        SettingsCategoryButton(
+            title = button.screen.title(context),
+            subtitle = button.subtitleLiteral ?: context.getString(button.subtitleRes),
+            icon = button.icon,
+            onClick = { onNavigate(button.screen) },
+            modifier = Modifier.testTag(button.tag),
+        )
+    }
 }
+
+/** Root category tiles in display order; titles come from the destination metadata. */
+private data class RootDestinationButton(
+    val screen: SettingsScreen,
+    @StringRes val subtitleRes: Int = 0,
+    val subtitleLiteral: String? = null,
+    val icon: ImageVector,
+    val tag: String,
+)
+
+private val ROOT_DESTINATION_BUTTONS = listOf(
+    RootDestinationButton(
+        screen = SettingsScreen.AlarmsCategory,
+        subtitleRes = R.string.glucose_calibration_and_other_alerts,
+        icon = Icons.Outlined.NotificationsActive,
+        tag = "setting_category_alarms",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.DevicesCategory,
+        subtitleLiteral = "Data sources, meters, pens and watches",
+        icon = Icons.Outlined.Devices,
+        tag = "setting_category_devices",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.YourDataCategory,
+        subtitleLiteral = "Cloud sync, backups and xDrip+ sync",
+        icon = Icons.Outlined.CloudSync,
+        tag = "setting_category_data",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.GeneralCategory,
+        subtitleRes = R.string.mmol_or_mgdl_high_and_low,
+        icon = Icons.Outlined.Tune,
+        tag = "setting_category_general",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.ProfileCategory,
+        subtitleLiteral = "Insulin, carb ratios and prediction",
+        icon = Icons.Outlined.Person,
+        tag = "setting_category_profile",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.AppearanceCategory,
+        subtitleLiteral = "Theme, display, graph and home screen",
+        icon = Icons.Outlined.Palette,
+        tag = "setting_category_appearance",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.AccessibilityCategory,
+        subtitleLiteral = "Spoken readings and always-on display",
+        icon = Icons.Outlined.Accessibility,
+        tag = "setting_category_accessibility",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.AdvancedCategory,
+        subtitleLiteral = "Bluetooth, logging, interop and maintenance",
+        icon = Icons.Outlined.Settings,
+        tag = "setting_category_advanced",
+    ),
+    RootDestinationButton(
+        screen = SettingsScreen.About,
+        subtitleLiteral = "Version, help, updates and licence",
+        icon = Icons.Outlined.Info,
+        tag = "setting_category_about",
+    ),
+)
 
 @Composable
 private fun GeneralCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {

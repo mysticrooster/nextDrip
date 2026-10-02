@@ -230,7 +230,7 @@ internal fun SettingsRoot(initialScreen: SettingsScreen? = null) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(titleFor(LocalContext.current, stack.last())) },
+                title = { Text(stack.last().title(LocalContext.current)) },
                 navigationIcon = {
                     if (stack.size > 1) {
                         IconButton(onClick = { stack.removeAt(stack.lastIndex) }) {

@@ -5,6 +5,7 @@ import com.eveningoutpost.dexdrip.BuildConfig
 import com.eveningoutpost.dexdrip.TestingApplication
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -28,6 +29,17 @@ class SettingsSearchTest {
     fun indexCoversEveryDestinationExceptRoot() {
         val indexed = index().map { it.screen }.toSet()
         assertThat(indexed).isEqualTo(SettingsScreen.entries.toSet() - SettingsScreen.Root)
+    }
+
+    @Test
+    fun everyDestinationCarriesItsOwnTitleMetadata() {
+        SettingsScreen.entries.filter { it != SettingsScreen.Root }.forEach { screen ->
+            assertWithMessage(screen.name)
+                .that(screen.titleRes != 0 || screen.titleLiteral != null)
+                .isTrue()
+            assertWithMessage(screen.name).that(screen.title(context)).isNotEmpty()
+        }
+        assertThat(SettingsScreen.Root.title(context)).isEqualTo("Settings")
     }
 
     @Test

@@ -250,8 +250,11 @@ still inflates the former). The manifest `.utils.Preferences` activity is gone.
   and a `settings_screen` extra to a [SettingsScreen] destination (`screenFromIntent`); callers in
   `Home`/`ThinJamActivity` use it.
 - **Search scope**: `SettingsSearch.kt` derives the index from every `SettingsScreen` destination
-  (relevance-ranked, diacritics-insensitive, conservative availability filtering); leaf-pref
-  indexing + jump/highlight remains open.
+  (relevance-ranked, diacritics-insensitive, conservative availability filtering). Each
+  destination's title, keyword aliases and availability gate are single-sourced on the enum entry
+  (`SettingsNavigation.kt`) rather than split across `titleFor`/`SETTINGS_SEARCH_KEYWORDS`/a private
+  `isAvailable`; the root category tiles are derived from the same titles. Leaf-pref indexing +
+  jump/highlight remains open.
 - **Custom widgets**: multi-select / tree-selector / PIN dialogs (the chart preview is the
   `AndroidView`-wrapped `prefs_example_chart_layout.xml` in the theme editor).
 - **Icons**: legacy sub-screens carry `android:icon`; add leading icons to `SettingsActionRow`.
@@ -403,8 +406,10 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 - **G — Custom widgets.** Every custom widget has a Compose equivalent + test. *Partly ready
   (`ExampleChartPreferenceView` is `AndroidView`-wrapped in the theme editor).*
 - **H — Search parity.** Migrated search covers every Compose destination (AAPS-style ranking,
-  diacritics, conservative gating), matching `search-preference` at destination level. Leaf-pref
-  indexing/jump-to-row still open (requires a pref-key/title catalog). *Destination parity done.*
+  diacritics, conservative gating), matching `search-preference` at destination level. Destination
+  metadata (title, keywords, availability) is single-sourced on `SettingsScreen` and the root tiles
+  derive their titles from it. Leaf-pref indexing/jump-to-row still open (requires a pref-key/title
+  catalog). *Destination parity done.*
 - **I — Theming.** Material You defaults, overrides win, no literals. *Ready (`ThemeColorTest`).*
 - **J — Legacy interop/retirement.** S6 artefacts deleted, no dangling users. *Done (S6) — grep
   clean for `utils.Preferences`, `BasePreferenceActivity`, `AllPrefsFragment`, `R.xml.pref_*`,
