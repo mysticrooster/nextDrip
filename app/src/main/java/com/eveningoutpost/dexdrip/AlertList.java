@@ -7,48 +7,63 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Paint;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.preference.PreferenceManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
-import android.widget.TextView;
+import androidx.databinding.ObservableField;
 
 import com.eveningoutpost.dexdrip.models.AlertType;
 import com.eveningoutpost.dexdrip.models.JoH;
-import com.eveningoutpost.dexdrip.models.UserError.Log;
-import com.eveningoutpost.dexdrip.utilitymodels.AlertPlayer;
-import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
+import com.eveningoutpost.dexdrip.ui.secondary.AlertListScreen;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 
 import static com.eveningoutpost.dexdrip.xdrip.gs;
 
-public class AlertList extends ActivityWithMenu {
-    ListView listViewLow;
-    ListView listViewHigh;
-    Button createLowAlert;
-    Button createHighAlert;
+/**
+ * Track V (Alerts, Compose) — the level-alerts list. Low/high alert profiles with add/edit
+ * (long-press) navigation. The activity keeps the preference read, the storage-permission warning
+ * for custom tones and the edit/result flow; the screen renders the rows.
+ */
+public class AlertList extends BaseAppCompatActivity {
     boolean doMgdl;
     Context mContext;
     final int ADD_ALERT = 1;
     final int EDIT_ALERT = 2;
     SharedPreferences prefs;
-    Animation anim;
-    private final static String TAG = AlertPlayer.class.getSimpleName();
+
+    private List<AlertRow> lowRows = new ArrayList<>();
+    private List<AlertRow> highRows = new ArrayList<>();
+
+    /** Compose bridge: bumped whenever the displayed alert rows change. */
+    public final ObservableField<Integer> tick = new ObservableField<>(0);
+
+    /** One rendered alert row. */
+    public static class AlertRow {
+        public final String name;
+        public final String threshold;
+        public final String time;
+        public final String mp3File;
+        public final String overrideSilentMode;
+        public final String uuid;
+        public final boolean active;
+
+        AlertRow(String name, String threshold, String time, String mp3File, String overrideSilentMode, String uuid, boolean active) {
+            this.name = name;
+            this.threshold = threshold;
+            this.time = time;
+            this.mp3File = mp3File;
+            this.overrideSilentMode = overrideSilentMode;
+            this.uuid = uuid;
+            this.active = active;
+        }
+    }
 
     String stringTimeFromAlert(AlertType alert) {
         if (alert.all_day) {
@@ -59,75 +74,28 @@ public class AlertList extends ActivityWithMenu {
         return start + " - " + end;
     }
 
-    HashMap<String, String> createAlertMap(AlertType alert) {
-        HashMap<String, String> map = new HashMap<String, String>();
+    private AlertRow createAlertRow(AlertType alert) {
         String overrideSilentMode = getString(R.string.override_silent_mode);
         if (!alert.override_silent_mode) {
             overrideSilentMode = getString(R.string.no_alert_in_silent_mode);
         }
-        // We use a - sign to tell that this text should be stiked through
-        String extra = "-";
-        if (alert.active) {
-            extra = "+";
-        }
-
-
-        map.put("alertName", extra + alert.name);
-        map.put("alertThreshold", extra + EditAlertActivity.unitsConvert2Disp(doMgdl, alert.threshold));
-        map.put("alertTime", extra + stringTimeFromAlert(alert));
-        map.put("alertMp3File", extra + shortPath(alert.mp3_file));
-        map.put("alertOverrideSilenceMode", extra + overrideSilentMode);
-        map.put("uuid", alert.uuid);
-
-        return map;
+        return new AlertRow(
+                alert.name,
+                EditAlertActivity.unitsConvert2Disp(doMgdl, alert.threshold),
+                stringTimeFromAlert(alert),
+                shortPath(alert.mp3_file),
+                overrideSilentMode,
+                alert.uuid,
+                alert.active);
     }
 
-    ArrayList<HashMap<String, String>> createAlertsMap(boolean above) {
-        ArrayList<HashMap<String, String>> feedList = new ArrayList<HashMap<String, String>>();
-
-        List<AlertType> alerts = AlertType.getAll(above);
+    private List<AlertRow> createAlerts(boolean above) {
+        final List<AlertRow> feedList = new ArrayList<>();
+        final List<AlertType> alerts = AlertType.getAll(above);
         for (AlertType alert : alerts) {
-            Log.d(TAG, alert.toString());
-            feedList.add(createAlertMap(alert));
+            feedList.add(createAlertRow(alert));
         }
         return feedList;
-    }
-
-
-    class AlertsOnItemLongClickListener implements AdapterView.OnItemLongClickListener {
-        @Override
-        public boolean onItemLongClick(final AdapterView<?> parent, final View view, final int position, final long id) {
-            anim.setAnimationListener(new Animation.AnimationListener() {
-
-                @Override
-                public void onAnimationStart(Animation animation) {
-                    ListView lv = (ListView) parent;
-                    @SuppressWarnings("unchecked")
-                    HashMap<String, String> item = (HashMap<String, String>) lv.getItemAtPosition(position);
-                    Log.d(TAG, "Item clicked " + lv.getItemAtPosition(position) + item.get("uuid"));
-
-                    //The XML for each item in the list (should you use a custom XML) must have android:longClickable="true"
-                    // as well (or you can use the convenience method lv.setLongClickable(true);). This way you can have a list
-                    // with only some items responding to longclick. (might be used for non removable alerts)
-
-                    xdrip.checkForcedEnglish(xdrip.getAppContext());
-                    Intent myIntent = new Intent(AlertList.this, EditAlertActivity.class);
-                    myIntent.putExtra("uuid", item.get("uuid")); //Optional parameters
-                    AlertList.this.startActivityForResult(myIntent, EDIT_ALERT);
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-
-                }
-            });
-            view.startAnimation(anim);
-            return true;
-        }
     }
 
     @Override
@@ -139,49 +107,46 @@ public class AlertList extends ActivityWithMenu {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_alert_list);
-        JoH.fixActionBar(this);
         mContext = getApplicationContext();
-        listViewLow = (ListView) findViewById(R.id.listView_low);
-        listViewHigh = (ListView) findViewById(R.id.listView_high);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         doMgdl = (prefs.getString("units", "mgdl").compareTo("mgdl") == 0);
 
-        addListenerOnButton();
         FillLists();
-        anim = AnimationUtils.loadAnimation(this, R.anim.fade_anim);
-        listViewLow.setOnItemLongClickListener(new AlertsOnItemLongClickListener());
-        listViewHigh.setOnItemLongClickListener(new AlertsOnItemLongClickListener());
+        AlertListScreen.installAlertList(this);
     }
 
-    @Override
-    public String getMenuName() {
-        return getString(R.string.level_alerts);
+    public void notifyChanged() {
+        final Integer current = tick.get();
+        tick.set((current == null ? 0 : current) + 1);
     }
 
+    public void addLowAlert() {
+        xdrip.checkForcedEnglish(xdrip.getAppContext());
+        Intent myIntent = new Intent(AlertList.this, EditAlertActivity.class);
+        myIntent.putExtra("above", "false");
+        startActivityForResult(myIntent, ADD_ALERT);
+    }
 
-    public void addListenerOnButton() {
-        createLowAlert = (Button) findViewById(R.id.button_create_low);
-        createHighAlert = (Button) findViewById(R.id.button_create_high);
+    public void addHighAlert() {
+        xdrip.checkForcedEnglish(xdrip.getAppContext());
+        Intent myIntent = new Intent(AlertList.this, EditAlertActivity.class);
+        myIntent.putExtra("above", "true");
+        startActivityForResult(myIntent, ADD_ALERT);
+    }
 
-        createLowAlert.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                xdrip.checkForcedEnglish(xdrip.getAppContext());
-                Intent myIntent = new Intent(AlertList.this, EditAlertActivity.class);
-                myIntent.putExtra("above", "false");
-                AlertList.this.startActivityForResult(myIntent, ADD_ALERT);
-            }
+    public void editAlert(String uuid) {
+        xdrip.checkForcedEnglish(xdrip.getAppContext());
+        Intent myIntent = new Intent(AlertList.this, EditAlertActivity.class);
+        myIntent.putExtra("uuid", uuid);
+        startActivityForResult(myIntent, EDIT_ALERT);
+    }
 
-        });
+    public List<AlertRow> getLowRowsSnapshot() {
+        return new ArrayList<>(lowRows);
+    }
 
-        createHighAlert.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                xdrip.checkForcedEnglish(xdrip.getAppContext());
-                Intent myIntent = new Intent(AlertList.this, EditAlertActivity.class);
-                myIntent.putExtra("above", "true");
-                AlertList.this.startActivityForResult(myIntent, ADD_ALERT);
-            }
-        });
+    public List<AlertRow> getHighRowsSnapshot() {
+        return new ArrayList<>(highRows);
     }
 
     void displayWarning() {
@@ -210,45 +175,20 @@ public class AlertList extends ActivityWithMenu {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d(TAG, "onActivityResult called request code  = " + requestCode + " result code " + resultCode);
         if (!AlertType.activeLowAlertExists()) {
             displayWarning();
         }
         if (requestCode == ADD_ALERT || requestCode == EDIT_ALERT) {
             if (resultCode == RESULT_OK) {
-                Log.d(TAG, "onActivityResult called invalidating...");
                 FillLists();
-            }
-            if (resultCode == RESULT_CANCELED) {
-                //Write your code if there's no result
             }
         }
     }
 
     void FillLists() {
-        // We use a - sign to tell that this text should be stiked through
-        SimpleAdapter.ViewBinder vb = new SimpleAdapter.ViewBinder() {
-            public boolean setViewValue(View view, Object data, String textRepresentation) {
-                TextView tv = (TextView) view;
-                tv.setText(textRepresentation.substring(1));
-                if (textRepresentation.substring(0, 1).equals("-")) {
-                    tv.setPaintFlags(tv.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                }
-                return true;
-            }
-        };
-
-        ArrayList<HashMap<String, String>> feedList;
-        feedList = createAlertsMap(false);
-        SimpleAdapter simpleAdapterLow = new SimpleAdapter(this, feedList, R.layout.row_alerts, new String[]{"alertName", "alertThreshold", "alertTime", "alertMp3File", "alertOverrideSilenceMode"}, new int[]{R.id.alertName, R.id.alertThreshold, R.id.alertTime, R.id.alertMp3File, R.id.alertOverrideSilent});
-        simpleAdapterLow.setViewBinder(vb);
-
-        listViewLow.setAdapter(simpleAdapterLow);
-
-        feedList = createAlertsMap(true);
-        SimpleAdapter simpleAdapterHigh = new SimpleAdapter(this, feedList, R.layout.row_alerts, new String[]{"alertName", "alertThreshold", "alertTime", "alertMp3File", "alertOverrideSilenceMode"}, new int[]{R.id.alertName, R.id.alertThreshold, R.id.alertTime, R.id.alertMp3File, R.id.alertOverrideSilent});
-        simpleAdapterHigh.setViewBinder(vb);
-        listViewHigh.setAdapter(simpleAdapterHigh);
+        lowRows = createAlerts(false);
+        highRows = createAlerts(true);
+        notifyChanged();
     }
 
     private String shortPath(final String path) {

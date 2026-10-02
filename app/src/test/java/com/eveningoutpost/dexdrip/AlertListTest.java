@@ -1,7 +1,5 @@
 package com.eveningoutpost.dexdrip;
 
-import android.widget.ListView;
-
 import androidx.preference.PreferenceManager;
 
 import com.eveningoutpost.dexdrip.models.AlertType;
@@ -12,7 +10,7 @@ import org.junit.Test;
 import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
 
-import java.util.HashMap;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -84,14 +82,11 @@ public class AlertListTest extends RobolectricTestWithConfig {
 
     // ===== Helpers ===============================================================================
 
-    @SuppressWarnings("unchecked")
     private String firstLowThreshold() {
         AlertList activity = Robolectric.buildActivity(AlertList.class).create().get();
-        ListView list = activity.findViewById(R.id.listView_low);
-        assertThat(list).isNotNull();
-        assertThat(list.getAdapter().getCount()).isAtLeast(1);
-        HashMap<String, String> row = (HashMap<String, String>) list.getAdapter().getItem(0);
-        return row.get("alertThreshold");
+        List<AlertList.AlertRow> rows = activity.getLowRowsSnapshot();
+        assertThat(rows).isNotEmpty();
+        return rows.get(0).threshold;
     }
 
     private void storeUnits(String units) {

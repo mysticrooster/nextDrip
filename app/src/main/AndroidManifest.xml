@@ -117,10 +117,12 @@
         android:usesCleartextTraffic="true">
         <activity
             android:name=".cgm.glupro.GluProActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:label="@string/glupro_activity_title"
             android:exported="false" />
         <activity
             android:name=".HealthPrivacy"
+            android:theme="@style/AppTheme.Secondary"
             android:exported="true"
             android:label="xDrip Privacy Policy">
             <intent-filter>
@@ -145,6 +147,7 @@
 
         <activity
             android:name=".cloud.backup.BackupActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:exported="false"
             android:label="Cloud Backup" />
 
@@ -272,14 +275,12 @@
 
         <activity
             android:name=".tables.BgReadingTable"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/bg_readings_table" />
         <activity
-            android:name=".tables.SensorDataTable"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/sensor_table" />
-        <activity
             android:name=".ImportDatabaseActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/import_database" />
         <!--
@@ -294,18 +295,22 @@
         -->
         <activity
             android:name=".AddCalibration"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/add_calibration" />
         <activity
             android:name=".StartNewSensor"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_start_new_sensor" />
         <activity
             android:name=".NewSensorLocation"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_new_sensor_location" />
         <activity
             android:name=".StopSensor"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_stop_sensor" />
         <activity
@@ -375,6 +380,7 @@
 
         <activity
             android:name=".tables.CalibrationDataTable"
+            android:theme="@style/AppTheme.Secondary"
             android:label="@string/calibration_data_table" />
 
         <service
@@ -443,17 +449,21 @@
             android:label="@string/snooze" />
         <activity
             android:name=".FakeNumbers"
+            android:theme="@style/AppTheme.Secondary"
             android:label="@string/title_activity_fake_numbers" />
         <activity
             android:name=".EditAlertActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_edit_alert" />
         <activity
             android:name=".DoubleCalibrationActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_double_calibration" />
         <activity
             android:name=".CalibrationOverride"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_calibration_override" />
         <activity
@@ -462,10 +472,12 @@
             android:label="@string/calibration_graph" />
         <activity
             android:name=".LicenseAgreementActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/end_user_license_agreement" />
         <activity
             android:name=".CalibrationCheckInActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_calibration_check_in" />
         <activity
@@ -593,21 +605,19 @@
 
         <activity
             android:name=".AlertList"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_alert_list" />
         <activity
             android:name=".ErrorsActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_error" />
         <activity
             android:name=".MissedReadingActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/configure_missed_readings" />
-        <activity
-            android:name=".FollowerManagementActivity"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/manage_followers" />
-
         <service
             android:name=".services.SnoozeOnNotificationDismissService"
             android:exported="false" />
@@ -779,10 +789,12 @@
 
         <activity
             android:name=".utilitymodels.UpdateActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_update" />
         <activity
             android:name=".utils.DisplayQRCode"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_display_qrcode"
@@ -794,6 +806,7 @@
             android:noHistory="true" />
         <activity
             android:name=".utilitymodels.SendFeedBack"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:exported="false"
             android:label="@string/title_activity_send_feed_back"
@@ -806,13 +819,16 @@
         </activity>
         <activity
             android:name=".utilitymodels.SaveLogs"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_save_logs"
             android:noHistory="true"></activity>
-        <activity android:name=".deposit.DepositActivity" />
+        <activity android:name=".deposit.DepositActivity"
+            android:theme="@style/AppTheme.Secondary" />
         <activity android:name=".utils.AndroidBarcode" />
         <activity
             android:name=".utils.SdcardImportExport"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/settings_on_external_storage" />
         <activity
@@ -830,6 +846,7 @@
         <activity android:name=".HelpActivity" />
         <activity
             android:name=".Agreement"
+            android:theme="@style/AppTheme.Secondary"
             android:label="Nightscout xDrip" />
         <activity
             android:name=".WearVoiceActivity"
@@ -858,16 +875,13 @@
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".insulin.InsulinProfileEditor"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_profile_editor"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".languageeditor.LanguageEditor"
-            android:configChanges="orientation|screenSize"
-            android:label="@string/language_editor"
-            android:windowSoftInputMode="adjustPan" />
-        <activity
             android:name=".glucosemeter.BTGlucoseMeterActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_btglucose_meter"
             android:parentActivityName=".Home">
@@ -888,6 +902,7 @@
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".NightscoutBackfillActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:launchMode="singleTask"
             android:windowSoftInputMode="adjustPan" />
@@ -916,6 +931,7 @@
             android:value="false" />
 
         <activity android:name=".utilitymodels.XDripDreamSettingsActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:exported="true"/>
 
         <service
@@ -943,24 +959,31 @@
 
         <activity
             android:name=".EventLogActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:configChanges="orientation|screenSize"
             android:label="@string/title_activity_error" />
         <activity
             android:name=".eassist.EmergencyAssistActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:label="@string/emergency_messages" />
         <activity
             android:name=".ui.activities.SelectAudioDevice"
+            android:theme="@style/AppTheme.Secondary"
             android:label="@string/select_device" />
         <activity
             android:name=".utilitymodels.MtpConfigureActivity"
+            android:theme="@style/AppTheme.Secondary"
             android:label="USB programmer" />
         <activity
             android:name=".ui.activities.NumberWallPreview"
+            android:theme="@style/AppTheme.Secondary"
             android:exported="true"
             android:label="@string/number_wall_config" />
-        <activity android:name=".ui.activities.TimePickerPrefActivity" />
+        <activity android:name=".ui.activities.TimePickerPrefActivity"
+            android:theme="@style/AppTheme.Secondary" />
         <activity
             android:name=".ui.activities.DatabaseAdmin"
+            android:theme="@style/AppTheme.Secondary"
             android:label="Database Admin" />
         <activity
             android:name=".ui.activities.ThinJamActivity"

@@ -29,17 +29,16 @@ for app widgets. Track V (`Settings_Migration.md` §7) migrates these.
 | --- | --- |
 | `ProfileEditor`, `BasalProfileEditor` | Compose editors (charts/columns last) |
 | `NumberWallPreview`, `NumberGraphic` | Compose screens/`Canvas` |
-| `DisplayQRCode`, `SdcardImportExport` | Compose screens (or keep the QR view) |
 | `SendFeedBack`, `Agreement` | Compose screens |
-| `AlertList` + `EditAlertActivity` | Compose list + editor (alert forms / chart) |
-| `BTGlucoseMeterActivity` | Compose screen (admin/backup group) |
 | `ExampleChartPreferenceView` | `AndroidView` wrapper today (theme editor); Vico later |
+| `localeTasker/ui/EditActivity` | Compose form (optional Pass D; Tasker plugin `Bundle` contract) |
 | **Done — Track V pass 1** | `TimePickerPrefActivity` + `TimePickerFragment` (→ `TimeOfDayDialog`), `LicenseAgreementActivity`, `SelectAudioDevice`, `InsulinProfileEditor`, `MissedReadingActivity`, `NightscoutBackfillActivity`, `DepositActivity` — Compose content in the existing activities, dedicated layouts deleted |
 | **Done — Track V pass 2** | `Agreement`, `CalibrationCheckInActivity`, `CalibrationOverride`, `DoubleCalibrationActivity`, `XDripDreamSettingsActivity`, `HealthPrivacy`, `FakeNumbers` — same in-place Compose, layouts + Data Binding removed |
 | **Done — Track V pass 3 (Medium)** | `MtpConfigureActivity`, `DatabaseAdmin`, `GluProActivity` — Compose UI, `NanoStatus`/`ObservableField`/`ObservableArrayList` bridged into Compose state; layouts deleted (GluPro `item_glupro_device` + `ViewModel` adapter kept for the service) |
 | **Done — Track V pass 4 (rich Medium)** | `EmergencyAssistActivity` (`PrefsViewImpl` + model `ObservableField` + contact `ObservableList` bridged; `PrefsViewStringSnapDefaults` → `snapMinutesValue`; remove-confirm dialog in Compose) and `BackupActivity` (`ViewModel` `ObservableField`s + metadata `ObservableArrayMap` + automatic-backup prefs bridged) — layouts deleted, SAF/Drive/permission flows and dialogs stay in the activities |
 | **Done — Track V pass 5 (sensor & calibration forms)** | `NewSensorLocation`, `StopSensor`, `AddCalibration`, `StartNewSensor`, `SnoozeActivity` — Compose content + M3 dialogs, drawer shell dropped, layouts deleted. Retained for the not-yet-migrated alert/reminder screens: `SnoozeActivity.SetSnoozePickerValues` + `snooze_picker.xml` (EditAlert) and the shared `DatePickerFragment`/`TimePickerFragment` (EditAlert/Reminders; retire with V6/V11) |
 | **Done — Track V pass 6 (admin quick wins)** | `SaveLogs`, `NumberWallPreview` (bitmap preview kept; new `SecondaryScreenFill`), `DisplayQRCode` (QR bitmap/narrative observables bridged), `SendFeedBack` (rating stars + type/email dialogs in Compose) — layouts deleted |
+| **Done — Track V pass 7 (remaining AAR-free secondary)** | Pass A: `ImportDatabaseActivity`, `SdcardImportExport`, `BTGlucoseMeterActivity`, `UpdateActivity`. Pass B: `ErrorsActivity`, `EventLogActivity` (Data Binding + `MergeObservableList` → Compose, new `SecondaryScreenList`), `BgReadingTable`/`CalibrationDataTable` (new Your Data rows under `show_data_tables`, drawer dropped), `PhoneKeypadInputActivity` (keypad → system-keyboard M3 form). Pass C: `AlertList`, `EditAlertActivity` (M3 snooze/tone dialogs). All keep their class/manifest/intents/extras and delete layouts. Dead `FollowerManagementActivity`, `tables/SensorDataTable`, `languageeditor/LanguageEditor` removed. The shared `SecondaryScreen*` hosts now hide the hosting activity's leftover legacy AppCompat `ActionBar` (`SecondaryScaffold.kt`), fixing the double top bar on all migrated screens |
 
 ## RemoteViews / Bitmap-only surfaces
 

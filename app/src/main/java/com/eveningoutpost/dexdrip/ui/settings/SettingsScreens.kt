@@ -87,6 +87,8 @@ import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.models.Profile
 import com.eveningoutpost.dexdrip.models.UserNotification
 import com.eveningoutpost.dexdrip.profileeditor.BasalProfileEditor
+import com.eveningoutpost.dexdrip.tables.BgReadingTable
+import com.eveningoutpost.dexdrip.tables.CalibrationDataTable
 import com.eveningoutpost.dexdrip.profileeditor.ProfileEditor
 import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utils.LibreTrendGraph
@@ -524,6 +526,20 @@ private fun YourDataCategoryScreen(onNavigate: (SettingsScreen) -> Unit) {
             onClick = { onNavigate(SettingsScreen.XdripPlusSync) },
             modifier = Modifier.testTag("setting_xdrip_sync"),
         )
+        if (state.bool("show_data_tables", false)) {
+            SettingsActionRow(
+                title = context.getString(R.string.bg_data_table),
+                icon = Icons.Outlined.ShowChart,
+                onClick = { context.startActivity(Intent(context, BgReadingTable::class.java)) },
+                modifier = Modifier.testTag("setting_bg_data_table"),
+            )
+            SettingsActionRow(
+                title = context.getString(R.string.calibration_data_table),
+                icon = Icons.Outlined.Timeline,
+                onClick = { context.startActivity(Intent(context, CalibrationDataTable::class.java)) },
+                modifier = Modifier.testTag("setting_calibration_data_table"),
+            )
+        }
         if (engineering) {
             SettingsActionRow(
                 title = context.getString(R.string.send_bg_readings_to_backfill),

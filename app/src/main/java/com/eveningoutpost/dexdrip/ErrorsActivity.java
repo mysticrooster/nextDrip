@@ -5,19 +5,17 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.preference.PreferenceManager;
-import android.view.View;
 import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.ListView;
-import android.widget.Switch;
 import android.widget.Toast;
+
+import androidx.databinding.ObservableBoolean;
+import androidx.databinding.ObservableField;
 
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
+import com.eveningoutpost.dexdrip.ui.secondary.ErrorsScreen;
 import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
 import com.eveningoutpost.dexdrip.utilitymodels.SendFeedBack;
-import com.eveningoutpost.dexdrip.utils.ActivityWithMenu;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 
 import java.util.ArrayList;
@@ -28,23 +26,28 @@ import static com.eveningoutpost.dexdrip.Home.startWatchUpdaterService;
 /**
  * Created by Emma Black on 8/3/15.
  * This is the old logs activity.
+ *
+ * Track V (Compose): the activity keeps the severity/auto-refresh state, the periodic refresh and
+ * the log packaging; the screen renders the severity filter, list and auto-refresh controls.
  */
-public class ErrorsActivity extends ActivityWithMenu {
+public class ErrorsActivity extends BaseAppCompatActivity {
     public static final String menu_name = "Errors";
     private static final String TAG = "ErrorView";
-    public String getMenuName() { return  menu_name; }
-    private CheckBox highCheckboxView;
-    private CheckBox mediumCheckboxView;
-    private CheckBox lowCheckboxView;
-    private CheckBox userEventLowCheckboxView;
-    private CheckBox userEventHighCheckboxView;
-    private Switch autoRefreshSwitch;
-    private ListView errorList;
+
+    public final ObservableBoolean cbLow = new ObservableBoolean(false);
+    public final ObservableBoolean cbMid = new ObservableBoolean(true);
+    public final ObservableBoolean cbHigh = new ObservableBoolean(true);
+    public final ObservableBoolean cbEl = new ObservableBoolean(true);
+    public final ObservableBoolean cbEh = new ObservableBoolean(true);
+    public final ObservableBoolean switchAutoRefresh = new ObservableBoolean(false);
+
+    /** Compose bridge: bumped whenever the displayed error list changes. */
+    public final ObservableField<Integer> tick = new ObservableField<>(0);
+
     private List<UserError> errors;
-    private List<UserError> errors_tmp = new ArrayList<>();
-    private ErrorListAdapter adapter;
+    private final List<UserError> errors_tmp = new ArrayList<>();
     private boolean autoRefresh = false;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private static final boolean d = false;
     private boolean is_visible = false;
     private SharedPreferences mPrefs;
@@ -56,23 +59,6 @@ public class ErrorsActivity extends ActivityWithMenu {
         if (mPrefs.getBoolean("wear_sync", false) && mPrefs.getBoolean("sync_wear_logs", false)) {
             startWatchUpdaterService(this, WatchUpdaterService.ACTION_SYNC_LOGS, TAG);
         }
-        setContentView(R.layout.activity_errors);
-
-        highCheckboxView = (CheckBox) findViewById(R.id.highSeverityCheckbox);
-        mediumCheckboxView = (CheckBox) findViewById(R.id.midSeverityCheckbox);
-        lowCheckboxView = (CheckBox) findViewById(R.id.lowSeverityCheckBox);
-        userEventLowCheckboxView = (CheckBox) findViewById(R.id.userEventLowCheckbox);
-        userEventHighCheckboxView = (CheckBox) findViewById(R.id.userEventHighCheckbox);
-        autoRefreshSwitch = (Switch) findViewById(R.id.autorefresh);
-
-        highCheckboxView.setOnClickListener(checkboxListener);
-        mediumCheckboxView.setOnClickListener(checkboxListener);
-        lowCheckboxView.setOnClickListener(checkboxListener);
-        userEventLowCheckboxView.setOnClickListener(checkboxListener);
-        userEventHighCheckboxView.setOnClickListener(checkboxListener);
-
-        autoRefreshSwitch.setOnCheckedChangeListener(switchChangeListener);
-
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -80,20 +66,23 @@ public class ErrorsActivity extends ActivityWithMenu {
             if (bundle != null) {
                 final String str = bundle.getString("events");
                 if (str != null) {
-                    userEventHighCheckboxView.setChecked(true);
-                    userEventLowCheckboxView.setChecked(PersistentStore.getBoolean("events-userlowcheckbox"));
-                    mediumCheckboxView.setChecked(PersistentStore.getBoolean("events-mediumcheckbox"));
-                    highCheckboxView.setChecked(PersistentStore.getBoolean("events-highcheckbox"));
-                    lowCheckboxView.setChecked(PersistentStore.getBoolean("events-lowcheckbox"));
+                    cbEh.set(true);
+                    cbEl.set(PersistentStore.getBoolean("events-userlowcheckbox"));
+                    cbMid.set(PersistentStore.getBoolean("events-mediumcheckbox"));
+                    cbHigh.set(PersistentStore.getBoolean("events-highcheckbox"));
+                    cbLow.set(PersistentStore.getBoolean("events-lowcheckbox"));
                 }
             }
         }
 
-
         updateErrors();
-        errorList = (ListView) findViewById(R.id.errorList);
-        adapter = new ErrorListAdapter(getApplicationContext(), errors);
-        errorList.setAdapter(adapter);
+        ErrorsScreen.installErrors(this);
+    }
+
+    /** Nudges the Compose screen to recompute its state. */
+    public void notifyChanged() {
+        final Integer current = tick.get();
+        tick.set((current == null ? 0 : current) + 1);
     }
 
     @Override
@@ -107,18 +96,39 @@ public class ErrorsActivity extends ActivityWithMenu {
     public void onResume() {
         super.onResume();
         is_visible=true;
-        autoRefreshSwitch.setChecked(autoRefresh); // turn off after gone in to background
-
+        switchAutoRefresh.set(autoRefresh); // turn off after gone in to background
     }
 
-    private View.OnClickListener checkboxListener = new View.OnClickListener() {
-        public void onClick(View v) {
-            updateErrors();
-
+    /** Severity checkbox toggled from the screen (severity 1/2/3/5/6). */
+    public void setSeverity(int severity, boolean value) {
+        switch (severity) {
+            case 1: cbLow.set(value); break;
+            case 2: cbMid.set(value); break;
+            case 3: cbHigh.set(value); break;
+            case 5: cbEl.set(value); break;
+            case 6: cbEh.set(value); break;
         }
-    };
+        updateErrors();
+    }
 
-    public void uploadLogs(View v) {
+    /** Auto-refresh switch toggled from the screen. */
+    public void setAutoRefresh(boolean isChecked) {
+        if (isChecked && !autoRefresh) handler.postDelayed(runnable, 1000); // start timer
+        autoRefresh = isChecked;
+        switchAutoRefresh.set(autoRefresh);
+
+        if (autoRefresh) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            if (mPrefs.getBoolean("wear_sync", false) && mPrefs.getBoolean("sync_wear_logs", false)) {
+                startWatchUpdaterService(getApplicationContext(), WatchUpdaterService.ACTION_SYNC_LOGS, TAG);
+            }
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        notifyChanged();
+    }
+
+    public void uploadLogs() {
         StringBuilder tmp = new StringBuilder(20000);
         tmp.append("The following logs will be sent to the developers: \n\nPlease also include your email address or we will not know who they are from!\n\n");
         for (UserError item : errors) {
@@ -132,27 +142,7 @@ public class ErrorsActivity extends ActivityWithMenu {
         startActivity(new Intent(getApplicationContext(), SendFeedBack.class).putExtra("generic_text", tmp.toString()));
     }
 
-
-    private CheckBox.OnCheckedChangeListener switchChangeListener = new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView,
-                                     boolean isChecked) {
-            if (isChecked && !autoRefresh) handler.postDelayed(runnable, 1000); // start timer
-            autoRefresh = isChecked;
-
-            if (autoRefresh) {
-                getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-                if (mPrefs.getBoolean("wear_sync", false) && mPrefs.getBoolean("sync_wear_logs", false)) {
-                    startWatchUpdaterService(getApplicationContext(), WatchUpdaterService.ACTION_SYNC_LOGS, TAG);
-                }
-            } else {
-                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            }
-        }
-    };
-
-
-    private Runnable runnable = new Runnable() {
+    private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
             if (autoRefresh && is_visible)
@@ -171,20 +161,20 @@ public class ErrorsActivity extends ActivityWithMenu {
     public void updateErrors(boolean from_timer) {
         List<Integer> severitiesList = new ArrayList<>();
 
-        PersistentStore.setBoolean("events-highcheckbox", highCheckboxView.isChecked());
-        PersistentStore.setBoolean("events-mediumcheckbox", mediumCheckboxView.isChecked());
-        PersistentStore.setBoolean("events-lowcheckbox", lowCheckboxView.isChecked());
-        PersistentStore.setBoolean("events-userlowcheckbox", userEventLowCheckboxView.isChecked());
-        PersistentStore.setBoolean("events-userhighcheckbox", userEventHighCheckboxView.isChecked());
+        PersistentStore.setBoolean("events-highcheckbox", cbHigh.get());
+        PersistentStore.setBoolean("events-mediumcheckbox", cbMid.get());
+        PersistentStore.setBoolean("events-lowcheckbox", cbLow.get());
+        PersistentStore.setBoolean("events-userlowcheckbox", cbEl.get());
+        PersistentStore.setBoolean("events-userhighcheckbox", cbEh.get());
 
-        if (highCheckboxView.isChecked()) severitiesList.add(3);
-        if (mediumCheckboxView.isChecked()) severitiesList.add(2);
-        if (lowCheckboxView.isChecked()) severitiesList.add(1);
-        if (userEventLowCheckboxView.isChecked()) severitiesList.add(5);
-        if (userEventHighCheckboxView.isChecked()) severitiesList.add(6);
+        if (cbHigh.get()) severitiesList.add(3);
+        if (cbMid.get()) severitiesList.add(2);
+        if (cbLow.get()) severitiesList.add(1);
+        if (cbEl.get()) severitiesList.add(5);
+        if (cbEh.get()) severitiesList.add(6);
         if(errors == null) {
             errors = UserError.bySeverity(severitiesList.toArray(new Integer[severitiesList.size()]));
-            if (adapter != null) adapter.notifyDataSetChanged();
+            notifyChanged();
         } else {
             if (from_timer) {
                 errors_tmp.clear();
@@ -193,7 +183,7 @@ public class ErrorsActivity extends ActivityWithMenu {
                 {
                     errors.clear();
                     errors.addAll(errors_tmp);
-                    if (adapter != null) adapter.notifyDataSetChanged();
+                    notifyChanged();
                     if (d) UserError.Log.d(TAG,"Updating list with new data");
                 } else {
                     if (d) UserError.Log.d(TAG,"List sizes the same: "+errors.size());
@@ -201,8 +191,12 @@ public class ErrorsActivity extends ActivityWithMenu {
             } else {
                 errors.clear();
                 errors.addAll(UserError.bySeverity(severitiesList.toArray(new Integer[severitiesList.size()])));
-                if (adapter != null) adapter.notifyDataSetChanged();
+                notifyChanged();
             }
         }
+    }
+
+    public List<UserError> getErrorsSnapshot() {
+        return errors == null ? new ArrayList<>() : new ArrayList<>(errors);
     }
 }

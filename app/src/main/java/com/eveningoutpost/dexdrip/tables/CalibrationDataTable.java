@@ -1,169 +1,59 @@
 package com.eveningoutpost.dexdrip.tables;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.graphics.Color;
 import android.os.Bundle;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.TextView;
+import androidx.databinding.ObservableField;
 
-import com.eveningoutpost.dexdrip.BaseListActivity;
+import com.eveningoutpost.dexdrip.BaseAppCompatActivity;
 import com.eveningoutpost.dexdrip.models.Calibration;
-import com.eveningoutpost.dexdrip.models.JoH;
-import com.eveningoutpost.dexdrip.NavigationDrawerFragment;
-import com.eveningoutpost.dexdrip.R;
-import com.eveningoutpost.dexdrip.utilitymodels.BgGraphBuilder;
+import com.eveningoutpost.dexdrip.ui.secondary.CalibrationDataTableScreen;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.eveningoutpost.dexdrip.xdrip.gs;
 
-import androidx.drawerlayout.widget.DrawerLayout;
+/**
+ * Track V (Data tables, Compose) — the calibration data table, reachable from the settings
+ * "Your Data" rows (gated by `show_data_tables`). The activity loads the calibrations and keeps the
+ * disable-calibration side effect; the drawer shell is dropped in favour of {@code SecondaryScreen}.
+ */
+public class CalibrationDataTable extends BaseAppCompatActivity {
+    private List<Calibration> latest = new ArrayList<>();
 
-
-public class CalibrationDataTable extends BaseListActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
-    private static final String menu_name = "Calibration Data Table";
-    private NavigationDrawerFragment mNavigationDrawerFragment;
+    /** Compose bridge: bumped whenever the calibrations change. */
+    public final ObservableField<Integer> tick = new ObservableField<>(0);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.OldAppTheme); // or null actionbar
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.raw_data_list);
+        CalibrationDataTableScreen.installCalibrationDataTable(this);
     }
 
     @Override
     protected void onResume(){
         super.onResume();
-        mNavigationDrawerFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout), menu_name, this);
         getData();
     }
 
-    @Override
-    public void onNavigationDrawerItemSelected(int position) {
-        mNavigationDrawerFragment.swapContext(position);
+    public void notifyChanged() {
+        final Integer current = tick.get();
+        tick.set((current == null ? 0 : current) + 1);
     }
 
     private void getData() {
-        final List<Calibration> latest = Calibration.latest(50);
-
-        CalibrationDataCursorAdapter adapter = new CalibrationDataCursorAdapter(this, latest);
-
-        this.setListAdapter(adapter);
+        final List<Calibration> data = Calibration.latest(50);
+        latest = data == null ? new ArrayList<>() : data;
+        notifyChanged();
     }
 
-
-    public static class CalibrationDataCursorAdapterViewHolder {
-        TextView raw_data_id;
-        TextView raw_data_value;
-        TextView raw_data_slope;
-        TextView raw_data_timestamp;
-
-        public CalibrationDataCursorAdapterViewHolder(View root) {
-            raw_data_id = (TextView) root.findViewById(R.id.raw_data_id);
-            raw_data_value = (TextView) root.findViewById(R.id.raw_data_value);
-            raw_data_slope = (TextView) root.findViewById(R.id.raw_data_slope);
-            raw_data_timestamp = (TextView) root.findViewById(R.id.raw_data_timestamp);
-        }
+    /** Disable a calibration (long-press action). */
+    public void disableCalibration(Calibration calibration) {
+        if (calibration == null) return;
+        calibration.clear_byuuid(calibration.uuid, false);
+        notifyChanged();
     }
 
-    public static class CalibrationDataCursorAdapter extends BaseAdapter {
-        private final Context           context;
-        private final List<Calibration> calibrations;
-
-        CalibrationDataCursorAdapter(Context context, List<Calibration> calibrations) {
-            this.context = context;
-            if(calibrations == null)
-                calibrations = new ArrayList<>();
-
-            this.calibrations = calibrations;
-        }
-
-        View newView(Context context, ViewGroup parent) {
-            final View view = LayoutInflater.from(context).inflate(R.layout.raw_data_list_item, parent, false);
-
-            final CalibrationDataCursorAdapterViewHolder holder = new CalibrationDataCursorAdapterViewHolder(view);
-            view.setTag(holder);
-
-            return view;
-        }
-
-        void bindView(View view, final Context context, final Calibration calibration) {
-            final CalibrationDataCursorAdapterViewHolder tag = (CalibrationDataCursorAdapterViewHolder) view.getTag();
-            tag.raw_data_id.setText(JoH.qs(calibration.bg, 4) + "    "+ BgGraphBuilder.unitized_string_static(calibration.bg));
-            tag.raw_data_value.setText("raw: " + JoH.qs(calibration.estimate_raw_at_time_of_calibration, 4));
-            tag.raw_data_slope.setText("slope: " + JoH.qs(calibration.slope, 4) + " intercept: " + JoH.qs(calibration.intercept, 4));
-            tag.raw_data_timestamp.setText(JoH.dateTimeText(calibration.timestamp) + "  (" + JoH.dateTimeText(calibration.raw_timestamp) + ")");
-
-            if (calibration.isNote()) {
-                // green note
-                view.setBackgroundColor(Color.parseColor("#004400"));
-            } else if (!calibration.isValid()) {
-                // red invalid/cancelled/overridden
-                view.setBackgroundColor(Color.parseColor("#660000"));
-            } else {
-                // normal grey
-                view.setBackgroundColor(Color.parseColor("#212121"));
-            }
-
-            view.setLongClickable(true);
-            view.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            switch (which){
-                                case DialogInterface.BUTTON_POSITIVE:
-                                    calibration.clear_byuuid(calibration.uuid, false);
-                                    notifyDataSetChanged();
-                                    break;
-
-                                case DialogInterface.BUTTON_NEGATIVE:
-                                    break;
-                            }
-                        }
-                    };
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setMessage("Disable this calibration?\nFlagged calibrations will no longer have an effect.").setPositiveButton(gs(R.string.yes), dialogClickListener)
-                            .setNegativeButton(gs(R.string.no), dialogClickListener).show();
-                    return true;
-                }
-            });
-
-
-        }
-
-        @Override
-        public int getCount() {
-            return calibrations.size();
-        }
-
-        @Override
-        public Calibration getItem(int position) {
-            return calibrations.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return getItem(position).getId();
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            if (convertView == null)
-                convertView = newView(context, parent);
-
-            bindView(convertView, context, getItem(position));
-            return convertView;
-        }
+    public List<Calibration> getCalibrationsSnapshot() {
+        return new ArrayList<>(latest);
     }
 }

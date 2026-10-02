@@ -246,6 +246,9 @@ Data-Binding and `MissedReadingActivity`'s implicit on-destroy save were removed
 `SecondaryScreen`, `SettingsMinutesOfDayRow` / `TimeOfDayDialog`, and the testable
 `BackfillGuard`. Note `SelectAudioDevice`'s static MAC helpers and `EditAlertActivity`'s
 `shortPath`/`timeFormatString` stay (used by `HeadsetStateReceiver` / alert screens).
+The shared `SecondaryScreen*` hosts also hide the hosting activity's leftover AppCompat `ActionBar`
+(legacy `AppTheme`), so only the Compose `TopAppBar` shows — otherwise the migrated screens would
+render two bars.
 
 **Pass 2 — done (trivial standalone screens).** Same in-place hosting. Migrated: `Agreement`
 (first-run warning gate), `CalibrationCheckInActivity`, `CalibrationOverride`,
@@ -292,12 +295,53 @@ type/email dialogs; toasts, persisted contact and OkHttp upload kept in the acti
 layouts deleted. `PrefsView*` still used by `NumberWallPreview` (snapping wrappers) besides `Home`,
 `BackupActivity` and `EmergencyAssistActivity`.
 
-**Remaining:** `ErrorsActivity`, `FollowerManagementActivity`, `AlertList` + `EditAlertActivity`,
-`ProfileEditor`, `BasalProfileEditor`, `SdcardImportExport`, `BTGlucoseMeterActivity`, plus the
-app-wide/drawer surfaces and the Data-Binding / `NanoStatus` group (`EventLogActivity`,
-`NoteSearch`, `PhoneKeypadInputActivity`, `MegaStatus`, `ThinJamActivity`). The `PrefsView*` bridge
-retires once its remaining users (`Home`, `BackupActivity`, `EmergencyAssistActivity`,
-`NumberWallPreview`) move.
+**Pass 7 — done (remaining AAR-free secondary screens; plan
+[`1790895635715-aar-free-secondary-compose`](../../.kilo/plans/1790895635715-aar-free-secondary-compose.md)).**
+Every remaining legacy secondary screen that does **not** depend on a bundled AAR was migrated
+in-place via `SecondaryScreen`, in four ordered sub-passes:
+
+- **Pass A — Data & admin:** `ImportDatabaseActivity` (warning gate + database list + result),
+  `SdcardImportExport` (save/load/delete settings file; public statics kept), `BTGlucoseMeterActivity`
+  (scan status/list, tap-to-connect, long-press disconnect/forget; BT + `LocalBroadcastManager`
+  receiver kept) and `UpdateActivity` (channel/detail, download, auto-update/internal-downloader
+  switches, progress; HTTP/APK-install/`PendingIntent` contract kept). Layouts
+  `activity_import_db`, `import_db_warning`, `activity_sdcard_import_export`,
+  `activity_btglucose_meter`, `activity_update` deleted. `listitem_device.xml` was **kept** — the
+  AAR-blocked `BluetoothScan` still inflates it.
+- **Pass B — Logs, tables & input:** `ErrorsActivity` (severity filters, auto-refresh,
+  keep-screen-on, log packaging kept), `EventLogActivity` (streaming refresh, search filter,
+  severity filter, TOP/upload/save; the `ViewModel` observable lists are bridged, Data Binding +
+  `MergeObservableList` adapter removed), `BgReadingTable`/`CalibrationDataTable` (migrated to
+  `SecondaryScreen` without the drawer; new **Your Data → BG readings / Calibration data** rows
+  gated by the existing `show_data_tables` pref keep them reachable) and `PhoneKeypadInputActivity`
+  (custom keypad replaced by a system-keyboard M3 form with an insulin/carbs/blood-test/time
+  segmented control and up-to-three insulin profiles; `WEARABLE_VOICE_PAYLOAD` submit contract and
+  `phone-keypad-treatment-last-tab` persistence preserved). New non-scrolling list scaffold
+  `SecondaryScreenList`. Layouts `activity_errors`, `activity_event_log`, `item_event_log`,
+  `item_user_error`, `raw_data_list`, `raw_data_list_item`, `keypad_activity_phone` and
+  `ErrorListAdapter`/`menu_eventlog_activity` deleted.
+- **Pass C — Alerts:** `AlertList` (low/high rows, add buttons, long-press edit) and
+  `EditAlertActivity` (threshold/tone/snooze/reraise/time/all-day/vibrate/override-silent/
+  force-speaker/disable; M3 snooze + tone dialogs replace the NumberPicker/`snooze_picker`
+  usage). All validation, overlap rules and side effects kept; public statics
+  `unitsConvert2Disp`/`timeFormatString`/`shortPath` preserved. Layouts `activity_alert_list`,
+  `row_alerts`, `activity_edit_alert` deleted. `snooze_picker.xml` +
+  `SnoozeActivity.SetSnoozePickerValues` and `DatePickerFragment`/`TimePickerFragment` are **kept**
+  for the AAR-blocked `Reminders`.
+- **Dead-code removal:** `FollowerManagementActivity` (+ `FollowerListAdapter`, layouts, manifest),
+  `tables/SensorDataTable` (manifest), `languageeditor/LanguageEditor` (+ orphaned
+  `LanguageAdapter`/`LanguageItem`/`LanguageStore`, layouts, manifest) deleted. **Kept
+  deliberately:** `HelpActivity` (live caller in the Compose About screen, despite the plan),
+  `ShareTest` (its type is an overload of `ReadDataShare`, used by `DexShareCollectionService`) and
+  the `.AndroidURationaleActivity` `<activity-alias>` (the plan's "missing class" premise was wrong:
+  it is a valid alias to the declared `HealthPrivacy`).
+
+**Deferred (AAR-blocked, unchanged):** `ProfileEditor`, `BasalProfileEditor`, `Home`, charts
+(`BGHistory`, `CalibrationGraph`, `LibreTrendGraph`, `StatsActivity`, `BasalChart`), `Reminders`,
+`MegaStatus`, `BluetoothScan`, `NoteSearch`, `ThinJamActivity`, Pebble installers. `NoteSearch`
+and `MegaStatus` remain the last `PrefsView*` users besides `Home` (and `BackupActivity`/
+`EmergencyAssistActivity`/`NumberWallPreview` for the snapping wrappers). `localeTasker/ui/EditActivity`
+(Tasker plugin form) is the optional Pass D and is not migrated yet.
 
 
 ---
@@ -345,6 +389,7 @@ Run independently; repeat per category. Legend: **Ready** = applicable now.
 | V4 Track V rich Medium | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V5 Track V sensor/calibration forms | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | V6 Track V admin quick wins | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| V7 Track V AAR-free secondary | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 (H = search and J = retirement are app-wide and tracked above.)
 

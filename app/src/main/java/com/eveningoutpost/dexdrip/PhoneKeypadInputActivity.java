@@ -2,24 +2,18 @@ package com.eveningoutpost.dexdrip;
 
 import static com.eveningoutpost.dexdrip.Home.startHomeWithExtra;
 
-import android.app.AlertDialog;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import com.eveningoutpost.dexdrip.models.JoH;
-import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
-import com.eveningoutpost.dexdrip.utilitymodels.Pref;
+import androidx.databinding.ObservableField;
+
 import com.eveningoutpost.dexdrip.insulin.Insulin;
 import com.eveningoutpost.dexdrip.insulin.InsulinManager;
 import com.eveningoutpost.dexdrip.insulin.MultipleInsulins;
+import com.eveningoutpost.dexdrip.models.JoH;
+import com.eveningoutpost.dexdrip.ui.secondary.PhoneKeypadScreen;
+import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
+import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 
 import java.text.DecimalFormat;
@@ -34,278 +28,59 @@ import java.util.Map;
  * <p/>
  * Confirmed as in the public domain by Kartik Arora who also maintains the
  * Potato Library: http://kartikarora.me/Potato-Library
+ *
+ * Track V (Compose): the custom numeric keypad is replaced by a Material 3 form using the system
+ * keyboard. The submit contract is preserved: the activity builds a treatment string and calls
+ * {@code Home.startHomeWithExtra(this, WatchUpdaterService.WEARABLE_VOICE_PAYLOAD, mystring)}. The
+ * tab semantics (insulin/carbs/blood-test/time, up to three insulin profiles) and the
+ * `phone-keypad-treatment-last-tab` persistence are retained.
  */
 
 // jamorham xdrip plus
 
-public class PhoneKeypadInputActivity extends BaseActivity {
-
-    private TextView mDialTextView;
-    private Button zeroButton, oneButton, twoButton, threeButton, fourButton, fiveButton,
-            sixButton, sevenButton, eightButton, nineButton, starButton, backSpaceButton, multiButton1, multiButton2, multiButton3;
-    private ImageButton callImageButton, backspaceImageButton, insulintabbutton, carbstabbutton,
-            bloodtesttabbutton, timetabbutton, speakbutton;
+public class PhoneKeypadInputActivity extends BaseAppCompatActivity {
 
     private static String currenttab = "insulin-1";
     private static final String LAST_TAB_STORE = "phone-keypad-treatment-last-tab";
     private static final String TAG = "KeypadInput";
     private static Map<String, String> values = new HashMap<String, String>();
     private String bgUnits;
-    private Insulin insulinProfile1 = null;
-    private Insulin insulinProfile2 = null;
-    private Insulin insulinProfile3 = null;
-    private LinearLayout insulinTypesSection = null;
+    private final Insulin insulinProfile1;
+    private final Insulin insulinProfile2;
+    private final Insulin insulinProfile3;
 
     private final boolean multipleInsulins = MultipleInsulins.isEnabled();
+
+    /** Compose bridge. */
+    public final ObservableField<Integer> tick = new ObservableField<>(0);
+
+    public PhoneKeypadInputActivity() {
+        insulinProfile1 = InsulinManager.getProfile(0);
+        insulinProfile2 = InsulinManager.getProfile(1);
+        insulinProfile3 = InsulinManager.getProfile(2);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.keypad_activity_phone);
-        DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-        int width = dm.widthPixels;
-        int height = dm.heightPixels;
-        final int refdpi = 320;
-        Log.d(TAG, "Width height: " + width + " " + height + " DPI:" + dm.densityDpi);
-        getWindow().setLayout((int) Math.min(((520 * dm.densityDpi) / refdpi), width), (int) Math.min((650 * dm.densityDpi) / refdpi, height));
-        getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        WindowManager.LayoutParams lp = getWindow().getAttributes();
-        lp.dimAmount = 0.5f;
-
-        insulinProfile1 = InsulinManager.getProfile(0);
-        insulinProfile2 = InsulinManager.getProfile(1);
-        insulinProfile3 = InsulinManager.getProfile(2);
-
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-
-        mDialTextView = (TextView) findViewById(R.id.dialed_no_textview);
-        zeroButton = (Button) findViewById(R.id.zero_button);
-        oneButton = (Button) findViewById(R.id.one_button);
-        twoButton = (Button) findViewById(R.id.two_button);
-        threeButton = (Button) findViewById(R.id.three_button);
-        fourButton = (Button) findViewById(R.id.four_button);
-        fiveButton = (Button) findViewById(R.id.five_button);
-        sixButton = (Button) findViewById(R.id.six_button);
-        sevenButton = (Button) findViewById(R.id.seven_button);
-        eightButton = (Button) findViewById(R.id.eight_button);
-        nineButton = (Button) findViewById(R.id.nine_button);
-        starButton = (Button) findViewById(R.id.star_button);
-        backSpaceButton = (Button) findViewById(R.id.backspace_button);
-        insulinTypesSection = (LinearLayout) findViewById(R.id.insulinTypesSection);
-        multiButton1 = (Button) findViewById(R.id.multi_button1);
-        multiButton2 = (Button) findViewById(R.id.multi_button2);
-        multiButton3 = (Button) findViewById(R.id.multi_button3);
-        // callImageButton = (ImageButton) stub.findViewById(R.id.call_image_button);
-        // backspaceImageButton = (ImageButton) stub.findViewById(R.id.backspace_image_button);
-
-        insulintabbutton = (ImageButton) findViewById(R.id.insulintabbutton);
-        bloodtesttabbutton = (ImageButton) findViewById(R.id.bloodtesttabbutton);
-        timetabbutton = (ImageButton) findViewById(R.id.timetabbutton);
-        carbstabbutton = (ImageButton) findViewById(R.id.carbstabbutton);
-        speakbutton = (ImageButton) findViewById(R.id.btnKeypadSpeak);
-
-        mDialTextView.setText("");
-
-        mDialTextView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                submitAll();
-            }
-        });
-
-        zeroButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("0");
-            }
-        });
-
-        //zeroButton.setOnLongClickListener(new View.OnLongClickListener() {
-        //    @Override
-        //    public boolean onLongClick(View v) {
-        //        mDialTextView.setText(mDialTextView.getText() + "+");
-        //        return true;
-        //    }
-        //});
-
-        oneButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("1");
-            }
-        });
-
-        twoButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("2");
-            }
-        });
-
-        threeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("3");
-            }
-        });
-
-        fourButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("4");
-            }
-        });
-
-        fiveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("5");
-            }
-        });
-
-        sixButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("6");
-            }
-        });
-
-        sevenButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("7");
-            }
-        });
-
-        eightButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("8");
-            }
-        });
-
-        nineButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appCurrent("9");
-            }
-        });
-
-        multiButton1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currenttab = currenttab.split("-")[0] + "-1";
-                updateTab();
-            }
-        });
-
-        multiButton2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currenttab = currenttab.split("-")[0] + "-2";
-                updateTab();
-            }
-        });
-
-        multiButton3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currenttab = currenttab.split("-")[0] + "-3";
-                updateTab();
-            }
-        });
-
-        starButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!getValue(currenttab).contains(".")) appCurrent(".");
-            }
-        });
-
-        speakbutton.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        startHomeWithExtra(getApplicationContext(), Home.START_SPEECH_RECOGNITION, "ok");
-                        finish();
-                    }
-                });
-        speakbutton.setOnLongClickListener(
-                new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        startHomeWithExtra(getApplicationContext(), Home.START_TEXT_RECOGNITION, "ok");
-                        finish();
-                        return true;
-                    }
-                });
-
-        //hashButton.setOnClickListener(new View.OnClickListener() {
-        //    @Override
-        //    public void onClick(View v) {
-        //        mDialTextView.setText(mDialTextView.getText() + "#");
-        //    }
-        //});
-
-        backSpaceButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appBackSpace();
-            }
-        });
-        backSpaceButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                values.put(currenttab, "");
-                updateTab();
-                return true;
-            }
-        });
-
-        bloodtesttabbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currenttab = "bloodtest";
-                updateTab();
-            }
-        });
-        insulintabbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currenttab = "insulin-1";
-                updateTab();
-            }
-        });
-        carbstabbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currenttab = "carbs";
-                updateTab();
-            }
-        });
-        timetabbutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                currenttab = "time";
-                updateTab();
-            }
-        });
-
         if (Pref.getString("units", "mgdl").equals("mgdl")) {
             bgUnits = "mg/dl";
         } else {
             bgUnits = "mmol/l";
         }
-        updateTab();
+        PhoneKeypadScreen.installPhoneKeypad(this);
+    }
+
+    public void notifyChanged() {
+        final Integer current = tick.get();
+        tick.set((current == null ? 0 : current) + 1);
     }
 
     public static void resetValues() {
         values = new HashMap<String, String>();
     }
 
-    private static String getValue(String tab) {
+    public static String getValue(String tab) {
         if (values.containsKey(tab)) {
             return values.get(tab);
         } else {
@@ -319,30 +94,99 @@ public class PhoneKeypadInputActivity extends BaseActivity {
         return values.get(tab);
     }
 
-    private static String appendCurrent(String append) {
-        String cval = getValue(currenttab);
-        if (cval.length() < 6) {
-            if ((cval.length() == 0) && (append.equals("."))) append = "0.";
-            return appendValue(currenttab, append);
-        } else {
-            return cval;
+    public boolean isMultipleInsulins() {
+        return multipleInsulins;
+    }
+
+    public String getCurrentTab() {
+        return currenttab;
+    }
+
+    public void setCurrentTab(String tab) {
+        currenttab = snapTab(tab);
+        notifyChanged();
+    }
+
+    private String snapTab(String tab) {
+        if (!multipleInsulins && ("insulin-2".equals(tab) || "insulin-3".equals(tab))) {
+            return "insulin-1";
         }
+        if ("insulin-2".equals(tab) && insulinProfile2 == null) return "insulin-1";
+        if ("insulin-3".equals(tab) && insulinProfile3 == null) return "insulin-1";
+        return tab;
     }
 
-    private void appCurrent(String append) {
-        appendCurrent(append);
-        updateTab();
+    public String getCurrentValue() {
+        return getValue(currenttab);
     }
 
-    private void appBackSpace() {
-        String cval = getValue(currenttab);
-        if (cval.length() > 0) {
-            values.put(currenttab, cval.substring(0, cval.length() - 1));
+    public String getSuffix() {
+        switch (currenttab.split("-")[0]) {
+            case "insulin":
+                String profile = "";
+                if (multipleInsulins && currenttab.contains("-")) {
+                    final Insulin insulin = insulinProfile(Integer.parseInt(currenttab.split("-")[1]));
+                    if (insulin != null) profile = " " + insulin.getName();
+                }
+                return " " + getString(R.string.units) + profile;
+            case "carbs":
+                return " g " + getString(R.string.carbs);
+            case "bloodtest":
+                return " " + bgUnits;
+            case "time":
+                return " " + getString(R.string.when);
         }
-        updateTab();
+        return "";
     }
 
-    private boolean isNonzeroValueInTab(String tab)
+    private Insulin insulinProfile(int index) {
+        switch (index) {
+            case 1: return insulinProfile1;
+            case 2: return insulinProfile2;
+            case 3: return insulinProfile3;
+        }
+        return null;
+    }
+
+    /** Profile name for the insulin profile selector (1..3), or null if absent. */
+    public String getInsulinProfileName(int index) {
+        final Insulin insulin = insulinProfile(index);
+        return insulin == null ? null : insulin.getName();
+    }
+
+    public int getActiveInsulinProfile() {
+        if (currenttab.contains("-")) {
+            try {
+                return Integer.parseInt(currenttab.split("-")[1]);
+            } catch (NumberFormatException e) {
+                return 1;
+            }
+        }
+        return 1;
+    }
+
+    public void selectInsulinProfile(int index) {
+        setCurrentTab("insulin-" + index);
+    }
+
+    /** Sets the value of the current tab from the system-keyboard text field. */
+    public void setCurrentValue(String input) {
+        String filtered = input == null ? "" : input.replaceAll("[^0-9.]", "");
+        final int dot = filtered.indexOf('.');
+        if (dot >= 0) {
+            filtered = filtered.substring(0, dot + 1) + filtered.substring(dot + 1).replace(".", "");
+        }
+        if (filtered.length() > 6) filtered = filtered.substring(0, 6);
+        values.put(currenttab, filtered);
+        notifyChanged();
+    }
+
+    public void clearCurrentValue() {
+        values.put(currenttab, "");
+        notifyChanged();
+    }
+
+    public boolean isNonzeroValueInTab(String tab)
     {
         try
         {
@@ -351,7 +195,15 @@ public class PhoneKeypadInputActivity extends BaseActivity {
         catch(NumberFormatException e) { return false; }
     }
 
-    private boolean isInvalidTime() {
+    public boolean hasAnyValue() {
+        return isNonzeroValueInTab("bloodtest")
+                || isNonzeroValueInTab("carbs")
+                || isNonzeroValueInTab("insulin-1")
+                || isNonzeroValueInTab("insulin-2")
+                || isNonzeroValueInTab("insulin-3");
+    }
+
+    public boolean isInvalidTime() {
         String timeValue = getValue("time");
         if (timeValue.length() == 0) return false; // No time value has been entered.  Then, there is nothing to reject.
 
@@ -374,7 +226,7 @@ public class PhoneKeypadInputActivity extends BaseActivity {
         }
     }
 
-    private void submitAll() {
+    public void submitAll() {
 
         boolean nonzeroBloodValue = isNonzeroValueInTab("bloodtest");
         boolean nonzeroCarbsValue = isNonzeroValueInTab("carbs");
@@ -390,11 +242,6 @@ public class PhoneKeypadInputActivity extends BaseActivity {
         }
 
         if (isInvalidTime()) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Invalid time")
-                    .setMessage("Please enter a valid time or clear the time tab.")
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show();
             return;
         }
 
@@ -438,125 +285,28 @@ public class PhoneKeypadInputActivity extends BaseActivity {
             mystring += df.format(units) + " units ";
 
         if (mystring.length() > 1) {
-            //SendData(this, WEARABLE_VOICE_PAYLOAD, mystring.getBytes(StandardCharsets.UTF_8));
             resetValues();
-            //WatchUpdaterService.receivedText(this, mystring); // reuse watch handling function to send data to home
             startHomeWithExtra(this, WatchUpdaterService.WEARABLE_VOICE_PAYLOAD, mystring); // send data to home directly
             finish();
         }
     }
 
-    private void updateTab() {
-
-        final int offColor = Color.DKGRAY;
-        final int onColor = Color.RED;
-
-        insulintabbutton.setBackgroundColor(offColor);
-        carbstabbutton.setBackgroundColor(offColor);
-        timetabbutton.setBackgroundColor(offColor);
-        bloodtesttabbutton.setBackgroundColor(offColor);
-        insulinTypesSection.setVisibility(multipleInsulins ? View.VISIBLE : View.GONE);
-        multiButton1.setBackgroundColor(offColor);
-        multiButton2.setBackgroundColor(offColor);
-        multiButton3.setBackgroundColor(offColor);
-        multiButton1.setVisibility(View.INVISIBLE);
-        multiButton2.setVisibility(View.INVISIBLE);
-        multiButton3.setVisibility(View.INVISIBLE);
-        multiButton1.setEnabled(false);
-        multiButton2.setEnabled(false);
-        multiButton3.setEnabled(false);
-
-        String append = "";
-        switch (currenttab.split("-")[0]) {
-            case "insulin":
-                insulintabbutton.setBackgroundColor(onColor);
-                String insulinprofile = "";
-                if (insulinProfile1 != null) {
-                    multiButton1.setText(insulinProfile1.getName());
-                    multiButton1.setEnabled(true);
-                    multiButton1.setVisibility(View.VISIBLE);
-                } else
-                    multiButton1.setText("");
-                if (insulinProfile2 != null)
-                {
-                    multiButton2.setText(insulinProfile2.getName());
-                    multiButton2.setEnabled(true);
-                    multiButton2.setVisibility(View.VISIBLE);
-                } else
-                    multiButton2.setText("");
-                if (insulinProfile3 != null)
-                {
-                    multiButton3.setText(insulinProfile3.getName());
-                    multiButton3.setEnabled(true);
-                    multiButton3.setVisibility(View.VISIBLE);
-                } else
-                    multiButton3.setText("");
-                String multibutton = "";
-                if (currenttab.contains("-"))
-                    multibutton = currenttab.split("-")[1];
-                switch (multibutton) {
-                    case "1":
-                        multiButton1.setBackgroundColor(onColor);
-                        insulinprofile = insulinProfile1.getName();
-                        break;
-                    case "2":
-                        multiButton2.setBackgroundColor(onColor);
-                        if (insulinProfile2 == null)
-                        {
-                            currenttab = "insulin-1";
-                            updateTab();
-                        } else
-                            insulinprofile = insulinProfile2.getName();
-                        break;
-                    case "3":
-                        multiButton3.setBackgroundColor(onColor);
-                        if (insulinProfile3 == null)
-                        {
-                            currenttab = "insulin-2";
-                            updateTab();
-                        } else
-                            insulinprofile = insulinProfile3.getName();
-                        break;
-                }
-                append = " " +  getString(R.string.units) + (multipleInsulins ? (" " + insulinprofile) : "");
-                break;
-            case "carbs":
-                carbstabbutton.setBackgroundColor(onColor);
-                append = " g " + getString(R.string.carbs);
-                break;
-            case "bloodtest":
-                bloodtesttabbutton.setBackgroundColor(onColor);
-                append = " " + bgUnits;
-                break;
-            case "time":
-                timetabbutton.setBackgroundColor(onColor);
-                append = " " + getString(R.string.when);
-                break;
-        }
-        String value = getValue(currenttab);
-        mDialTextView.setText(value + append);
-        // show green tick if any treatment tab has data
-        boolean showSubmitButton = isNonzeroValueInTab("bloodtest")
-                || isNonzeroValueInTab("carbs")
-                || isNonzeroValueInTab("insulin-1")
-                || isNonzeroValueInTab("insulin-2")
-                || isNonzeroValueInTab("insulin-3");
-
-        mDialTextView.getBackground().setAlpha(showSubmitButton ? 255 : 0);
+    public void startSpeechRecognition() {
+        startHomeWithExtra(getApplicationContext(), Home.START_SPEECH_RECOGNITION, "ok");
+        finish();
     }
 
+    public void startTextRecognition() {
+        startHomeWithExtra(getApplicationContext(), Home.START_TEXT_RECOGNITION, "ok");
+        finish();
+    }
 
     @Override
     protected void onResume() {
         final String savedtab = PersistentStore.getString(LAST_TAB_STORE);
         if (savedtab.length() > 0) currenttab = savedtab;
-        if (!multipleInsulins) {
-            // snap back to insulin-1 tab if we have saved position on multiple insulins tabs
-            if (currenttab.equals("insulin-2") || currenttab.equals("insulin-3")) {
-                currenttab = "insulin-1";
-            }
-        }
-        updateTab();
+        currenttab = snapTab(currenttab);
+        notifyChanged();
         super.onResume();
     }
 

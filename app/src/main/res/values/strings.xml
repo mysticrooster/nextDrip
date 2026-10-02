@@ -324,9 +324,7 @@
     <string name="extra_status_line">Extra Status Line</string>
     <string name="dexcom_share_server_upload">Dex Share</string>
     <string name="upload_data_to_dex_servers">Upload data to Dex Share Servers</string>
-    <string name="manage_followers">Manage Followers</string>
     <string name="manage_existing_followers">Manage your existing followers and invite new ones.</string>
-    <string name="invite_follower">Invite a Follower</string>
     <string name="glucose_calibration_and_other_alerts">Glucose, Calibration and Other alerts</string>
     <string name="alert_volume_profile">Alert Volume Profile</string>
     <string name="smart_alerting">Smart Alerting</string>
@@ -406,7 +404,6 @@
     <string name="in_order_to_get_started_please_perform_two_finger">In order to get started, please perform one or two finger prick tests and enter the values here!</string>
     <string name="enter_first_bg_value">Enter First BG Value</string>
     <string name="enter_second_bg_value">Enter Second BG Value</string>
-    <string name="language_editor">Language Editor</string>
     <string name="configure_missed_readings">Missed readings</string>
     <string name="install_pebble_snooze_control_app">Install Pebble Snooze Control App</string>
     <string name="install_pebble_classic_trend_watchface">Install Pebble Classic Trend Watchface</string>
@@ -414,7 +411,6 @@
     <string name="install_pebble_watchface">Install Pebble Watchface</string>
     <string name="glucose_history">Glucose History</string>
     <string name="import_database">Restore Database</string>
-    <string name="sensor_table">Sensor Table</string>
     <string name="bg_readings_table">BG Readings Table</string>
     <string name="long_press_to_split_or_delete">Long Press to Split or Delete</string>
     <string name="press_and_hold_on_the_background_to_split_or_delete">Press and Hold on the background to Split or Delete a time block</string>
@@ -1336,7 +1332,6 @@
     <string name="sync_treatments">Sync Treatments</string>
     <string name="send_bg_readings_to_backfill">Send BG readings to backfill</string>
     <string name="view_old_error_log">View old Error Log</string>
-    <string name="return_to_home_screen">Return to Home Screen</string>
 
     <string name="title_broadcast_service_api">Broadcast Service API</string>
     <string name="summary_broadcast_service_api">Enables xDrip communication with third-party applications by using new API</string>
@@ -1638,10 +1633,6 @@
     <string name="calibration_graph_no_calibration">calibration graph (no calibration)</string>
     <string name="calibration_plugin_header">calibration plugin header</string>
     <string name="usb_device_was_not_recognized">USB device was not recognized</string>
-    <string name="followers_name">Followers Name:</string>
-    <string name="your_display_name">Your display name:</string>
-    <string name="followers_email">Followers Email:</string>
-    <string name="send_invite">Send Invite</string>
     <string name="description_sensor_location">In the future xDrip would like to send anonymous sensor data to the developers to improve the calibration algorithm... If you decide to opt-in, you will be asked to confirm before each data transfer. Data will never be sent without your permission. To help us understand and fine-tune the calibration we would like to know where this sensor has been placed. Press the back button to cancel.</string>
     <string name="save_sensor_location">Save sensor location</string>
     <string name="alerts">Alerts</string>
@@ -1654,7 +1645,6 @@
     <string name="sensor_start">Sensor Start:</string>
     <string name="plug_in_your_dexcom_reciever">Plug in your Dexcom receiver then hit this button and cross your fingers!</string>
     <string name="check_in_dexcom_calibrations">Check in Dexcom calibrations</string>
-    <string name="progress">progress</string>
     <string name="bluetooth_device">Bluetooth Device:   </string>
     <string name="transmitter_battery_status">Transmitter Battery:  </string>
     <string name="database_size">Database Size:  </string>
@@ -1764,8 +1754,6 @@
     <string name="remote_snooze">Remote snooze...</string>
     <string name="sensor_stopped">Sensor stopped</string>
     <string name="restarting_collector">Restarting Collector!</string>
-    <string name="follower_deleted_succesfully">Follower deleted successfully</string>
-    <string name="failed_to_delete_follower">Failed to delete follower</string>
     <string name="input_not_found_cancelled">Input not found! Cancelled!</string>
     <string name="cancelled">Cancelled!</string>
     <string name="no_sensor_found">No sensor found</string>

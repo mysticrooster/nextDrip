@@ -1,7 +1,6 @@
 package com.eveningoutpost.dexdrip;
 
 import android.content.Intent;
-import android.widget.EditText;
 
 import androidx.preference.PreferenceManager;
 
@@ -99,9 +98,7 @@ public class EditAlertActivityPreferencesTest extends RobolectricTestWithConfig 
         Intent intent = new Intent(xdrip.getAppContext(), EditAlertActivity.class)
                 .putExtra("uuid", ALERT_UUID);
         EditAlertActivity activity = Robolectric.buildActivity(EditAlertActivity.class, intent).create().get();
-        EditText threshold = activity.findViewById(R.id.edit_alert_threshold);
-        assertThat(threshold).isNotNull();
-        return threshold.getText().toString();
+        return activity.thresholdText.get();
     }
 
     private void storeUnits(String units) {

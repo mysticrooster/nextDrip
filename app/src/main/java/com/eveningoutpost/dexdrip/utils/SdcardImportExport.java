@@ -20,6 +20,7 @@ import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.models.AlertType;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.ui.secondary.SdcardImportExportScreen;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.xdrip;
 
@@ -73,15 +74,15 @@ public class SdcardImportExport extends BaseAppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         //activity = this;
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sdcard_import_export);
-        JoH.fixActionBar(this);
 
         // SUPER DATABASE DEBUG COPY FOR NON ROOTED
         //directCopyFile(new File("/data/data/com.eveningoutpost.dexdrip/databases/DexDrip.db"),new File("/sdcard/DexDrip-debug.db"));
         if (getIntent().getStringExtra("backup") != null) {
             savePreferencesToSD(null);
             finish();
+            return;
         }
+        SdcardImportExportScreen.installSdcardImportExport(this);
     }
 
     private boolean checkPermissions() {
@@ -455,10 +456,6 @@ public class SdcardImportExport extends BaseAppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Couldn't display toast: " + msg);
         }
-    }
-
-    public void closeButton(View myview) {
-        finish();
     }
 
 }

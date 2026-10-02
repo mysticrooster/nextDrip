@@ -3,9 +3,7 @@ package com.eveningoutpost.dexdrip;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -15,17 +13,14 @@ import android.os.Handler;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.databinding.ObservableField;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
 import com.eveningoutpost.dexdrip.models.JoH;
+import com.eveningoutpost.dexdrip.ui.secondary.ImportDbScreen;
 import com.eveningoutpost.dexdrip.utilitymodels.CollectionServiceStarter;
 import com.eveningoutpost.dexdrip.utils.DatabaseUtil;
 import com.eveningoutpost.dexdrip.utils.FileUtils;
-import com.eveningoutpost.dexdrip.utils.ListActivityWithMenu;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 
 import java.io.BufferedInputStream;
@@ -37,12 +32,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static com.eveningoutpost.dexdrip.Home.startWatchUpdaterService;
 
-public class ImportDatabaseActivity extends ListActivityWithMenu {
+public class ImportDatabaseActivity extends BaseAppCompatActivity {
     private final static String TAG = ImportDatabaseActivity.class.getSimpleName();
     public static String menu_name = "Import Database";
     private Handler mHandler;
@@ -50,21 +46,32 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
     private ArrayList<File> databases;
     private final static int MY_PERMISSIONS_REQUEST_STORAGE = 132;
 
+    /** Compose bridge: bumped whenever the screen-visible state changes. */
+    public final ObservableField<Integer> tick = new ObservableField<>(0);
+    public final ObservableField<Boolean> showWarning = new ObservableField<>(true);
+    public final ObservableField<String> resultMessage = new ObservableField<>((String) null);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.OldAppTheme); // or null actionbar
         super.onCreate(savedInstanceState);
         mHandler = new Handler();
-        setContentView(R.layout.activity_import_db);
         final String importit = getIntent().getStringExtra("importit");
         if ((importit != null) && (importit.length() > 0)) {
+            showWarning.set(false);
             importDB(new File(importit), this);
-        } else {
-            showWarningAndInstructions();
         }
+        ImportDbScreen.installImportDb(this);
     }
 
-    private void generateDBGui() {
+    /** Nudges the Compose screen to recompute its state. */
+    public void notifyChanged() {
+        final Integer current = tick.get();
+        tick.set((current == null ? 0 : current) + 1);
+    }
+
+    public void generateDBGui() {
+        showWarning.set(false);
+        notifyChanged();
         int permissionCheck = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED && findAllDatabases()) {
@@ -78,23 +85,6 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
         } else {
             postImportDB("\'xdrip\' is not a directory... aborting.");
         }
-    }
-
-    private void showWarningAndInstructions() {
-        LayoutInflater inflater= LayoutInflater.from(this);
-        View view=inflater.inflate(R.layout.import_db_warning, null);
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
-        alertDialog.setTitle("Restore Instructions");
-        alertDialog.setView(view);
-        alertDialog.setCancelable(false);
-        alertDialog.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                generateDBGui();
-            }
-        });
-        AlertDialog alert = alertDialog.create();
-        alert.show();
     }
 
     private void sortDatabasesAlphabetically() {
@@ -142,14 +132,20 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
         for (File db : databases) {
             databaseNames.add(db.getName());
         }
-
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, databaseNames);
-        setListAdapter(adapter);
+        notifyChanged();
 
         if (databaseNames.size() == 0) {
             postImportDB("No databases found.");
         }
+    }
+
+    public List<String> getDatabaseNamesSnapshot() {
+        return databaseNames == null ? Collections.<String>emptyList() : new ArrayList<>(databaseNames);
+    }
+
+    public String databaseNameAt(int position) {
+        return (databases != null && position >= 0 && position < databases.size())
+                ? databases.get(position).getName() : "";
     }
 
     private void addAllDatabases(File file, ArrayList<File> databases) {
@@ -162,38 +158,6 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
         if ((databases != null) && (files != null)) {
             Collections.addAll(databases, files);
         }
-    }
-
-    @Override
-    protected void onListItemClick(ListView l, View v, final int position, long id) {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                importDB(position);
-            }
-        });
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                //do nothing
-            }
-        });
-        builder.setTitle("Confirm Import");
-        builder.setMessage("Do you really want to import '" + databases.get(position).getName() + "'?\n This may negatively affect the data integrity of your system!");
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    public String getMenuName() {
-        return menu_name;
     }
 
     @Override
@@ -214,7 +178,7 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
     }
 
 
-    private void importDB(int position) {
+    public void importDB(int position) {
         importDB(databases.get(position), this);
     }
 
@@ -234,21 +198,11 @@ public class ImportDatabaseActivity extends ListActivityWithMenu {
 
         startWatchUpdaterService(this, WatchUpdaterService.ACTION_RESET_DB, TAG);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                returnToHome();
-            }
-        });
-        builder.setTitle("Import Result");
-        builder.setMessage(result);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-
+        resultMessage.set(result);
+        notifyChanged();
     }
 
-    private void returnToHome() {
+    public void returnToHome() {
         Intent intent = new Intent(this, Home.class);
         CollectionServiceStarter.restartCollectionService(getApplicationContext());
         startActivity(intent);

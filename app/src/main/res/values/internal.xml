@@ -27,24 +27,10 @@
     <string name="prev_arrow" translatable="false"><![CDATA[<<]]></string>
     <string name="next_arrow" translatable="false"><![CDATA[>>]]></string>
 
-    <string name="zero" translatable="false">0</string>
-    <string name="one" translatable="false">1</string>
-    <string name="two" translatable="false">2</string>
-    <string name="three" translatable="false">3</string>
-    <string name="four" translatable="false">4</string>
-    <string name="five" translatable="false">5</string>
-    <string name="six" translatable="false">6</string>
-    <string name="seven" translatable="false">7</string>
-    <string name="eight" translatable="false">8</string>
-    <string name="nine" translatable="false">9</string>
-    <string name="star" translatable="false">*</string>
-    <string name="mdot" translatable="false">.</string>
-    <string name="hash" translatable="false">#</string>
     <string name="gcmtpc" translatable="false">/topics/</string>
     <string name="gcmtpcs" translatable="false">/topics/</string>
     <string name="gcmstpcs" translatable="false">/topics/</string>
     <string name="tick" translatable="false">\u2713</string>
-    <string name="backarrow" translatable="false">\u2190</string>
     <string name="call">Call</string>
 
     <string name="appwidget_text" translatable="false">EXAMPLE</string>

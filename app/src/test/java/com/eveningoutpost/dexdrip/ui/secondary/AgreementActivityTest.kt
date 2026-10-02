@@ -24,6 +24,11 @@ class AgreementActivityTest {
     val composeRule = createAndroidComposeRule<Agreement>()
 
     @Test
+    fun legacyActionBarIsHiddenByHostScaffold() {
+        assertThat(composeRule.activity.supportActionBar?.isShowing).isNotEqualTo(true)
+    }
+
+    @Test
     fun saveWritesPrefAndStartsHome() {
         Pref.setBoolean(Agreement.prefmarker, false)
 

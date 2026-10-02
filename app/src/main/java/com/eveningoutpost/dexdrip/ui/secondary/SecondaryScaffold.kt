@@ -1,6 +1,9 @@
 package com.eveningoutpost.dexdrip.ui.secondary
 
+import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.Configuration
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -20,10 +23,31 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import com.eveningoutpost.dexdrip.ui.theme.XdripPreview
 import com.eveningoutpost.dexdrip.ui.theme.XdripTheme
+
+private tailrec fun Context.findHostActivity(): AppCompatActivity? = when (this) {
+    is AppCompatActivity -> this
+    is ContextWrapper -> baseContext.findHostActivity()
+    else -> null
+}
+
+/**
+ * Removes the legacy AppCompat `ActionBar` left over from the pre-Compose theme so the Compose
+ * `TopAppBar` is the only bar. No-op under a NoActionBar theme or in `@Preview`.
+ */
+@Composable
+private fun HideLegacyActionBar() {
+    val context = LocalContext.current
+    DisposableEffect(context) {
+        context.findHostActivity()?.supportActionBar?.hide()
+        onDispose { }
+    }
+}
 
 /**
  * Shared scaffold for the migrated secondary views (Track V).
@@ -40,6 +64,7 @@ fun SecondaryScreen(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     XdripTheme {
+        HideLegacyActionBar()
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Scaffold(
                 topBar = {
@@ -69,6 +94,46 @@ fun SecondaryScreen(
 }
 
 /**
+ * Like [SecondaryScreen] but with a non-scrolling [Column] content area, for screens that host
+ * their own scrollable list (`LazyColumn`) so it can claim the remaining height with `weight`.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SecondaryScreenList(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    XdripTheme {
+        HideLegacyActionBar()
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(title) },
+                        navigationIcon = {
+                            IconButton(onClick = onBack) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back",
+                                )
+                            }
+                        },
+                    )
+                },
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    content = content,
+                )
+            }
+        }
+    }
+}
+
+/**
  * Like [SecondaryScreen] but with a non-scrolling [Box] content area, for screens that render a
  * full-size surface (e.g. a preview bitmap).
  */
@@ -80,6 +145,7 @@ fun SecondaryScreenFill(
     content: @Composable BoxScope.() -> Unit,
 ) {
     XdripTheme {
+        HideLegacyActionBar()
         Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             Scaffold(
                 topBar = {

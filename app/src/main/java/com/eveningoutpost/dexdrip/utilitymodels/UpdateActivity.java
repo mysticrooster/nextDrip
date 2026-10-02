@@ -20,20 +20,15 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.databinding.ObservableField;
 import android.util.Log;
-import android.view.View;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.ProgressBar;
-import android.widget.ScrollView;
-import android.widget.Switch;
-import android.widget.TextView;
 
 import com.eveningoutpost.dexdrip.BaseAppCompatActivity;
 import com.eveningoutpost.dexdrip.BuildConfig;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
 import com.eveningoutpost.dexdrip.R;
+import com.eveningoutpost.dexdrip.ui.secondary.UpdateScreen;
 import com.eveningoutpost.dexdrip.xdrip;
 
 import java.io.File;
@@ -74,11 +69,19 @@ public class UpdateActivity extends BaseAppCompatActivity {
     private final static int MY_PERMISSIONS_REQUEST_STORAGE_DOWNLOAD = 105;
     private static boolean downloading = false;
     private static final boolean debug = false;
-    private ProgressBar progressBar;
-    private TextView progressText;
-    private TextView updateMessageText;
-    private ScrollView mScrollView;
     private File dest_file;
+
+    /** Compose bridge. */
+    public final ObservableField<Integer> tick = new ObservableField<>(0);
+    public final ObservableField<String> channelText = new ObservableField<>("");
+    public final ObservableField<String> detailText = new ObservableField<>("");
+    public final ObservableField<String> messageText = new ObservableField<>("");
+    public final ObservableField<String> progressLabel = new ObservableField<>("");
+    public final ObservableField<Integer> progressValue = new ObservableField<>(0);
+    public final ObservableField<Integer> progressMax = new ObservableField<>(0);
+    public final ObservableField<Boolean> progressVisible = new ObservableField<>(false);
+    public final ObservableField<Boolean> autoUpdate = new ObservableField<>(true);
+    public final ObservableField<Boolean> internalDownloader = new ObservableField<>(true);
     private static String DOWNLOAD_URL = "";
     private static int FILE_SIZE = -1;
     private static String MESSAGE = "";
@@ -250,45 +253,37 @@ public class UpdateActivity extends BaseAppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        setContentView(R.layout.activity_update);
-        JoH.fixActionBar(this);
 
-        progressText = (TextView) findViewById(R.id.progresstext);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        progressText.setVisibility(View.INVISIBLE);
-        progressBar.setVisibility(View.INVISIBLE);
-        mScrollView = (ScrollView) findViewById(R.id.updateScrollView);
-        updateMessageText = (TextView) findViewById(R.id.updatemessage);
+        autoUpdate.set(prefs.getBoolean(AUTO_UPDATE_PREFS_NAME, true));
+        internalDownloader.set(prefs.getBoolean(useInternalDownloaderPrefsName, true));
+        detailText.set(getString(R.string.new_version_date_colon) + Integer.toString(newversion) + "\n" + getString(R.string.old_version_date_colon) + Integer.toString(versionnumber));
+        channelText.set(getString(R.string.update_channel_colon_space) + JoH.ucFirst(prefs.getString("update_channel", "beta")));
+        messageText.set(MESSAGE);
 
-        Switch autoUpdateSwitch = (Switch) findViewById(R.id.autoupdate);
-        autoUpdateSwitch.setChecked(prefs.getBoolean(AUTO_UPDATE_PREFS_NAME, true));
-        autoUpdateSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                prefs.edit().putBoolean(AUTO_UPDATE_PREFS_NAME, isChecked).commit();
-                Log.d(TAG, "Auto Updates IsChecked:" + isChecked);
-            }
-        });
-
-        CheckBox useInternalDownloader = (CheckBox) findViewById(R.id.internaldownloadercheckBox);
-        useInternalDownloader.setChecked(prefs.getBoolean(useInternalDownloaderPrefsName, true));
-        useInternalDownloader.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                prefs.edit().putBoolean(useInternalDownloaderPrefsName, isChecked).commit();
-                Log.d(TAG, "Use internal downloader IsChecked:" + isChecked);
-            }
-        });
-
-        TextView detail = (TextView) findViewById(R.id.updatedetail);
-        detail.setText(getString(R.string.new_version_date_colon) + Integer.toString(newversion) + "\n" + getString(R.string.old_version_date_colon) + Integer.toString(versionnumber));
-        TextView channel = (TextView) findViewById(R.id.update_channel);
-        channel.setText(getString(R.string.update_channel_colon_space) + JoH.ucFirst(prefs.getString("update_channel", "beta")));
-
-        updateMessageText.setText(MESSAGE);
+        UpdateScreen.installUpdate(this);
     }
 
-    public void closeActivity(View myview) {
+    /** Nudges the Compose screen to recompute its state. */
+    public void notifyChanged() {
+        final Integer current = tick.get();
+        tick.set((current == null ? 0 : current) + 1);
+    }
+
+    public void setAutoUpdate(boolean value) {
+        autoUpdate.set(value);
+        prefs.edit().putBoolean(AUTO_UPDATE_PREFS_NAME, value).apply();
+        Log.d(TAG, "Auto Updates IsChecked:" + value);
+        notifyChanged();
+    }
+
+    public void setInternalDownloader(boolean value) {
+        internalDownloader.set(value);
+        prefs.edit().putBoolean(useInternalDownloaderPrefsName, value).apply();
+        Log.d(TAG, "Use internal downloader IsChecked:" + value);
+        notifyChanged();
+    }
+
+    public void closeActivity() {
         downloading = false;
         finish();
     }
@@ -312,14 +307,14 @@ public class UpdateActivity extends BaseAppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == MY_PERMISSIONS_REQUEST_STORAGE_DOWNLOAD) {
             if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                downloadNow(null);
+                downloadNow();
             } else {
                 JoH.static_toast_long(this, "Cannot download without storage permission");
             }
         }
     }
 
-    public void downloadNow(View myview) {
+    public void downloadNow() {
         if (DOWNLOAD_URL.length() > 0) {
             if (prefs.getBoolean(useInternalDownloaderPrefsName, true)) {
                 if (checkPermissions()) {
@@ -328,11 +323,6 @@ public class UpdateActivity extends BaseAppCompatActivity {
                     } else {
                         downloading = true;
                         JoH.static_toast_long(this, "Attempting background download...");
-                        mScrollView.post(new Runnable() {
-                            public void run() {
-                                mScrollView.fullScroll(ScrollView.FOCUS_DOWN);
-                            }
-                        });
                         new AsyncDownloader().executeOnExecutor(xdrip.executor);
 
                     }
@@ -478,23 +468,24 @@ public class UpdateActivity extends BaseAppCompatActivity {
 
         @Override
         protected void onProgressUpdate(Long... values) {
-            progressText.setVisibility(View.VISIBLE);
-            progressBar.setVisibility(View.VISIBLE);
-            progressBar.setMax(values[1].intValue());
-            progressBar.setProgress(values[0].intValue());
+            progressVisible.set(true);
+            progressMax.set(values[1].intValue());
+            progressValue.set(values[0].intValue());
 
             long kbprogress = values[0] / 1024;
             long kbmax = values[1] / 1024;
             if (values[1] > 0) {
-                progressText.setText(String.format("%d / %d KB", kbprogress, kbmax));
+                progressLabel.set(String.format("%d / %d KB", kbprogress, kbmax));
             } else {
-                progressText.setText(String.format("%d KB", kbprogress));
+                progressLabel.set(String.format("%d KB", kbprogress));
             }
+            notifyChanged();
         }
 
         @Override
         protected void onPostExecute(Boolean result) {
-            progressText.setText(result ? "Downloaded" : "Failed");
+            progressLabel.set(result ? "Downloaded" : "Failed");
+            notifyChanged();
             downloading = false;
             if (result) {
                 if ((filename != null) && (filename.length() > 5) && (dest_file != null)) {

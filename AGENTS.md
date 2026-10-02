@@ -107,11 +107,17 @@ specific features.
   numbers), **pass 3** (Medium small Data-Binding screens: `MtpConfigureActivity`,
   `DatabaseAdmin`, `GluProActivity`), **pass 4** (rich Medium: `EmergencyAssistActivity`,
   `BackupActivity`), **pass 5** (sensor/calibration forms: `NewSensorLocation`, `StopSensor`,
-  `AddCalibration`, `StartNewSensor`, `SnoozeActivity`) and **pass 6** (admin quick wins:
-  `SaveLogs`, `NumberWallPreview`, `DisplayQRCode`, `SendFeedBack`) are done as in-place Compose
-  (`ui/secondary/`); remaining secondary views (alert/editor/table/admin) are deferred.
-  Next: **S6** retire the legacy settings subsystem (deferred until on-device testing). Track V
-  (secondary views) continues.
+  `AddCalibration`, `StartNewSensor`, `SnoozeActivity`), **pass 6** (admin quick wins:
+  `SaveLogs`, `NumberWallPreview`, `DisplayQRCode`, `SendFeedBack`) and **pass 7** (all remaining
+  AAR-free secondary screens: import/export/update/BT-meter, error + event logs, the two data
+  tables — now reached from **Your Data** under `show_data_tables` — the phone keypad, and the
+  alert list + editor) are done as in-place Compose (`ui/secondary/`), keeping class/manifest/
+  intent/extras and deleting the legacy layouts. Dead screens `FollowerManagementActivity`,
+  `tables/SensorDataTable` and `languageeditor/LanguageEditor` were removed; `HelpActivity` and
+  `ShareTest` were kept (live caller / used type). Next: **S6** retire the legacy settings
+  subsystem (deferred until on-device testing); remaining Track V screens are AAR-blocked
+  (`Home`, charts, `Reminders`, `MegaStatus`, `BluetoothScan`, `NoteSearch`, `ThinJamActivity`,
+  `ProfileEditor`/`BasalProfileEditor`) plus the optional Tasker-plugin Pass D.
 - **Phase 2 (Home)** is paused (header rendering reverted pending redesign); **Phase 3 (charts →
   Vico)** is the unblocker.
 - See `Settings_Migration.md` for the exact status board and `Compose_Library_Replacements.md`

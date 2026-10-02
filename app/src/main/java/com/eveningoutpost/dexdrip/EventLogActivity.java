@@ -2,52 +2,30 @@ package com.eveningoutpost.dexdrip;
 
 import android.content.Intent;
 
-import androidx.appcompat.widget.SearchView;
 import androidx.databinding.ObservableArrayList;
 import androidx.databinding.ObservableBoolean;
+import androidx.databinding.ObservableField;
 import androidx.databinding.ObservableList;
-import androidx.databinding.ViewDataBinding;
-import android.graphics.Color;
 import android.os.Bundle;
-import androidx.annotation.LayoutRes;
-import androidx.core.view.MenuItemCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.SparseBooleanArray;
-import android.util.TypedValue;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.CompoundButton;
-import android.widget.TextView;
 
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.UserError;
+import com.eveningoutpost.dexdrip.ui.secondary.EventLogScreen;
 import com.eveningoutpost.dexdrip.utilitymodels.Inevitable;
 import com.eveningoutpost.dexdrip.utilitymodels.PersistentStore;
 import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utilitymodels.SaveLogs;
 import com.eveningoutpost.dexdrip.utilitymodels.SendFeedBack;
-import com.eveningoutpost.dexdrip.databinding.ActivityEventLogBinding;
-import com.eveningoutpost.dexdrip.ui.helpers.BitmapUtil;
 import com.eveningoutpost.dexdrip.utils.ExtensionMethods;
 import com.eveningoutpost.dexdrip.wearintegration.WatchUpdaterService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.ExtensionMethod;
-import me.tatarka.bindingcollectionadapter2.BindingRecyclerViewAdapter;
-import me.tatarka.bindingcollectionadapter2.ItemBinding;
 import me.tatarka.bindingcollectionadapter2.collections.MergeObservableList;
 
 import static com.eveningoutpost.dexdrip.Home.startWatchUpdaterService;
@@ -58,6 +36,9 @@ import static com.eveningoutpost.dexdrip.utils.DexCollectionType.getBestCollecto
  *
  * Created by jamorham 24/03/2018
  *
+ * Track V (Logs, Compose): the activity keeps the streaming refresh, severity/search filters, log
+ * packing and wear log sync; the screen renders the filter row, list and actions via the retained
+ * [ViewModel] observable lists.
  */
 @ExtensionMethod({java.util.Arrays.class, ExtensionMethods.class})
 public class EventLogActivity extends BaseAppCompatActivity {
@@ -77,41 +58,30 @@ public class EventLogActivity extends BaseAppCompatActivity {
         severitiesList.add(6);
     }
 
-    private ScaleGestureDetector scaleGestureDetector;
-    private Animation pulseAnimation;
-    private final ViewModel model = new ViewModel();
-    private RecyclerView recyclerView;
+    public final ViewModel model = new ViewModel();
 
-    /*
-    @Override
-     public String getMenuName() {
-         return getString(R.string.event_logs);
-     }
-     */
-    private MenuItem searchItem;
-    private SearchView searchView;
+    /** Compose bridge: bumped whenever the visible item set or filter changes. */
+    public final ObservableField<Integer> tick = new ObservableField<>(0);
+    /** Compose bridge: whether the list is scrolled to the top (drives the TOP button). */
+    public final ObservableBoolean listAtTop = new ObservableBoolean(true);
+    /** Compose bridge: increment to ask the screen to scroll to the top. */
+    public final ObservableField<Integer> scrollToTopRequest = new ObservableField<>(0);
+
     private volatile boolean runRefresh = false;
     private volatile long highest_id = 0;
-    private volatile int lastScrollPosition = 0;
     private volatile boolean loading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        pulseAnimation = AnimationUtils.loadAnimation(this, R.anim.pulse);
         super.onCreate(savedInstanceState);
-
-        final ActivityEventLogBinding binding = ActivityEventLogBinding.inflate(getLayoutInflater());
-        binding.setViewModel(model);
-        setContentView(binding.getRoot());
-
-        JoH.fixActionBar(this);
-
-        scaleGestureDetector = new ScaleGestureDetector(this, new SimpleOnScaleGestureListener(model));
-
         refreshData();
-
         getOlderData();
+        EventLogScreen.installEventLog(this);
+    }
 
+    public void notifyChanged() {
+        final Integer current = tick.get();
+        tick.set((current == null ? 0 : current) + 1);
     }
 
     // check if should stream wear logs
@@ -156,7 +126,6 @@ public class EventLogActivity extends BaseAppCompatActivity {
     protected void onResume() {
         super.onResume();
         startRefresh();
-        updateToTopButtonVisibility(true);
     }
 
     @Override
@@ -221,85 +190,17 @@ public class EventLogActivity extends BaseAppCompatActivity {
         return false;
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_eventlog_activity, menu);
-
-        searchItem = menu.findItem(R.id.eventlog_search);
-        searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
-
-
-        // show any previous persistent filter
-        if (model.getCurrentFilter().length() > 0) {
-            pushSearch(model.getCurrentFilter(), false);
-        }
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                model.filterChanged(s);
-
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                model.filterChanged(s);
-                return false;
-            }
-        });
-
-        return true;
-    }
-
-    // menu item action
-    public void viewErrorLog(MenuItem x) {
-        startActivity(new Intent(this, ErrorsActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("events", ""));
-    }
-
-    // menu item action
-    public void returnHome(MenuItem x) {
-        startActivity(new Intent(this, Home.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-    }
-
-    // push a query in to search box
-    private void pushSearch(String query, boolean submit) {
-        if (searchItem != null && searchView != null) {
-            searchItem.expandActionView();
-            searchView.setQuery(query, submit);
-            searchView.clearFocus();
-        } else {
-            UserError.Log.e(TAG, "SearchView is null!");
-        }
-    }
-
-    // try to determine if we are scrolled to the topmost position
-    private boolean isAtTop() {
-        if (recyclerView != null) {
-            int first_visible_item = ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition();
-            if (D) UserError.Log.d(TAG, " First visible item position: " + first_visible_item);
-            if (first_visible_item > 1) return false;
-        }
-        return true;
-    }
-
-    // whether to show the TOP navigation button
-    private void updateToTopButtonVisibility(boolean force) {
-        final boolean top_button_visible = !isAtTop();
-        if (force || top_button_visible != model.showScrollToTop.get()) {
-            // if (JoH.quietratelimit("event log scroll button change debounce", 1)) {
-            model.showScrollToTop.set(top_button_visible);
-            // }
-        }
-    }
-
-    public synchronized void uploadEventLogs(View v) { // Send events log to JamOrHam
+    public synchronized void uploadEventLogs() { // Send events log to JamOrHam
         startActivity(new Intent(getApplicationContext(), SendFeedBack.class).putExtra("generic_text", packLogs()));
     }
 
-    public synchronized void saveEventLog(View v) { // Save events log in mobile storage
+    public synchronized void saveEventLog() { // Save events log in mobile storage
         startActivity(new Intent(getApplicationContext(), SaveLogs.class).putExtra("generic_text", packLogs()));
+    }
+
+    public void requestScrollToTop() {
+        final Integer current = scrollToTopRequest.get();
+        scrollToTopRequest.set((current == null ? 0 : current) + 1);
     }
 
     private String packLogs() { // Prepare current visible logs for upload or local save
@@ -322,8 +223,10 @@ public class EventLogActivity extends BaseAppCompatActivity {
         return builder.toString();
     }
 
-    // View model container - accessible binding methods must be declared public
-    public class ViewModel implements View.OnTouchListener {
+    /**
+     * View model container - the observable lists/state are retained and bridged into Compose.
+     */
+    public class ViewModel {
 
         public final ObservableList<UserError> initial_items = new ObservableArrayList<>();
         public final ObservableList<UserError> older_items = new ObservableArrayList<>();
@@ -333,14 +236,8 @@ public class EventLogActivity extends BaseAppCompatActivity {
                 .insertList(initial_items)
                 .insertList(older_items);
         public final ObservableList<UserError> visible = new ObservableArrayList<>();
-        public final ItemBinding<UserError> itemBinding = ItemBinding.<UserError>of(BR.error, R.layout.item_event_log).bindExtra(BR.viewModel, this);
-        public final EventLogViewAdapterChain adapterChain = new EventLogViewAdapterChain();
-        public final ObservableBoolean showScrollToTop = new ObservableBoolean(false);
         public final ObservableBoolean showLoading = new ObservableBoolean(false);
         private final SparseBooleanArray severities = new SparseBooleanArray();
-        @Getter
-        public View last_clicked_view = null;
-        private String last_click_filter = "";
         private String currentFilter = null;
 
         {
@@ -366,9 +263,9 @@ public class EventLogActivity extends BaseAppCompatActivity {
                         streamed_items.addAll(0, newItems);
                     }
                     refreshNewItems(newItems.size());
-                    if (isAtTop()) {
+                    if (listAtTop.get()) {
                         // If unmoved or already at top then scroll to new values
-                        JoH.runOnUiThreadDelayed(() -> scrollToTop(true), 300);
+                        JoH.runOnUiThreadDelayed(() -> requestScrollToTop(), 300);
                     }
                 }
             });
@@ -395,7 +292,7 @@ public class EventLogActivity extends BaseAppCompatActivity {
         }
 
         // filter has changed on text input, refresh display
-        void filterChanged(String filter) {
+        public void filterChanged(String filter) {
             currentFilter = filter.toLowerCase().trim();
 
             Inevitable.task("event-log-filter-update", 200, () -> {
@@ -437,30 +334,23 @@ public class EventLogActivity extends BaseAppCompatActivity {
                     }
                 }
             }
-            adapterChain.notifyDataSetChanged();
+            notifyChanged();
         }
 
         // apply filter just to some new items and update accordingly
         private void insertFilteredNewItems(final String filter, int count) {
             currentFilter = filter.or(getCurrentFilter()).toLowerCase().trim();
             int c = 0;
-            int added = 0;
             synchronized (items) {
                 for (UserError item : items) {
                     if (filterMatch(item)) {
                         visible.add(0, item);
-                        added++;
                     }
                     c++;
                     if (c >= count) break;
                 }
             }
-            adapterChain.notifyItemRangeChanged(0, added);
-            // avoid duplicate titles
-            if (visible.size() > 1) {
-                adapterChain.notifyItemChanged(added);
-            }
-
+            notifyChanged();
         }
 
 
@@ -491,163 +381,16 @@ public class EventLogActivity extends BaseAppCompatActivity {
             return true;
         }
 
-
-        // instantly scroll to top and update button visibility accordingly
-        public void scrollToTop() {
-            scrollToTop(false);
-        }
-
-        // scroll to top and update button visibility accordingly with smooth option
-        public void scrollToTop(boolean smooth) {
-            showScrollToTop.set(false);
-            if (recyclerView != null) {
-                if (smooth) {
-                    recyclerView.smoothScrollToPosition(0);
-                } else {
-                    recyclerView.scrollToPosition(0);
-                }
-            }
-        }
-
-
-        // store reference to clicked view and pulse it to give feedback to user
-        public void lastClicked(View v) {
-            last_clicked_view = v;
-            v.startAnimation(pulseAnimation);
-        }
-
-
-        // receive call back and populate local instance
-        public void initRecycler(View v) {
-            if (v instanceof RecyclerView) {
-                recyclerView = (RecyclerView) v;
-            }
-            addScaleDetector(v);
-        }
-
-        // add listener for scale detection (on recycler view)
-        public void addScaleDetector(View v) {
-            v.setOnTouchListener(this);
-        }
-
-        // adjust filter to title name/invert when long clicked
-        public boolean titleButtonLongClick(View v) {
-            String filter = ((TextView) v).getText().toString();
-            if (last_click_filter.equals(filter)) {
-                filter = "";
-            }
-            last_click_filter = filter;
-            final String ffilter = filter;
-            JoH.runOnUiThreadDelayed(() -> pushSearch(ffilter, true), 100);
-            return false;
-        }
-
-        // choose text color for title to match background
-        public int titleColorForSeverity(int severity) {
-            switch (severity) {
-                case 1:
-                    return Color.parseColor("#FFB3E5FC");
-                default:
-                    return Color.WHITE;
-            }
-        }
-
-        // choose background color for severity
-        public int colorForSeverity(int severity) {
-
-            switch (severity) {
-                case 1:
-                    return Color.TRANSPARENT;
-                case 2:
-                    return Color.DKGRAY;
-                case 3:
-                    return Color.RED;
-                case 4:
-                    return Color.DKGRAY;
-                case 5:
-                    return Color.parseColor("#ff337777"); // turquoise
-                case 6:
-                    return Color.parseColor("#ff337733"); // green
-
-                default:
-                    return Color.TRANSPARENT;
-            }
-        }
-
-        // alternate text colors for clarity
-        public int colorForPosition(int position) {
-            if (position % 2 == 0) {
-                return Color.WHITE; // off white?
-            } else {
-                return Color.parseColor("#ffffffdd");
-            }
-        }
-
-        // reformat text size for long messages
-        public float textSize(String message) {
-            //   final float scale = 4f;
-            final float scale = 2.0f * BitmapUtil.getScreenDensity();
-            if (message.length() > 100) return 5f * scale;
-            return 7f * scale;
-        }
-
         // is this severity enabled?
         public boolean severity(int i) {
             return severities.get(i);
         }
 
         // severity checkbox clicked, update store and refresh screen
-        public void setSeverity(CompoundButton v, boolean value, int i) {
+        public void setSeverity(int i, boolean value) {
             severities.put(i, value);
             refresh();
             PersistentStore.setBoolean(PREF_SEVERITY_SELECTION + i, value);
         }
-
-
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            // pass up
-            scaleGestureDetector.onTouchEvent(event);
-            return false;
-        }
-
-    }
-
-    // scale gesture listener to handler element pinch zoom
-    @RequiredArgsConstructor
-    public class SimpleOnScaleGestureListener extends
-            ScaleGestureDetector.SimpleOnScaleGestureListener {
-
-        private final ViewModel viewModel;
-
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            float factor = detector.getScaleFactor();
-            if (viewModel.last_clicked_view != null) {
-                ((TextView) viewModel.last_clicked_view).setTextSize(TypedValue.COMPLEX_UNIT_PX, ((TextView) viewModel.last_clicked_view).getTextSize() * factor);
-            }
-            return true;
-        }
-    }
-
-    // recycler view adapter chain to give a little extra under the hood control
-    public class EventLogViewAdapterChain<T> extends BindingRecyclerViewAdapter<T> {
-
-        @Override
-        public ViewDataBinding onCreateBinding(LayoutInflater inflater, @LayoutRes int layoutId, ViewGroup viewGroup) {
-            ViewDataBinding binding = super.onCreateBinding(inflater, layoutId, viewGroup);
-            return binding;
-        }
-
-        @Override
-        public void onBindBinding(ViewDataBinding binding, int bindingVariable, @LayoutRes int layoutId, int position, T item) {
-            super.onBindBinding(binding, bindingVariable, layoutId, position, item);
-            lastScrollPosition = position;
-            updateToTopButtonVisibility(false);
-            final TextView tv = binding.getRoot().findViewById(R.id.event_log_item_text);
-            if (tv != null) tv.setTextColor(model.colorForPosition(position));
-        }
-
     }
 }
-
