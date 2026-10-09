@@ -1145,6 +1145,27 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             if (status != null) {
                 status.setSummary(iletLiveStatusSummary());
             }
+            final Preference clock = findPreference("ilet_clock");
+            if (clock != null) {
+                final long drift = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.clockDriftSeconds();
+                final long absDrift = Math.abs(drift);
+                final boolean off = absDrift >= com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.CLOCK_DRIFT_WARN_SECONDS;
+                final String amount = absDrift < 3600
+                        ? (absDrift / 60) + " min"
+                        : String.format(java.util.Locale.US, "%.1f h", absDrift / 3600.0);
+                clock.setSummary(off
+                        ? getString(R.string.ilet_clock_drift, amount)
+                        : getString(R.string.ilet_clock_on_time));
+                // Nudge the user (at most twice a day) when the pump clock is well off.
+                if (off && JoH.msSince(com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.lastClockDriftPrompt()) > 12 * 60 * 60 * 1000L) {
+                    com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setLastClockDriftPrompt(System.currentTimeMillis());
+                    new android.app.AlertDialog.Builder(getActivity())
+                            .setTitle(R.string.ilet_clock_prompt_title)
+                            .setMessage(getString(R.string.ilet_clock_prompt_message, amount))
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show();
+                }
+            }
             final Preference backfill = findPreference("ilet_backfill_from");
             if (backfill != null) {
                 final java.util.Calendar current = java.util.Calendar.getInstance();

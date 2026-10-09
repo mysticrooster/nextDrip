@@ -113,6 +113,12 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
 - The RTC→Unix offset is derived from GetTime (0x2510), never hardcoded; a record whose
   embedded epoch does not match is logged and the record is still parsed (the body magic and
   checksum already prove the layout).
+- **Clock drift**: after the timezone correction the service stores the residual pump-vs-phone
+  drift (`ilet_clock_drift_seconds`) and shows it in System Status and in the iLet settings
+  ("Pump clock"). When it exceeds two minutes the settings screen raises a one-off dialog
+  (at most twice a day) asking the user to set the pump clock. `CmdSetTime` (0x1511) is **not**
+  implemented: it is uninstrumented by the reference app with an undocumented payload, and this
+  app is deliberately read-only, so it never writes the pump clock.
 - The pump syncs its clock from the last phone that paired and may store that phone's *local*
   wall clock. `IletDataProcessor.updateEpoch` compares the pump's wall clock against the phone
   clock and, when treating it as UTC is clearly worse than treating it as local, subtracts the

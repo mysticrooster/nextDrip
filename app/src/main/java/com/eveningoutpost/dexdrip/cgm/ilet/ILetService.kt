@@ -118,6 +118,9 @@ class ILetService : JamBaseBluetoothService() {
 
             val time = client.getTime()
             processor.updateEpoch(time.clockOffset, time.localTimeEpoch)
+            // Residual pump-vs-phone drift after the timezone auto-correction.
+            val pumpNowSeconds = time.rtcTimeEpoch + processor.epochOffsetSeconds
+            IletPrefs.setClockDriftSeconds(System.currentTimeMillis() / 1000L - pumpNowSeconds)
             IletPrefs.setLastContact(System.currentTimeMillis())
             IletStatus.markContact()
             setState("Running")
@@ -583,6 +586,13 @@ class ILetService : JamBaseBluetoothService() {
                 if (contact > 0 && com.eveningoutpost.dexdrip.models.JoH.msSince(contact) < 15 * 60 * 1000L)
                     com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.GOOD
                 else com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.NOTICE))
+            val drift = IletPrefs.clockDriftSeconds()
+            val driftOff = kotlin.math.abs(drift) >= IletPrefs.CLOCK_DRIFT_WARN_SECONDS
+            rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
+                "Clock drift",
+                (if (drift >= 0) "+" else "") + drift + "s" + if (driftOff) " (pump time is off)" else "",
+                if (driftOff) com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.NOTICE
+                else com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.GOOD))
             rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
                 "Backfill request",
                 if (snapshot.requestMs > 0) com.eveningoutpost.dexdrip.models.JoH.dateTimeText(snapshot.requestMs) else "none",

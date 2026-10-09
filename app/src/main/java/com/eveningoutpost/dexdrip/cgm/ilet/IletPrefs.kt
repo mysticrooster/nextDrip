@@ -33,6 +33,15 @@ object IletPrefs {
     /** True while a user-requested "from date to now" fill is still catching up. */
     const val FORWARD_FILL_ACTIVE = "ilet_forward_fill_active"
 
+    /** Drift beyond this (seconds) is worth warning the user about. */
+    const val CLOCK_DRIFT_WARN_SECONDS = 120L
+
+    /** Last observed pump-vs-phone clock drift, seconds (positive = pump behind). */
+    const val CLOCK_DRIFT_SECONDS = "ilet_clock_drift_seconds"
+
+    /** Unix millis of the last time we prompted about a large drift. */
+    const val CLOCK_DRIFT_PROMPT = "ilet_clock_drift_prompt"
+
     /** Unix millis of the last successful pump contact (device info/time/realtime). */
     const val LAST_CONTACT = "ilet_last_contact"
 
@@ -209,6 +218,18 @@ object IletPrefs {
 
     @JvmStatic
     fun setForwardFillActive(active: Boolean) = Pref.setBoolean(FORWARD_FILL_ACTIVE, active)
+
+    @JvmStatic
+    fun clockDriftSeconds(): Long = Pref.getLong(CLOCK_DRIFT_SECONDS, 0L)
+
+    @JvmStatic
+    fun setClockDriftSeconds(seconds: Long) = Pref.setLong(CLOCK_DRIFT_SECONDS, seconds)
+
+    @JvmStatic
+    fun lastClockDriftPrompt(): Long = Pref.getLong(CLOCK_DRIFT_PROMPT, 0L)
+
+    @JvmStatic
+    fun setLastClockDriftPrompt(timestampMs: Long) = Pref.setLong(CLOCK_DRIFT_PROMPT, timestampMs)
 
     @JvmStatic
     fun lastContact(): Long = Pref.getLong(LAST_CONTACT, 0L)

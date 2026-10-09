@@ -1382,6 +1382,10 @@
                     android:selectable="false"
                     android:title="@string/ilet_live_status_title" />
                 <Preference
+                    android:key="ilet_clock"
+                    android:selectable="false"
+                    android:title="@string/ilet_clock_title" />
+                <Preference
                     android:dependency="ilet_enabled"
                     android:key="ilet_test_connection"
                     android:summary="@string/ilet_test_connection_summary"

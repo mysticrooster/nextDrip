@@ -2029,6 +2029,11 @@
     <string name="ilet_pump_iob_line_title">Show pump IOB line</string>
     <string name="ilet_pump_iob_line_summary">Extra graph line of the pump\'s own IOB estimate; may duplicate xDrip IOB</string>
     <string name="ilet_device_info_title">Pump identity</string>
+    <string name="ilet_clock_title">Pump clock</string>
+    <string name="ilet_clock_on_time">On time with the phone</string>
+    <string name="ilet_clock_drift">Off by about %1$s — set the time on the pump</string>
+    <string name="ilet_clock_prompt_title">iLet clock is off</string>
+    <string name="ilet_clock_prompt_message">The iLet clock is off by about %1$s. Please set it on the pump (or via the Beta Bionics app) so pump records and xDrip line up. This app is read-only and will not change the pump time.</string>
     <string name="ilet_live_status_title">Latest pump status</string>
     <string name="ilet_live_status_none">Not seen yet — enable iLet and connect, or run the connection test</string>
     <string name="ilet_live_status_value">Battery %1$s · IOB %2$s · Reservoir %3$s · updated %4$s</string>
