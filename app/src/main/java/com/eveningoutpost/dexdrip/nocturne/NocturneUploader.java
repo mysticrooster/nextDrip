@@ -18,6 +18,7 @@ import com.eveningoutpost.dexdrip.utilitymodels.Pref;
 import com.eveningoutpost.dexdrip.utils.DexCollectionType;
 import com.eveningoutpost.dexdrip.utils.PowerStateReceiver;
 
+import org.json.JSONObject;
 import org.nightscoutfoundation.nocturne.ApiClient;
 import org.nightscoutfoundation.nocturne.ApiException;
 import org.nightscoutfoundation.nocturne.api.ActivityApi;
@@ -29,6 +30,8 @@ import org.nightscoutfoundation.nocturne.api.HeartRateApi;
 import org.nightscoutfoundation.nocturne.api.MeterGlucoseApi;
 import org.nightscoutfoundation.nocturne.api.NoteApi;
 import org.nightscoutfoundation.nocturne.api.NutritionApi;
+import org.nightscoutfoundation.nocturne.api.ProfileApi;
+import org.nightscoutfoundation.nocturne.api.PumpSnapshotApi;
 import org.nightscoutfoundation.nocturne.api.SensorGlucoseApi;
 import org.nightscoutfoundation.nocturne.api.StepCountApi;
 import org.nightscoutfoundation.nocturne.api.UploaderSnapshotApi;
@@ -45,6 +48,9 @@ import org.nightscoutfoundation.nocturne.model.UpsertDeviceEventRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertHeartRateRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertMeterGlucoseRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertNoteRequest;
+import org.nightscoutfoundation.nocturne.model.UpsertPumpSnapshotRequest;
+import org.nightscoutfoundation.nocturne.model.BasalSchedule;
+import org.nightscoutfoundation.nocturne.model.ScheduleEntry;
 import org.nightscoutfoundation.nocturne.model.UpsertSensorGlucoseRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertStepCountRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertUploaderSnapshotRequest;
@@ -176,6 +182,9 @@ public class NocturneUploader {
         if (Pref.getBooleanDefaultFalse("nocturne_upload_devicestatus")) {
             uploadDeviceStatus();
         }
+
+        // iLet pump status (reservoir/battery/IOB/suspended), fingerprint-deduped.
+        uploadIletPumpSnapshot();
 
         if (Pref.getBooleanDefaultFalse("nocturne_upload_motion")) {
             uploadMotionTracking();
@@ -433,6 +442,65 @@ public class NocturneUploader {
             UserError.Log.d(TAG, "Uploaded " + requests.size() + " step count readings");
         } catch (Exception e) {
             logFailure("Step count upload", e);
+        }
+    }
+
+    /** Pump status (reservoir/battery/IOB/suspend) from the running iLet service. */
+    void uploadIletPumpSnapshot() {
+        if (!com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) return;
+        try {
+            final JSONObject status = new JSONObject(com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.toJson());
+            final double reservoir = status.optDouble("reservoir", -1);
+            final double iob = status.optDouble("bolusiob", -1);
+            final double battery = status.optDouble("battery", -1);
+            final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
+                    com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
+            if (reservoir < 0 && iob < 0 && battery < 0) return;
+            final int batteryRounded = battery >= 0 ? (int) Math.round(battery) : -1;
+            final String fingerprint = JoH.qs(reservoir, 2) + "/" + JoH.qs(iob, 3) + "/" + batteryRounded
+                    + "/" + (state != null && state.getInsulinPaused());
+            if (fingerprint.equals(com.eveningoutpost.dexdrip.utilitymodels.PersistentStore.getString("nocturne-ilet-pump-snapshot"))) {
+                return;
+            }
+            final long now = JoH.tsl();
+            final UpsertPumpSnapshotRequest request = new UpsertPumpSnapshotRequest()
+                    .timestamp(toOffsetDateTime(now))
+                    .utcOffset(utcOffsetMinutes(now))
+                    .device("iLet")
+                    .app("xDrip+")
+                    .dataSource(DATA_SOURCE)
+                    .manufacturer("Beta Bionics")
+                    .model(com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.deviceModel())
+                    .syncIdentifier("ilet-pump-" + now);
+            if (reservoir >= 0) request.reservoir(reservoir);
+            if (batteryRounded >= 0) request.batteryPercent(batteryRounded);
+            if (iob >= 0) request.iob(iob).bolusIob(iob);
+            if (state != null) request.suspended(state.getInsulinPaused());
+            new PumpSnapshotApi(apiClient).pumpSnapshotCreatePumpSnapshots(Collections.singletonList(request));
+            com.eveningoutpost.dexdrip.utilitymodels.PersistentStore.setString("nocturne-ilet-pump-snapshot", fingerprint);
+        } catch (Exception e) {
+            logFailure("iLet pump snapshot", e);
+        }
+    }
+
+    /** Publish a one-off 0 U/hr basal schedule (opt-in) for the iLet. */
+    public boolean publishIletZeroBasalSchedule() {
+        if (!ready || apiClient == null) return false;
+        try {
+            final ScheduleEntry entry = new ScheduleEntry().time("00:00").value(0.0).timeAsSeconds(0);
+            final long now = JoH.tsl();
+            final BasalSchedule schedule = new BasalSchedule()
+                    .profileName("iLet 0 U/hr")
+                    .app("xDrip+")
+                    .dataSource(DATA_SOURCE)
+                    .timestamp(toOffsetDateTime(now))
+                    .utcOffset(utcOffsetMinutes(now))
+                    .entries(Collections.singletonList(entry));
+            new ProfileApi(apiClient).profileCreateBasalSchedule(schedule);
+            return true;
+        } catch (Exception e) {
+            logFailure("iLet 0 U/hr basal schedule", e);
+            return false;
         }
     }
 

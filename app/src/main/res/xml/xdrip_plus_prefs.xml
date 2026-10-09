@@ -1409,6 +1409,12 @@
                     android:summary="@string/ilet_backfill_glucose_summary"
                     android:title="@string/ilet_backfill_glucose_title" />
                 <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_publish_zero_basal"
+                    android:summary="@string/ilet_publish_zero_basal_summary"
+                    android:title="@string/ilet_publish_zero_basal_title" />
+                <CheckBoxPreference
                     android:defaultValue="true"
                     android:dependency="ilet_enabled"
                     android:key="ilet_download_boluses"

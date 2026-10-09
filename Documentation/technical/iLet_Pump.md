@@ -142,8 +142,10 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   sequence (`serial:insulin:seq`). Zero-dose rows are periodic snapshots, not boluses, and
   are skipped; the realtime snapshot is **never** a bolus.
 - Historical glucose is **opt-in** (`ilet_backfill_glucose`, off by default) and independent
-  of the live collector, so it also works in pump-only mode. Real-time glucose is unaffected
-  by the toggle and still follows the collector selection.
+  of the live collector, so it also works in pump-only mode. It only fills gaps: any row
+  already within half the collector's sample period (from the primary CGM or a previous
+  import) is skipped, so pump glucose never pads alongside live xDrip data. Real-time glucose
+  is unaffected by the toggle and still follows the collector selection.
 - Glucose is de-duplicated with a two-minute window (`BgReading.ILET_DEDUPE_WINDOW_MS`) rather
   than the usual one minute, so realtime and backfilled rows for the same pump CGM slot with
   small clock skew do not overlap, and a backfill that restarts from an earlier date is safe.
@@ -256,9 +258,15 @@ shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`).
   change; battery-only behaviour is unchanged when iLet is disabled.
 - **Nocturne**: boluses/meals flow via `Treatments`. Its bolus/meal resources have no notes
   field, so a treatment note (e.g. an iLet meal label) is also sent as a Nocturne **Note**
-  resource alongside the bolus/meal. Pump state via `DeviceEventApi`/`UploaderSnapshotApi` is
-  **not** wired — the bundled SDK support is unconfirmed.
-- **Tidepool**: unchanged; glucose, boluses and `APStatus` basal already upload.
+  resource alongside the bolus/meal. Pump status (reservoir, battery %, IOB, suspended) is
+  uploaded as a `PumpSnapshot` (fingerprint-deduped), and the opt-in 0 U/hr profile is sent as
+  a `BasalSchedule`.
+- **Tidepool**: glucose, boluses and `APStatus` basal already upload. When the 0 U/hr profile
+  option is on, a scheduled 0 U/hr basal is added to each upload chunk.
+- **0 U/hr basal profile** (opt-in, `ilet_publish_zero_basal`): the iLet has no scheduled
+  basal, so this tells Nightscout (a `profile` document), Nocturne (a `BasalSchedule`) and
+  Tidepool (a scheduled 0 U/hr basal) that the profile is 0 U/hr. Nightscout and Nocturne are
+  one-shot; Tidepool is reconstructed per chunk.
 - **UploaderQueue caveat**: destinations are snapshotted at insert time, so pump rows written
   while a cloud destination is disabled are not retro-uploaded.
 

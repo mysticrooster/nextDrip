@@ -2018,6 +2018,8 @@
     <string name="ilet_enable_summary">Connect to the iLet over Bluetooth. Works alongside another CGM (pump-only) or as the glucose source when selected as the Hardware Data Source.</string>
     <string name="ilet_address_title">Bluetooth address</string>
     <string name="ilet_address_summary">Leave blank to scan for the pump. The pump must already be bonded in Android Bluetooth settings.</string>
+    <string name="ilet_publish_zero_basal_title">Publish 0 U/hr basal profile</string>
+    <string name="ilet_publish_zero_basal_summary">Tell Nightscout, Tidepool and Nocturne the pump has a 0 U/hr basal profile. The iLet delivers insulin automatically, so it has no scheduled basal.</string>
     <string name="ilet_backfill_glucose_title">Backfill glucose</string>
     <string name="ilet_backfill_glucose_summary">Import historical glucose from the pump. Off by default; real-time glucose is unaffected.</string>
     <string name="ilet_download_boluses_title">Download boluses</string>

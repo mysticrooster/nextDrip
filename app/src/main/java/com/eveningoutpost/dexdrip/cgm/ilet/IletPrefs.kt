@@ -33,6 +33,12 @@ object IletPrefs {
     /** True while a user-requested "from date to now" fill is still catching up. */
     const val FORWARD_FILL_ACTIVE = "ilet_forward_fill_active"
 
+    /** Publish a 0 U/hr basal profile to Nightscout/Nocturne/Tidepool. */
+    const val PUBLISH_ZERO_BASAL = "ilet_publish_zero_basal"
+
+    /** True once the 0 U/hr profile has been published (Nightscout/Nocturne are one-shot). */
+    const val ZERO_BASAL_PUBLISHED = "ilet_zero_basal_published"
+
     /** Drift beyond this (seconds) is worth warning the user about. */
     const val CLOCK_DRIFT_WARN_SECONDS = 120L
 
@@ -218,6 +224,15 @@ object IletPrefs {
 
     @JvmStatic
     fun setForwardFillActive(active: Boolean) = Pref.setBoolean(FORWARD_FILL_ACTIVE, active)
+
+    @JvmStatic
+    fun publishZeroBasal(): Boolean = Pref.getBooleanDefaultFalse(PUBLISH_ZERO_BASAL)
+
+    @JvmStatic
+    fun zeroBasalPublished(): Boolean = Pref.getBooleanDefaultFalse(ZERO_BASAL_PUBLISHED)
+
+    @JvmStatic
+    fun setZeroBasalPublished(published: Boolean) = Pref.setBoolean(ZERO_BASAL_PUBLISHED, published)
 
     @JvmStatic
     fun clockDriftSeconds(): Long = Pref.getLong(CLOCK_DRIFT_SECONDS, 0L)

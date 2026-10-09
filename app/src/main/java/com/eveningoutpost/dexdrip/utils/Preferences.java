@@ -1166,6 +1166,16 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                             .show();
                 }
             }
+            final Preference zeroBasal = findPreference("ilet_publish_zero_basal");
+            if (zeroBasal != null) {
+                zeroBasal.setOnPreferenceChangeListener((preference, newValue) -> {
+                    if (Boolean.TRUE.equals(newValue)) {
+                        final android.content.Context ctx = getActivity().getApplicationContext();
+                        new Thread(() -> com.eveningoutpost.dexdrip.cgm.ilet.IletBasalProfile.publishIfEnabled(ctx)).start();
+                    }
+                    return true;
+                });
+            }
             final Preference backfill = findPreference("ilet_backfill_from");
             if (backfill != null) {
                 final java.util.Calendar current = java.util.Calendar.getInstance();

@@ -33,6 +33,14 @@ public class EBasal extends BaseElement {
         populate(timeStart, uuid);
     }
 
+    /** A scheduled 0 U/hr basal, used to advertise the iLet's profile to Tidepool. */
+    static EBasal scheduledZeroBasal(long timeStart, long duration, String uuid) {
+        final EBasal basal = new EBasal(0, timeStart, duration, uuid);
+        basal.deliveryType = "scheduled";
+        basal.scheduleName = "iLet 0 U/hr";
+        return basal;
+    }
+
     boolean isValid() {
         return (rate > -1 && duration > 0);
     }

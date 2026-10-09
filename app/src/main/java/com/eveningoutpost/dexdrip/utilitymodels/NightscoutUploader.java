@@ -161,6 +161,9 @@ public class NightscoutUploader {
         @POST("activity")
         Call<ResponseBody> uploadActivity(@Header("api-secret") String secret, @Body RequestBody body);
 
+        @POST("profile")
+        Call<ResponseBody> uploadProfile(@Header("api-secret") String secret, @Body RequestBody body);
+
     }
 
     private class UploaderException extends RuntimeException {
@@ -1182,6 +1185,54 @@ public class NightscoutUploader {
             }
         }
         postIletDeviceStatus(nightscoutService, apiSecret);
+        postIletZeroBasalProfile(nightscoutService, apiSecret);
+    }
+
+    /**
+     * Publish a 0 U/hr basal profile once (opt-in). The iLet delivers insulin
+     * automatically, so it has no scheduled basal; this tells Nightscout the
+     * profile is 0 U/hr rather than leaving it unknown.
+     */
+    private void postIletZeroBasalProfile(NightscoutService nightscoutService, String apiSecret) {
+        if (!com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()
+                || !com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.publishZeroBasal()
+                || com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.zeroBasalPublished()) {
+            return;
+        }
+        try {
+            final String name = "iLet 0 U/hr";
+            final JSONObject entry = new JSONObject()
+                    .put("time", "00:00").put("value", 0).put("timeAsSeconds", 0);
+            final org.json.JSONArray schedule = new org.json.JSONArray().put(entry);
+            final JSONObject profile = new JSONObject()
+                    .put("basal", schedule)
+                    .put("carbratio", schedule)
+                    .put("sens", schedule)
+                    .put("target_low", schedule)
+                    .put("target_high", schedule)
+                    .put("timezone", java.util.TimeZone.getDefault().getID())
+                    .put("units", "mg/dl")
+                    .put("startDate", com.eveningoutpost.dexdrip.models.DateUtil.toISOString(System.currentTimeMillis()));
+            final JSONObject store = new JSONObject().put(name, profile);
+            final JSONObject document = new JSONObject()
+                    .put("defaultProfile", name)
+                    .put("store", store)
+                    .put("created_at", com.eveningoutpost.dexdrip.models.DateUtil.toISOString(System.currentTimeMillis()));
+
+            final RequestBody body = RequestBody.create(document.toString(), MediaType.parse("application/json"));
+            final Response<ResponseBody> r = (apiSecret != null)
+                    ? nightscoutService.uploadProfile(apiSecret, body).execute()
+                    : nightscoutService.uploadProfile("", body).execute();
+            if (r.isSuccessful()) {
+                checkGzipSupport(r);
+                com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setZeroBasalPublished(true);
+                UserError.Log.d(TAG, "Published iLet 0 U/hr Nightscout profile");
+            } else {
+                UserError.Log.d(TAG, "iLet 0 U/hr profile upload failed: " + r.code());
+            }
+        } catch (Exception e) {
+            UserError.Log.d(TAG, "iLet 0 U/hr profile error: " + e);
+        }
     }
 
     /**
