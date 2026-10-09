@@ -173,7 +173,10 @@ class IletDataProcessor {
         if (start == 0L && end == 0L) return
         // Timestamps are on the pump clock; convert with the session offset when known.
         val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
+        val startMs = if (start > 0) (start + offset) * 1000L else 0L
         val endMs = if (end > 0) (end + offset) * 1000L else 0L
+        if (startMs > 0) IletPrefs.setPatchSessionStartMs(startMs)
+        if (endMs > 0) IletPrefs.setPatchSessionEndMs(endMs)
         if (endMs > 0 && endMs != lastPatchExpiryLogged) {
             lastPatchExpiryLogged = endMs
             UserError.Log.uel(

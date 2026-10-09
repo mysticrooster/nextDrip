@@ -42,6 +42,10 @@ object IletPrefs {
     /** Drift beyond this (seconds) is worth warning the user about. */
     const val CLOCK_DRIFT_WARN_SECONDS = 120L
 
+    /** Infusion-set (pump patch) session window in Unix millis, from the 0x1515 control packet. */
+    const val PATCH_SESSION_START_MS = "ilet_patch_start_ms"
+    const val PATCH_SESSION_END_MS = "ilet_patch_end_ms"
+
     /** Last observed pump-vs-phone clock drift, seconds (positive = pump behind). */
     const val CLOCK_DRIFT_SECONDS = "ilet_clock_drift_seconds"
 
@@ -233,6 +237,18 @@ object IletPrefs {
 
     @JvmStatic
     fun setZeroBasalPublished(published: Boolean) = Pref.setBoolean(ZERO_BASAL_PUBLISHED, published)
+
+    @JvmStatic
+    fun patchSessionStartMs(): Long = Pref.getLong(PATCH_SESSION_START_MS, 0L)
+
+    @JvmStatic
+    fun setPatchSessionStartMs(millis: Long) = Pref.setLong(PATCH_SESSION_START_MS, millis)
+
+    @JvmStatic
+    fun patchSessionEndMs(): Long = Pref.getLong(PATCH_SESSION_END_MS, 0L)
+
+    @JvmStatic
+    fun setPatchSessionEndMs(millis: Long) = Pref.setLong(PATCH_SESSION_END_MS, millis)
 
     @JvmStatic
     fun clockDriftSeconds(): Long = Pref.getLong(CLOCK_DRIFT_SECONDS, 0L)

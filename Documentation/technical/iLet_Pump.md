@@ -229,6 +229,11 @@ shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`).
   `EXPIRED` when it is in the past). The 0x1515 packet is unsolicited — there is no request
   opcode — so if the pump only emits 0x1506 nothing is lost but no alarms/meals appear from
   that source.
+- **Infusion set (pump patch) age** comes only from those 0x1515 fields
+  (`pumpPatchInfoSessionStartTime`/`EndTime`); there is no command to request them and the
+  historical ALARM partition is empty on this firmware. When a 0x1515 packet is seen the
+  converted window is stored (`ilet_patch_start_ms`/`ilet_patch_end_ms`) and shown as an
+  "Infusion set" row (age + expired flag) in System Status.
 
 ## Credential handling
 

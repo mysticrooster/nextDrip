@@ -24,7 +24,6 @@ object IletState {
         val bgSuspendTime: Long,
         val bgExpirationTime: Long,
         val mealAnnouncementState: Int = -1,
-        val patchSessionEndTime: Long = 0L,
         val silentMode: Int = -1,
     )
 
@@ -41,7 +40,7 @@ object IletState {
         write(
             now, data.isInsulinPaused, data.isCharging, data.isCartridgeEmpty,
             data.bgSuspendTime, data.bgExpirationTime,
-            data.mealAnnouncementState, data.pumpPatchInfoSessionEndTime, data.silentMode
+            data.mealAnnouncementState, data.silentMode
         )
     }
 
@@ -53,7 +52,6 @@ object IletState {
         bgSuspendTime: Long,
         bgExpirationTime: Long,
         mealAnnouncementState: Int = -1,
-        patchSessionEndTime: Long = 0L,
         silentMode: Int = -1,
     ) {
         val json = JSONObject()
@@ -64,7 +62,6 @@ object IletState {
             .put("bgSuspendTime", bgSuspendTime)
             .put("bgExpirationTime", bgExpirationTime)
             .put("mealAnnouncementState", mealAnnouncementState)
-            .put("patchSessionEndTime", patchSessionEndTime)
             .put("silentMode", silentMode)
         PersistentStore.setString(KEY, json.toString())
     }
@@ -80,7 +77,6 @@ object IletState {
                 j.getBoolean("cartridgeEmpty"),
                 j.getLong("bgSuspendTime"), j.getLong("bgExpirationTime"),
                 j.optInt("mealAnnouncementState", -1),
-                j.optLong("patchSessionEndTime", 0L),
                 j.optInt("silentMode", -1),
             )
         } catch (e: Exception) {

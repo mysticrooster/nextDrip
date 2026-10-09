@@ -593,6 +593,17 @@ class ILetService : JamBaseBluetoothService() {
                 (if (drift >= 0) "+" else "") + drift + "s" + if (driftOff) " (pump time is off)" else "",
                 if (driftOff) com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.NOTICE
                 else com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.GOOD))
+            val patchStart = IletPrefs.patchSessionStartMs()
+            if (patchStart > 0) {
+                val patchEnd = IletPrefs.patchSessionEndMs()
+                val expired = patchEnd > 0 && patchEnd < System.currentTimeMillis()
+                rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
+                    "Infusion set",
+                    com.eveningoutpost.dexdrip.models.JoH.niceTimeScalar(System.currentTimeMillis() - patchStart) +
+                        " old" + if (expired) " (expired)" else "",
+                    if (expired) com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.NOTICE
+                    else com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.GOOD))
+            }
             rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
                 "Backfill request",
                 if (snapshot.requestMs > 0) com.eveningoutpost.dexdrip.models.JoH.dateTimeText(snapshot.requestMs) else "none",
