@@ -498,6 +498,15 @@ public class NocturneUploader {
                     .entries(Collections.singletonList(entry));
             new ProfileApi(apiClient).profileCreateBasalSchedule(schedule);
             return true;
+        } catch (ApiException e) {
+            if (e.getCode() == 403) {
+                // The token used for glucose/bolus uploads is not authorized to write
+                // therapy profiles on this instance. Not an error worth retrying.
+                UserError.Log.w(TAG, "Nocturne refused the 0 U/hr basal schedule (403): this token cannot write profiles");
+            } else {
+                logFailure("iLet 0 U/hr basal schedule", e);
+            }
+            return false;
         } catch (Exception e) {
             logFailure("iLet 0 U/hr basal schedule", e);
             return false;
