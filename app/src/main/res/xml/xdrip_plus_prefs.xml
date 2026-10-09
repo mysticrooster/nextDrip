@@ -286,6 +286,14 @@
                         app:colorpicker_showHex="false" />
 
                     <com.eveningoutpost.dexdrip.utilitymodels.ColorPicker
+                        android:defaultValue="#B0FF8C00"
+                        android:key="color_ilet_pump_iob"
+                        android:title="@string/title_color_ilet_pump_iob"
+                        app:colorpicker_noneSelectedSummaryText="@string/default_color_selected"
+                        app:colorpicker_selectNoneButtonText="@string/revert_to_default"
+                        app:colorpicker_showHex="false" />
+
+                    <com.eveningoutpost.dexdrip.utilitymodels.ColorPicker
                         android:defaultValue="#2B212FDE"
                         android:key="color_heart_rate1"
                         android:title="@string/title_color_heart_rate1"
@@ -1347,6 +1355,121 @@
                 android:title="@string/title_pendiq_pin" />
 
         </PreferenceScreen>
+            <PreferenceScreen
+                android:icon="@drawable/ic_mode_edit_grey_600_48dp"
+                android:key="ilet_screen"
+                android:summary="@string/ilet_summary"
+                android:title="@string/ilet_title">
+                <Preference
+                    android:selectable="false"
+                    android:summary="@string/ilet_readonly_notice" />
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="ilet_enabled"
+                    android:summary="@string/ilet_enable_summary"
+                    android:title="@string/ilet_enable_title" />
+                <EditTextPreference
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_last_address"
+                    android:summary="@string/ilet_address_summary"
+                    android:title="@string/ilet_address_title" />
+                <Preference
+                    android:key="ilet_device_info"
+                    android:selectable="false"
+                    android:title="@string/ilet_device_info_title" />
+                <Preference
+                    android:key="ilet_live_status"
+                    android:selectable="false"
+                    android:title="@string/ilet_live_status_title" />
+                <Preference
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_test_connection"
+                    android:summary="@string/ilet_test_connection_summary"
+                    android:title="@string/ilet_test_connection_title">
+                    <intent
+                        android:targetClass="com.eveningoutpost.dexdrip.cgm.ilet.ILetStatusActivity"
+                        android:targetPackage="@string/local_target_package" />
+                </Preference>
+                <Preference
+                    android:key="ilet_login"
+                    android:summary="@string/ilet_login_summary"
+                    android:title="@string/ilet_login_title">
+                    <intent
+                        android:targetClass="com.eveningoutpost.dexdrip.cgm.ilet.ILetLoginActivity"
+                        android:targetPackage="@string/local_target_package" />
+                </Preference>
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_backfill_glucose"
+                    android:summary="@string/ilet_backfill_glucose_summary"
+                    android:title="@string/ilet_backfill_glucose_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_download_boluses"
+                    android:summary="@string/ilet_download_boluses_summary"
+                    android:title="@string/ilet_download_boluses_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="ilet_download_boluses"
+                    android:key="ilet_download_meals"
+                    android:summary="@string/ilet_download_meals_summary"
+                    android:title="@string/ilet_download_meals_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_download_basal"
+                    android:summary="@string/ilet_download_basal_summary"
+                    android:title="@string/ilet_download_basal_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="show_ilet_pump_iob_line"
+                    android:summary="@string/ilet_pump_iob_line_summary"
+                    android:title="@string/ilet_pump_iob_line_title" />
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="status_line_ilet"
+                    android:summary="@string/ilet_status_line_summary"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="@string/ilet_status_line_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_iob"
+                    android:summary="@string/ilet_status_line_iob_summary"
+                    android:title="@string/ilet_status_line_iob_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_reservoir"
+                    android:summary="@string/ilet_status_line_reservoir_summary"
+                    android:title="@string/ilet_status_line_reservoir_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_battery"
+                    android:summary="@string/ilet_status_line_battery_summary"
+                    android:title="@string/ilet_status_line_battery_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_state"
+                    android:summary="@string/ilet_status_line_state_summary"
+                    android:title="@string/ilet_status_line_state_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_age"
+                    android:summary="@string/ilet_status_line_age_summary"
+                    android:title="@string/ilet_status_line_age_title" />
+                <Preference
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_backfill_from"
+                    android:summary="@string/ilet_backfill_summary"
+                    android:title="@string/ilet_backfill_title" />
+            </PreferenceScreen>
         </PreferenceScreen>
 
     </PreferenceCategory>

@@ -138,7 +138,11 @@ public class StatusLine {
 
         } // if using stats result
 
-        if (Pref.getBoolean("status_line_pump_reservoir", false)) {
+        // The generic pump status block and the iLet status block render the same
+        // PumpStatus values; showing both duplicates every real-time field. The iLet
+        // line (when enabled from the iLet settings) supersedes the generic one.
+        if (Pref.getBoolean("status_line_pump_reservoir", false)
+                && !Pref.getBooleanDefaultFalse("status_line_ilet")) {
             append(sb, PumpStatus.getBolusIoBString());
             sb.append(PumpStatus.getReservoirString());
             sb.append(PumpStatus.getBatteryString());
@@ -184,6 +188,29 @@ public class StatusLine {
         if (Pref.getBoolean("status_line_time", false)) {
             SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
             append(sb, sdf.format(new Date()));
+        }
+
+        // iLet pump status items, configured from the iLet connector settings.
+        if (Pref.getBooleanDefaultFalse("status_line_ilet")) {
+            final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
+                    com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
+            if (Pref.getBoolean("status_line_ilet_iob", true)) {
+                append(sb, "IOB " + PumpStatus.getBolusIoBString());
+            }
+            if (Pref.getBoolean("status_line_ilet_reservoir", true)) {
+                append(sb, PumpStatus.getReservoirString());
+            }
+            if (Pref.getBoolean("status_line_ilet_battery", true)) {
+                append(sb, PumpStatus.getBatteryString());
+            }
+            if (state != null) {
+                if (Pref.getBooleanDefaultFalse("status_line_ilet_state")) {
+                    append(sb, state.getInsulinPaused() ? "iLet suspended" : "iLet running");
+                }
+                if (Pref.getBooleanDefaultFalse("status_line_ilet_age")) {
+                    append(sb, "iLet " + (JoH.msSince(state.getTimestamp()) / 60000) + "m");
+                }
+            }
         }
         return sb.toString();
 

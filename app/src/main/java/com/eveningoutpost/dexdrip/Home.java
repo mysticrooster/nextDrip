@@ -3039,7 +3039,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
             display_delta = "";
         }
 
-        if (Pref.getBoolean("extra_status_line", false)) {
+        if (Pref.getBoolean("extra_status_line", false) || Pref.getBooleanDefaultFalse("status_line_ilet")) {
             extraStatusLineText.setText(StatusLine.extraStatusLine());
             extraStatusLineText.setVisibility(View.VISIBLE);
         } else {

@@ -236,6 +236,24 @@ public class Treatments extends Model {
         return create(carbs, insulin, timestamp, null);
     }
 
+    // insulin-only treatment with notes set before the first save, so sync/upload carries them
+    public static synchronized Treatments createWithNotes(final double insulinSum, final long timestamp, final String suggested_uuid, final String notes) {
+        if (insulinSum == 0) return null;
+        final Treatments treatment = new Treatments();
+        treatment.enteredBy = XDRIP_TAG;
+        treatment.carbs = 0;
+        treatment.insulin = insulinSum;
+        treatment.setInsulinInjections(MultipleInsulins.isEnabled() ? convertLegacyDoseToBolusInjectionList(insulinSum) : null);
+        treatment.timestamp = timestamp;
+        treatment.created_at = DateUtil.toISOString(timestamp);
+        treatment.uuid = suggested_uuid != null ? suggested_uuid : UUID.randomUUID().toString();
+        if (notes != null && !notes.isEmpty()) treatment.notes = notes;
+        treatment.save();
+        pushTreatmentSync(treatment);
+        UndoRedo.addUndoTreatment(treatment.uuid);
+        return treatment;
+    }
+
     public static synchronized Treatments create(final double carbs, final double insulinSum, final long timestamp, final String suggested_uuid) {
 
         if (MultipleInsulins.isEnabled()) {
@@ -562,6 +580,32 @@ public class Treatments extends Model {
             fixUpTable();
             return null;
         }
+    }
+
+    /**
+     * Correct an already-imported iLet treatment in place. iLet uses a deterministic UUID
+     * (pump serial + record sequence), so a re-import is normally skipped as a duplicate;
+     * this lets a corrected timestamp (e.g. after a timezone fix) and note overwrite the
+     * stored values instead of leaving the old ones.
+     */
+    public static synchronized boolean reconcileIletTreatment(final String uuid, final long timestamp, final String notes) {
+        final Treatments treatment = byuuid(uuid);
+        if (treatment == null) return false;
+        boolean changed = false;
+        if (Math.abs(treatment.timestamp - timestamp) > MINUTE_IN_MS) {
+            treatment.timestamp = timestamp;
+            treatment.created_at = DateUtil.toISOString(timestamp);
+            changed = true;
+        }
+        if (notes != null && !notes.isEmpty() && !notes.equals(treatment.notes)) {
+            treatment.notes = notes;
+            changed = true;
+        }
+        if (changed) {
+            treatment.save();
+            pushTreatmentSync(treatment, false, null);
+        }
+        return changed;
     }
 
     public static Treatments byuuid(String uuid) {

@@ -22,6 +22,7 @@
         <item>SmartGuide</item>
         <item>GlucoRx/Aidex App</item>
         <item>CareLink Follower</item>
+        <item>Beta Bionics iLet</item>
         <item>@string/disable_collection</item>
     </string-array>
 
@@ -47,6 +48,7 @@
         <item>GluPro</item>
         <item>AidexReceiver</item>
         <item>CLFollower</item>
+        <item>iLet</item>
         <item>Disabled</item>
     </string-array>
 

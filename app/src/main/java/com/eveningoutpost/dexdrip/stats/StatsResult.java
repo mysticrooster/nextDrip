@@ -74,7 +74,7 @@ public class StatsResult {
         cursor.close();
 
         if (canShowRealtimeCapture()) {
-            cursor = db.rawQuery("select count(*) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND source_info LIKE \"%Backfill\" AND snyced == 0", null);
+            cursor = db.rawQuery("select count(*) from bgreadings  where timestamp >= " + from + " AND timestamp <= " + to + " AND source_info LIKE '%Backfill' AND snyced == 0", null);
             cursor.moveToFirst();
             backfilledNativeG5 = cursor.getInt(0);
             cursor.close();

@@ -255,7 +255,8 @@ public class NocturneUploader {
 
         for (final Treatments t : treatments) {
             try {
-                switch (routeTreatment(t)) {
+                final TreatmentRoute route = routeTreatment(t);
+                switch (route) {
                     case DEVICE_EVENT:
                         deviceEventApi.deviceEventCreate(mapDeviceEvent(t.timestamp, t.eventType, t.notes, t.uuid));
                         break;
@@ -314,6 +315,12 @@ public class NocturneUploader {
                     case SKIP:
                     default:
                         break;
+                }
+                // Nocturne's bolus/meal resources have no notes field, so a note attached
+                // to a bolus (e.g. an iLet meal label) is also sent as a Note resource.
+                if ((route == TreatmentRoute.BOLUS || route == TreatmentRoute.MEAL || route == TreatmentRoute.CARBS)
+                        && t.notes != null && !t.notes.isEmpty()) {
+                    noteApi.noteCreate(mapNote(t.timestamp, t.notes, t.eventType, suffixedSyncId(t.uuid, 9000)));
                 }
             } catch (Exception e) {
                 logFailure("Treatment upload (" + t.uuid + ")", e);

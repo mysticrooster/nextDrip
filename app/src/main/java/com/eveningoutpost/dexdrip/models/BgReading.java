@@ -1149,6 +1149,9 @@ public class BgReading extends Model implements ShareUploadableBg {
     }
 
     public static final double SPECIAL_RAW_NOT_AVAILABLE = -0.1279;
+
+    // iLet realtime vs backfilled rows for one pump CGM slot can differ by clock skew.
+    public static final long ILET_DEDUPE_WINDOW_MS = Constants.MINUTE_IN_MS * 2;
     public static final double SPECIAL_G5_PLACEHOLDER = -0.1597;
     public static final double SPECIAL_FOLLOWER_PLACEHOLDER = -0.1486;
     public static final double SPECIAL_REMOTE_PLACEHOLDER = -0.1375;
@@ -1254,6 +1257,44 @@ public class BgReading extends Model implements ShareUploadableBg {
         }
     }
 
+
+    public static synchronized BgReading bgReadingInsertFromIlet(final double calculated_value, final long timestamp, final String sourceInfoAppend) {
+
+        final Sensor sensor = Sensor.createDefaultIfMissing();
+        if (sensor == null) {
+            Log.w(TAG, "No sensor, ignoring iLet bg reading");
+            return null;
+        }
+        if (Double.isNaN(calculated_value) || Double.isInfinite(calculated_value) || calculated_value <= 0 || calculated_value > 600) {
+            Log.e(TAG, "Ignoring invalid iLet bg reading: " + calculated_value);
+            return null;
+        }
+
+        // Wider than the usual one minute: realtime and backfilled rows for the same pump CGM
+        // slot can differ by clock skew, and overlapping backfill must not create duplicates.
+        final BgReading existing = getForPreciseTimestamp(timestamp, ILET_DEDUPE_WINDOW_MS);
+        if (existing != null) {
+            return existing;
+        }
+        final BgReading bgr = new BgReading();
+        bgr.sensor = sensor;
+        bgr.sensor_uuid = sensor.uuid;
+        bgr.time_since_sensor_started = JoH.msSince(sensor.started_at);
+        bgr.timestamp = timestamp;
+        bgr.uuid = UUID.randomUUID().toString();
+        bgr.calculated_value = calculated_value;
+        bgr.raw_data = SPECIAL_RAW_NOT_AVAILABLE;
+        bgr.appendSourceInfo("iLet");
+        if (sourceInfoAppend != null && !sourceInfoAppend.isEmpty()) {
+            bgr.appendSourceInfo(sourceInfoAppend);
+        }
+        bgr.save();
+        if (JoH.ratelimit("sync wakelock", 15)) {
+            JoH.getWakeLock("iLet Insert", 4000);
+        }
+        Inevitable.stackableTask("NotifySyncBgr", 3000, () -> notifyAndSync(bgr));
+        return bgr;
+    }
 
     public static synchronized BgReading bgReadingInsertMedtrum(double calculated_value, long timestamp, String sourceInfoAppend, double raw_data) {
 

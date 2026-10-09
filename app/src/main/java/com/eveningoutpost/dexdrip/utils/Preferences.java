@@ -1123,6 +1123,73 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
 
 
 
+        private void setupIletPreferences() {
+            final Preference enabled = findPreference("ilet_enabled");
+            if (enabled != null) {
+                enabled.setOnPreferenceChangeListener((preference, newValue) -> {
+                    // service self-stops when disabled; start it once the value is committed
+                    Inevitable.task("ilet-enable-change", 1500, () ->
+                            com.eveningoutpost.dexdrip.cgm.ilet.ILetEntry.startIfEnabled(xdrip.getAppContext()));
+                    return true;
+                });
+            }
+            final Preference deviceInfo = findPreference("ilet_device_info");
+            if (deviceInfo != null) {
+                final String serial = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.deviceSerial();
+                final String model = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.deviceModel();
+                deviceInfo.setSummary(serial.isEmpty()
+                        ? getString(R.string.ilet_device_info_none)
+                        : getString(R.string.ilet_device_info_value, serial, model));
+            }
+            final Preference status = findPreference("ilet_live_status");
+            if (status != null) {
+                status.setSummary(iletLiveStatusSummary());
+            }
+            final Preference backfill = findPreference("ilet_backfill_from");
+            if (backfill != null) {
+                final java.util.Calendar current = java.util.Calendar.getInstance();
+                final long pending = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.backfillFrom();
+                if (pending > 0) {
+                    backfill.setSummary(getString(R.string.ilet_backfill_pending,
+                            new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                                    .format(new java.util.Date(pending))));
+                } else {
+                    backfill.setSummary(R.string.ilet_backfill_summary);
+                }
+                backfill.setOnPreferenceClickListener(preference -> {
+                    final java.util.Calendar now = java.util.Calendar.getInstance();
+                    new android.app.DatePickerDialog(getActivity(), (view, year, month, day) -> {
+                        final java.util.Calendar picked = java.util.Calendar.getInstance();
+                        picked.set(year, month, day, 0, 0, 0);
+                        com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setBackfillFrom(picked.getTimeInMillis());
+                        com.eveningoutpost.dexdrip.cgm.ilet.ILetEntry.requestBackfill(getActivity());
+                        backfill.setSummary(getString(R.string.ilet_backfill_pending,
+                                new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                                        .format(new java.util.Date(picked.getTimeInMillis()))));
+                        JoH.static_toast_long(getString(R.string.ilet_backfill_requested));
+                    }, now.get(java.util.Calendar.YEAR), now.get(java.util.Calendar.MONTH), now.get(java.util.Calendar.DAY_OF_MONTH)).show();
+                    return true;
+                });
+            }
+        }
+
+        private String iletLiveStatusSummary() {
+            final long last = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.lastContact();
+            final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
+                    com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
+            if (state == null) {
+                return last > 0
+                        ? getString(R.string.ilet_live_status_contact_only, JoH.dateTimeText(last))
+                        : getString(R.string.ilet_live_status_none);
+            }
+            return getString(R.string.ilet_live_status_value,
+                    com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getBatteryString(),
+                    com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getBolusIoBString(),
+                    com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getReservoirString(),
+                    JoH.dateTimeText(state.getTimestamp()))
+                    + " \u00b7 " + getString(R.string.ilet_live_status_contact, JoH.dateTimeText(last));
+        }
+
         @SuppressLint("ApplySharedPref")
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -1174,6 +1241,7 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
 
             addPreferencesFromResource(R.xml.pref_advanced_settings);
             addPreferencesFromResource(R.xml.xdrip_plus_prefs);
+            setupIletPreferences();
 
             bindPreferenceSummaryToValue(findPreference("persistent_high_threshold_mins"));
             bindPreferenceSummaryToValue(findPreference("persistent_high_repeat_mins"));

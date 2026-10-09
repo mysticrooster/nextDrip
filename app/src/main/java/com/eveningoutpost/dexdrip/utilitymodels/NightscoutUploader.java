@@ -1181,6 +1181,73 @@ public class NightscoutUploader {
                 checkGzipSupport(r);
             }
         }
+        postIletDeviceStatus(nightscoutService, apiSecret);
+    }
+
+    /**
+     * Additive pump device status for iLet. Emits reservoir/battery, the pump's
+     * IOB, and secondary flags, rate-limited by fingerprint. Battery-only
+     * behaviour is unchanged when iLet is disabled.
+     */
+    private void postIletDeviceStatus(NightscoutService nightscoutService, String apiSecret) {
+        if (!com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
+            return;
+        }
+        try {
+            final JSONObject status = new JSONObject(PumpStatus.toJson());
+            final double reservoir = status.optDouble("reservoir", -1);
+            final double iob = status.optDouble("bolusiob", -1);
+            final double battery = status.optDouble("battery", -1);
+            final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
+                    com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
+            if (reservoir < 0 && iob < 0 && battery < 0 && state == null) {
+                return;
+            }
+
+            final int batteryRounded = (int) Math.round(battery);
+            final String fingerprint = JoH.qs(reservoir, 2) + "/" + JoH.qs(iob, 3) + "/" + batteryRounded
+                    + "/" + (state != null && state.getInsulinPaused()) + "/"
+                    + (state != null && state.getCharging()) + "/"
+                    + (state != null && state.getCartridgeEmpty());
+            if (fingerprint.equals(PersistentStore.getString("last-ilet-ns-device-status"))) {
+                return;
+            }
+
+            final JSONObject json = new JSONObject();
+            json.put("device", "iLet");
+
+            final JSONObject pump = new JSONObject();
+            if (reservoir >= 0) pump.put("reservoir", reservoir);
+            if (battery >= 0) pump.put("battery", batteryRounded);
+            if (state != null) {
+                pump.put("suspended", state.getInsulinPaused());
+                pump.put("charging", state.getCharging());
+                pump.put("cartridgeEmpty", state.getCartridgeEmpty());
+            }
+            json.put("pump", pump);
+
+            final JSONObject openaps = new JSONObject();
+            if (iob >= 0) openaps.put("iob", new JSONObject().put("iob", iob));
+            json.put("openaps", openaps);
+
+            final JSONObject uploader = new JSONObject();
+            final int phoneBattery = NightscoutBatteryDevice.PHONE.getBatteryLevel(mContext);
+            if (phoneBattery > 0) uploader.put("battery", phoneBattery);
+            json.put("uploader", uploader);
+
+            final RequestBody body = RequestBody.create(json.toString(), MediaType.parse("application/json"));
+            final Response<ResponseBody> r = (apiSecret != null)
+                    ? nightscoutService.uploadDeviceStatus(apiSecret, body).execute()
+                    : nightscoutService.uploadDeviceStatus(body).execute();
+            if (r.isSuccessful()) {
+                checkGzipSupport(r);
+                PersistentStore.setString("last-ilet-ns-device-status", fingerprint);
+            } else {
+                UserError.Log.d(TAG, "iLet device status upload failed: " + r.code());
+            }
+        } catch (Exception e) {
+            UserError.Log.d(TAG, "iLet device status error: " + e);
+        }
     }
 
 

@@ -126,6 +126,7 @@ public class MegaStatus extends FloatingLocaleActivityWithScreenshot {
     private static final String G4_STATUS = "BT Device";
     public static final String G5_STATUS = "Dex Status";
     private static final String MEDTRUM_STATUS = "Medtrum Status";
+    private static final String ILET_STATUS = "iLet Status";
     private static final String IP_COLLECTOR = "IP Collector";
     private static final String XDRIP_PLUS_SYNC = "Followers";
     private static final String UPLOADERS = "Uploaders";
@@ -194,6 +195,9 @@ public class MegaStatus extends FloatingLocaleActivityWithScreenshot {
             if (InPenEntry.isEnabled()) {
                 addAsection(INPEN_STATUS,"InPen Status");
             }
+            if (com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
+                addAsection(ILET_STATUS, "iLet Pump Status");
+            }
             if (Home.get_master_or_follower()) {
                 addAsection(XDRIP_PLUS_SYNC, "xDrip Sync Group");
             }
@@ -251,6 +255,9 @@ public class MegaStatus extends FloatingLocaleActivityWithScreenshot {
                 break;
             case MEDTRUM_STATUS:
                 la.addRows(MedtrumCollectionService.megaStatus());
+                break;
+            case ILET_STATUS:
+                la.addRows(com.eveningoutpost.dexdrip.cgm.ilet.ILetService.megaStatus());
                 break;
             case IP_COLLECTOR:
                 la.addRows(WifiCollectionService.megaStatus(mActivity));

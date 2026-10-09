@@ -23,6 +23,10 @@
 -keepattributes Exceptions
 -keepattributes InnerClasses
 -keepattributes *Annotation*
+# R8 can emit a malformed dalvik.annotation.MethodParameters (duplicate "names"
+# element) when merging protobuf-generated methods, which the Android 16+ dex
+# verifier rejects at load ("Out-of-order annotation_element name_idx"). Drop it.
+-keepattributes !MethodParameters
 
 -dontobfuscate
 

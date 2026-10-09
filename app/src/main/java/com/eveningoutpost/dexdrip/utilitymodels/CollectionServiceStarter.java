@@ -344,6 +344,9 @@ public class CollectionServiceStarter {
             startPebbleSyncService();
         }
 
+        // iLet may run pump-only alongside any other collector
+        com.eveningoutpost.dexdrip.cgm.ilet.ILetEntry.startIfEnabled(this.mContext);
+
         //startSyncService(); // TODO do we need to actually do this here?
         //startDailyIntentService();
         Log.d(TAG, collection_method);

@@ -27,6 +27,7 @@ import com.eveningoutpost.dexdrip.models.Forecast.TrendLine;
 import com.eveningoutpost.dexdrip.models.HeartRate;
 import com.eveningoutpost.dexdrip.models.Iob;
 import com.eveningoutpost.dexdrip.models.JoH;
+import com.eveningoutpost.dexdrip.models.PumpIobReading;
 import com.eveningoutpost.dexdrip.models.Libre2RawValue;
 import com.eveningoutpost.dexdrip.models.Prediction;
 import com.eveningoutpost.dexdrip.models.Profile;
@@ -694,6 +695,30 @@ public class BgGraphBuilder {
     }
 
 
+    /** Pump-reported IOB from the iLet real-time stream (off by default; may duplicate xDrip IOB). */
+    private List<Line> pumpIobLines() {
+        final List<Line> pumpIobLines = new ArrayList<>();
+        final List<PumpIobReading> readings = PumpIobReading.latestForGraph(2000, loaded_start, loaded_end);
+        if (readings.isEmpty()) return pumpIobLines;
+
+        final float yscale = doMgdl ? 10f : 1f;
+        final List<PointValue> points = new ArrayList<>();
+        for (PumpIobReading reading : readings) {
+            float ypos = (float) (reading.iob * yscale);
+            ypos = clampNonGlucoseY(ypos + panCompensationOffset);
+            points.add(new HPointValue((double) reading.timestamp / FUZZER, ypos));
+        }
+        final Line line = new Line(points);
+        line.setColor(getCol(X.color_ilet_pump_iob));
+        line.setStrokeWidth(2);
+        line.setHasPoints(false);
+        line.setHasLines(true);
+        line.setCubic(true);
+        line.setTag("ilet_pump_iob");
+        pumpIobLines.add(line);
+        return pumpIobLines;
+    }
+
     public LineChartData lineData() {
         // if (d) Log.d(TAG, "START lineData from: " + JoH.backTrace());
         JoH.benchmark(null);
@@ -778,6 +803,9 @@ public class BgGraphBuilder {
                     lines.addAll(motionLine());
                 }
                 lines.addAll(basalLines());
+                if (Pref.getBooleanDefaultFalse("show_ilet_pump_iob_line")) {
+                    lines.addAll(pumpIobLines());
+                }
                 lines.addAll(heartLines());
                 lines.addAll(stepsLines());
                 lines.addAll(predictiveLines());
