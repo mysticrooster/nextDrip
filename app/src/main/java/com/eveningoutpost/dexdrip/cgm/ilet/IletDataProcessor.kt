@@ -93,6 +93,22 @@ class IletDataProcessor {
 
     private val serial: String get() = IletPrefs.pumpNamespace()
 
+    /**
+     * Dedupe window for iLet glucose rows: half the primary collector's sample period, but at
+     * least the iLet-wide window (realtime vs backfilled rows for one pump CGM slot can differ
+     * by clock skew), widened by the measured pump-vs-phone clock drift. One value used by both
+     * the realtime and history paths so they cannot disagree.
+     */
+    private fun glucoseDedupeWindow(): Long {
+        val driftMs = Math.abs(IletPrefs.clockDriftSeconds()) * 1000L
+        return maxOf(
+            BgReading.ILET_DEDUPE_WINDOW_MS,
+            com.eveningoutpost.dexdrip.utils.DexCollectionType.getCollectorSamplePeriod(
+                com.eveningoutpost.dexdrip.utils.DexCollectionType.getDexCollectionType()
+            ) / 2,
+        ) + driftMs
+    }
+
     private fun hex(bytes: ByteArray, from: Int, to: Int): String =
         bytes.copyOfRange(from, minOf(to, bytes.size)).joinToString("") { "%02x".format(it) }
 
@@ -129,7 +145,7 @@ class IletDataProcessor {
         if (reading <= 0) return
         val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
         val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-        BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null)
+        BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
     }
 
     /** Dispatch a real-time packet that may be 0x1506 or the 0x1515 superset. */
@@ -162,7 +178,7 @@ class IletDataProcessor {
             if (reading > 0) {
                 val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
                 val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-                BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null)
+                BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
             }
         }
 
@@ -235,23 +251,13 @@ class IletDataProcessor {
         }
         val timestamp = IletMapping.glucoseMillis(rec.currentTimestamp, epochOffsetSeconds)
         // Only fill gaps: skip if any BgReading already covers this slot, whether from a
-        // previous iLet import or from the primary xDrip CGM. Use half the collector's
-        // sample period as the window, widened by the measured pump-vs-phone clock drift,
-        // because the pump clock is not perfectly in sync so the same slot can land a
-        // little either side of the xDrip row.
-        val driftMs = Math.abs(IletPrefs.clockDriftSeconds()) * 1000L
-        val window = maxOf(
-            BgReading.ILET_DEDUPE_WINDOW_MS,
-            com.eveningoutpost.dexdrip.utils.DexCollectionType.getCollectorSamplePeriod(
-                com.eveningoutpost.dexdrip.utils.DexCollectionType.getDexCollectionType()
-            ) / 2,
-        ) + driftMs
-        if (BgReading.getForPreciseTimestamp(timestamp, window) != null) {
-            statGlucoseExisting++
-            return
-        }
-        val reading = BgReading.bgReadingInsertFromIlet(rec.readingMgDl.toDouble(), timestamp, null)
-        if (reading != null) statGlucoseInserted++ else statGlucoseSkipped++
+        // previous iLet import or from the primary xDrip CGM. The dedupe (with the shared
+        // window) now happens entirely inside the inserter, so this is a single query per
+        // record; a null result means the slot was already covered.
+        val reading = BgReading.bgReadingInsertFromIlet(
+            rec.readingMgDl.toDouble(), timestamp, null, glucoseDedupeWindow()
+        )
+        if (reading != null) statGlucoseInserted++ else statGlucoseExisting++
     }
 
     fun processHistoricalInsulin(rec: IletHistoricalInsulinRecord) {
@@ -277,10 +283,11 @@ class IletDataProcessor {
 
         val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, epochOffsetSeconds)
         val uuid = UUID.nameUUIDFromBytes("ilet:$serial:insulin:${rec.sequenceNumber}".toByteArray()).toString()
-        if (Treatments.byuuid(uuid) != null) {
+        val existing = Treatments.byuuid(uuid)
+        if (existing != null) {
             // Already imported: correct the timestamp/note in place (deterministic UUID means
             // a plain re-import would be skipped and any earlier wrong time would persist).
-            if (Treatments.reconcileIletTreatment(uuid, timestamp, label)) statInsulinCorrected++ else statInsulinDup++
+            if (Treatments.reconcileIletTreatment(existing, timestamp, label)) statInsulinCorrected++ else statInsulinDup++
             return
         }
         if (units > 0) {

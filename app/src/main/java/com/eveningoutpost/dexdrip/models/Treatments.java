@@ -238,6 +238,20 @@ public class Treatments extends Model {
     // insulin-only treatment with notes set before the first save, so sync/upload carries them
     public static synchronized Treatments createWithNotes(final double insulinSum, final long timestamp, final String suggested_uuid, final String notes) {
         if (insulinSum == 0) return null;
+        // Same future-timestamp guards as the guarded create(...) overload: refuse > 1h future
+        // and remind for > 3min future, so the iLet import path cannot bypass them.
+        final long future_seconds = (timestamp - JoH.tsl()) / 1000;
+        if (future_seconds > (60 * 60)) {
+            JoH.static_toast_long(xdrip.gs(R.string.toast_treatment_more_than_one_hour_in_the_future));
+            UserError.Log.e(TAG, "Refusing to create a treatment more than 1 hour in the future!");
+            return null;
+        }
+        if ((future_seconds > (3 * 60)) && (future_seconds < 86400) && (insulinSum > 0)) {
+            final Context context = xdrip.getAppContext();
+            JoH.scheduleNotification(context, "Treatment Reminder", "@" + JoH.hourMinuteString(timestamp) + " : "
+                    + 0 + " g " + context.getString(R.string.carbs) + " / "
+                    + insulinSum + " " + context.getString(R.string.units), (int) future_seconds, 34026);
+        }
         final Treatments treatment = new Treatments();
         treatment.enteredBy = XDRIP_TAG;
         treatment.carbs = 0;
@@ -587,9 +601,16 @@ public class Treatments extends Model {
      * this lets a corrected timestamp (e.g. after a timezone fix) and note overwrite the
      * stored values instead of leaving the old ones.
      */
-    public static synchronized boolean reconcileIletTreatment(final String uuid, final long timestamp, final String notes) {
-        final Treatments treatment = byuuid(uuid);
-        if (treatment == null) return false;
+    public static synchronized boolean reconcileIletTreatment(final Treatments existing, final long timestamp, final String notes) {
+        if (existing == null) return false;
+        // Do not move a corrected timestamp into the future beyond the same bound create(...)
+        // enforces; a bad pump clock must not create a far-future treatment.
+        final long future_seconds = (timestamp - JoH.tsl()) / 1000;
+        if (future_seconds > (60 * 60)) {
+            UserError.Log.e(TAG, "Refusing to reconcile a treatment more than 1 hour in the future!");
+            return false;
+        }
+        final Treatments treatment = existing;
         boolean changed = false;
         if (Math.abs(treatment.timestamp - timestamp) > MINUTE_IN_MS) {
             treatment.timestamp = timestamp;

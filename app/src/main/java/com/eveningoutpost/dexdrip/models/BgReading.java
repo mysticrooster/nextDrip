@@ -1265,7 +1265,7 @@ public class BgReading extends Model implements ShareUploadableBg {
     }
 
 
-    public static synchronized BgReading bgReadingInsertFromIlet(final double calculated_value, final long timestamp, final String sourceInfoAppend) {
+    public static synchronized BgReading bgReadingInsertFromIlet(final double calculated_value, final long timestamp, final String sourceInfoAppend, final long dedupeWindowMs) {
 
         final Sensor sensor = Sensor.createDefaultIfMissing();
         if (sensor == null) {
@@ -1279,9 +1279,11 @@ public class BgReading extends Model implements ShareUploadableBg {
 
         // Wider than the usual one minute: realtime and backfilled rows for the same pump CGM
         // slot can differ by clock skew, and overlapping backfill must not create duplicates.
-        final BgReading existing = getForPreciseTimestamp(timestamp, ILET_DEDUPE_WINDOW_MS);
+        // A null return means the slot was already covered (deduped), so callers can count
+        // existing-vs-inserted rows from a single query.
+        final BgReading existing = getForPreciseTimestamp(timestamp, dedupeWindowMs);
         if (existing != null) {
-            return existing;
+            return null;
         }
         final BgReading bgr = new BgReading();
         bgr.sensor = sensor;

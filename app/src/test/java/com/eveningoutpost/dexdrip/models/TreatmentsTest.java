@@ -178,4 +178,29 @@ public class TreatmentsTest extends RobolectricTestWithConfig {
         assertThat(injections).hasSize(1);
         assertThat(injections.get(0).getUnits()).isEqualTo(2.0);
     }
+
+    @Test
+    public void createWithNotes_refusesTreatmentMoreThanOneHourInTheFuture() {
+        // :: Setup - the iLet import path uses createWithNotes; it must keep the same bound
+        final long future = System.currentTimeMillis() + (2 * 60 * 60 * 1000L);
+
+        // :: Act
+        final Treatments treatment = Treatments.createWithNotes(2.0, future, null, "future bolus");
+
+        // :: Verify
+        assertThat(treatment).isNull();
+    }
+
+    @Test
+    public void createWithNotes_acceptsRecentPast() {
+        // :: Setup
+        final long past = System.currentTimeMillis() - 60_000L;
+
+        // :: Act
+        final Treatments treatment = Treatments.createWithNotes(1.5, past, null, "past bolus");
+
+        // :: Verify
+        assertThat(treatment).isNotNull();
+        assertThat(treatment.insulin).isEqualTo(1.5);
+    }
 }
