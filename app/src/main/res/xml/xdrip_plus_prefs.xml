@@ -1475,6 +1475,11 @@
                         android:key="ilet_download_basal"
                         android:summary="@string/ilet_download_basal_summary"
                         android:title="@string/ilet_download_basal_title" />
+                    <Preference
+                        android:dependency="ilet_enabled"
+                        android:key="ilet_unpair"
+                        android:summary="@string/ilet_unpair_summary"
+                        android:title="@string/ilet_unpair_title" />
                 </PreferenceScreen>
             </PreferenceScreen>
         </PreferenceScreen>

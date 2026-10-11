@@ -2018,6 +2018,9 @@
     <string name="ilet_pair_title">Pair pump</string>
     <string name="ilet_pair_summary">Search for the iLet nearby and start Bluetooth pairing</string>
     <string name="ilet_pair_working">Searching for the iLet…</string>
+    <string name="ilet_unpair_title">Unpair pump</string>
+    <string name="ilet_unpair_summary">Remove the Bluetooth pairing with the iLet</string>
+    <string name="ilet_unpair_confirm">This removes the Bluetooth bond with the iLet. You will need to pair it again before xDrip can reconnect. Continue?</string>
     <string name="ilet_enable_title">Enable iLet</string>
     <string name="ilet_enable_summary">Connect to the iLet over Bluetooth. First pair the pump in Android Settings &gt; Bluetooth (it must show as a bonded/paired device), then turn this on. Works alongside another CGM (pump-only) or as the glucose source when selected as the Hardware Data Source.</string>
     <string name="ilet_address_title">Bluetooth address</string>

@@ -47,4 +47,26 @@ object IletPairing {
     fun pairPumpWithToast(context: Context) {
         JoH.static_toast_long(pairPump(context))
     }
+
+    /** Blocking; call off the main thread. Removes the Bluetooth bond. */
+    @JvmStatic
+    fun unpairPump(context: Context): String {
+        val address = IletPrefs.lastAddress()
+        if (address.isEmpty()) return "No iLet address is stored."
+        return try {
+            val adapter = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+                ?: return "Bluetooth is unavailable on this device."
+            val device = adapter.getRemoteDevice(address)
+            if (device.bondState != BluetoothDevice.BOND_BONDED) {
+                IletPrefs.setLastAddress("")
+                return "The iLet is not currently paired."
+            }
+            val removed = device.javaClass.getMethod("removeBond").invoke(device) as? Boolean ?: false
+            IletPrefs.setLastAddress("")
+            if (removed) "iLet unpaired." else "Unpair request sent; check Android Bluetooth settings."
+        } catch (t: Throwable) {
+            UserError.Log.e(TAG, "unpairPump failed: ${t.message}")
+            "Unpair failed: ${t.message}"
+        }
+    }
 }

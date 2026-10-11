@@ -1166,6 +1166,22 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                     return true;
                 });
             }
+            final Preference unpair = findPreference("ilet_unpair");
+            if (unpair != null) {
+                unpair.setOnPreferenceClickListener(preference -> {
+                    new android.app.AlertDialog.Builder(getActivity())
+                            .setTitle(R.string.ilet_unpair_title)
+                            .setMessage(R.string.ilet_unpair_confirm)
+                            .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                                final android.content.Context ctx = getActivity().getApplicationContext();
+                                new Thread(() -> JoH.static_toast_long(
+                                        com.eveningoutpost.dexdrip.cgm.ilet.IletPairing.unpairPump(ctx))).start();
+                            })
+                            .setNegativeButton(android.R.string.cancel, null)
+                            .show();
+                    return true;
+                });
+            }
             final Preference zeroBasal = findPreference("ilet_publish_zero_basal");
             if (zeroBasal != null) {
                 zeroBasal.setOnPreferenceChangeListener((preference, newValue) -> {

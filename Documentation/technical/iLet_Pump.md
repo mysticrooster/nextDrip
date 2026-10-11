@@ -55,10 +55,11 @@ renders the same `PumpStatus` values and would otherwise duplicate every real-ti
 the run/suspend item shows "INSULIN DELIVERY SUSPENDED" plus the elapsed time only while
 suspended, and nothing while running), and "backfill from date" (with the **account/login** link directly under the master switch).
 The **Advanced options** sub-screen sits last and holds **Pair pump**, the Bluetooth address
-and the non-working-on-this-firmware **Download basal** toggle. **Pair pump** scans for the
-iLet (advertised service UUID, then a name containing "iLet"), remembers its address and calls
-`BluetoothDevice.createBond()`, which shows the Android pairing dialog; the transport also
-bonds on demand during connect. The credential actions (forget session
+and the non-working-on-this-firmware **Download basal** toggle, plus **Unpair pump** (removes
+the Bluetooth bond via reflection `removeBond()`, behind a confirmation dialog). **Pair pump**
+scans for the iLet (advertised service UUID, then a name containing "iLet"), remembers its
+address and calls `BluetoothDevice.createBond()`, which shows the Android pairing dialog; the
+transport also bonds on demand during connect. The credential actions (forget session
 / credential / everything) live only on the account/login page, not in settings. Pump
 identity, the latest pump status and pump-clock drift are shown on the System Status screen,
 not in settings. The enable switch summary reminds the user to pair the pump in Android
