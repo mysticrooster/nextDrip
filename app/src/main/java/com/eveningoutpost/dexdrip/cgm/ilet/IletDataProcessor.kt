@@ -9,7 +9,6 @@ import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletRealtimeSnapshot
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletRealTimeData
 import com.eveningoutpost.dexdrip.models.APStatus
 import com.eveningoutpost.dexdrip.models.BgReading
-import com.eveningoutpost.dexdrip.models.IletPredictedBg
 import com.eveningoutpost.dexdrip.models.PumpIobReading
 import com.eveningoutpost.dexdrip.models.Treatments
 import com.eveningoutpost.dexdrip.models.UserError
@@ -165,7 +164,7 @@ class IletDataProcessor {
         if (reading <= 0) return
         val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
         val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-        maybeStorePredictedBg(data.glucose.predictedReading, timestamp, data.glucose.currentTimestamp)
+        maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp, data.glucose.currentTimestamp)
         if (!IletPrefs.downloadGlucose()) return
         BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
     }
@@ -199,7 +198,7 @@ class IletDataProcessor {
         if (reading > 0) {
             val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
             val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-            maybeStorePredictedBg(data.glucose.predictedReading, timestamp, data.glucose.currentTimestamp)
+            maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp, data.glucose.currentTimestamp)
             if (IletPrefs.downloadGlucose()) {
                 BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
             }
@@ -249,15 +248,15 @@ class IletDataProcessor {
     }
 
     /**
-     * Persist the pump's predicted BG once per CGM slot (the realtime packet repeats the
-     * same value until the next slot). Stored even when the collector toggle is off so the
-     * line has history once the user enables the setting; drawn only when it is enabled.
+     * Remember the pump's predicted BG for the newest reading so the graph can draw a live
+     * stub. Nothing is persisted as history: the value is overwritten each CGM slot, so it
+     * is only ever shown for the latest reading.
      */
-    private fun maybeStorePredictedBg(predictedMgdl: Int, timestampMs: Long, rtcSeconds: Long) {
+    private fun maybeStorePredictedBg(predictedMgdl: Int, readingMgdl: Int, timestampMs: Long, rtcSeconds: Long) {
         if (predictedMgdl <= 0) return
         if (rtcSeconds == lastPredictedRtc) return
         lastPredictedRtc = rtcSeconds
-        IletPredictedBg.store(timestampMs, predictedMgdl.toDouble())
+        IletPrefs.setPredictedBg(predictedMgdl, readingMgdl, timestampMs)
     }
 
     // ------------------------------------------------------------ history

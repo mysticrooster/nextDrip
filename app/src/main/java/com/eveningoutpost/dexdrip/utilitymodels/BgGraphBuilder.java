@@ -28,7 +28,6 @@ import com.eveningoutpost.dexdrip.models.HeartRate;
 import com.eveningoutpost.dexdrip.models.Iob;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.PumpIobReading;
-import com.eveningoutpost.dexdrip.models.IletPredictedBg;
 import com.eveningoutpost.dexdrip.models.Libre2RawValue;
 import com.eveningoutpost.dexdrip.models.Prediction;
 import com.eveningoutpost.dexdrip.models.Profile;
@@ -140,6 +139,11 @@ public class BgGraphBuilder {
 
     private final static long timeshift = 500_000;
     private static final int MAX_VALUES = 60 * 24;
+
+    // iLet predicted-BG stub: forward extent of the line, and how long the last pump
+    // prediction is still considered current before the stub is hidden.
+    private static final long PREDICTED_STUB_HORIZON_MS = Constants.MINUTE_IN_MS * 30;
+    private static final long PREDICTED_STUB_MAX_AGE_MS = Constants.MINUTE_IN_MS * 15;
 
     // flag to indicate if readings data has been adjusted
     private static boolean plugin_adjusted = false;
@@ -720,23 +724,29 @@ public class BgGraphBuilder {
         return pumpIobLines;
     }
 
-    /** Pump-reported predicted BG from the iLet real-time stream (off by default). */
+    /**
+     * A single live straight stub from the newest reading to the pump's current predicted
+     * BG (off by default). Nothing is stored: it is drawn from the last value the pump
+     * reported, and hidden once that value goes stale.
+     */
     private List<Line> iletPredictedBgLines() {
         final List<Line> lines = new ArrayList<>();
-        final List<IletPredictedBg> readings = IletPredictedBg.latestForGraph(4000, loaded_start, loaded_end);
-        if (readings.isEmpty()) return lines;
+        final int predicted = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.predictedBgMgdl();
+        final int reading = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.predictedReadingMgdl();
+        final long readingTs = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.predictedReadingMs();
+        if (predicted <= 0 || reading <= 0 || readingTs <= 0) return lines;
+        // Do not leave a stub pointing at a reading the pump stopped sending.
+        if (System.currentTimeMillis() - readingTs > PREDICTED_STUB_MAX_AGE_MS) return lines;
 
-        // A predicted BG is a glucose value, so it shares the glucose axis (no pan offset).
         final float yscale = !doMgdl ? (float) Constants.MGDL_TO_MMOLL : 1f;
-        final List<PointValue> points = new ArrayList<>();
-        for (IletPredictedBg reading : readings) {
-            final float ypos = (float) (reading.predicted * yscale);
-            points.add(new HPointValue((double) reading.timestamp / FUZZER, ypos));
-        }
+        final List<PointValue> points = new ArrayList<>(2);
+        points.add(new HPointValue((double) readingTs / FUZZER, (float) reading * yscale));
+        points.add(new HPointValue((double) (readingTs + PREDICTED_STUB_HORIZON_MS) / FUZZER, (float) predicted * yscale));
         final Line line = new Line(points);
         line.setColor(getCol(X.color_ilet_predicted_bg));
         line.setStrokeWidth(2);
-        line.setHasPoints(false);
+        line.setHasPoints(true);
+        line.setPointRadius(3);
         line.setHasLines(true);
         line.setCubic(false); // "can be straight"
         line.setTag("ilet_predicted_bg");

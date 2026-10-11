@@ -19,6 +19,12 @@ object IletPrefs {
     const val SHOW_PUMP_IOB_LINE = "show_ilet_pump_iob_line"
     const val SHOW_PREDICTED_BG_LINE = "show_ilet_predicted_bg_line"
 
+    // Latest pump predicted BG, kept in memory-of-prefs only (no history table): the
+    // graph draws a single live stub for the newest reading, not a stored series.
+    const val PREDICTED_BG_MGDL = "ilet_predicted_bg_mgdl"
+    const val PREDICTED_BG_READING_MGDL = "ilet_predicted_bg_reading_mgdl"
+    const val PREDICTED_BG_READING_MS = "ilet_predicted_bg_reading_ms"
+
     const val LAST_ADDRESS = "ilet_last_address"
     const val DEVICE_SERIAL = "ilet_device_serial"
     const val DEVICE_MODEL = "ilet_device_model"
@@ -136,6 +142,27 @@ object IletPrefs {
 
     @JvmStatic
     fun setShowPredictedBgLine(enabled: Boolean) = Pref.setBoolean(SHOW_PREDICTED_BG_LINE, enabled)
+
+    /**
+     * Remember the pump's latest predicted BG and the reading it came with, so the graph
+     * can draw one live stub. Not a history: overwritten on every CGM slot, so it cannot
+     * be drawn for anything but the newest reading.
+     */
+    @JvmStatic
+    fun setPredictedBg(predictedMgdl: Int, readingMgdl: Int, readingMs: Long) {
+        Pref.setInt(PREDICTED_BG_MGDL, predictedMgdl)
+        Pref.setInt(PREDICTED_BG_READING_MGDL, readingMgdl)
+        Pref.setLong(PREDICTED_BG_READING_MS, readingMs)
+    }
+
+    @JvmStatic
+    fun predictedBgMgdl(): Int = Pref.getInt(PREDICTED_BG_MGDL, 0)
+
+    @JvmStatic
+    fun predictedReadingMgdl(): Int = Pref.getInt(PREDICTED_BG_READING_MGDL, 0)
+
+    @JvmStatic
+    fun predictedReadingMs(): Long = Pref.getLong(PREDICTED_BG_READING_MS, 0L)
 
     @JvmStatic
     fun lastAddress(): String = Pref.getString(LAST_ADDRESS, "")
