@@ -1389,28 +1389,12 @@ public class NightscoutUploader {
                 return;
             }
 
-            final JSONObject json = new JSONObject();
-            json.put("device", "iLet");
-
-            final JSONObject pump = new JSONObject();
-            if (reservoir >= 0) pump.put("reservoir", reservoir);
-            if (battery >= 0) pump.put("battery", batteryRounded);
-            if (state != null) {
-                pump.put("suspended", state.getInsulinPaused());
-                pump.put("status", state.getInsulinPaused() ? "suspended" : "normal");
-                pump.put("charging", state.getCharging());
-                pump.put("cartridgeEmpty", state.getCartridgeEmpty());
-            }
-            json.put("pump", pump);
-
-            final JSONObject openaps = new JSONObject();
-            if (iob >= 0) openaps.put("iob", new JSONObject().put("iob", iob));
-            json.put("openaps", openaps);
-
-            final JSONObject uploader = new JSONObject();
-            final int phoneBattery = NightscoutBatteryDevice.PHONE.getBatteryLevel(mContext);
-            if (phoneBattery > 0) uploader.put("battery", phoneBattery);
-            json.put("uploader", uploader);
+            final JSONObject json = buildIletDeviceStatusJson(reservoir, iob, batteryRounded,
+                    state != null,
+                    state != null && state.getInsulinPaused(),
+                    state != null && state.getCharging(),
+                    state != null && state.getCartridgeEmpty(),
+                    NightscoutBatteryDevice.PHONE.getBatteryLevel(mContext));
 
             final RequestBody body = RequestBody.create(json.toString(), MediaType.parse("application/json"));
             final Response<ResponseBody> r = (apiSecret != null)
@@ -1427,6 +1411,43 @@ public class NightscoutUploader {
         }
     }
 
+
+    /**
+     * Assemble the additive iLet devicestatus document. Pure (no prefs/state) so it can be
+     * unit tested. Follows the standard shape: `pump.status` only carries "suspended" (when
+     * insulin delivery is paused) and is otherwise omitted — Nightscout already defaults a
+     * missing status to "normal", so emitting "normal" would just render as redundant text.
+     * IOB is emitted as the `openaps.iob.iob` object (not a bare number) so the Nightscout
+     * IOB pill and OpenAPS plugin read it.
+     */
+    static JSONObject buildIletDeviceStatusJson(final double reservoir, final double iob,
+                                                final int batteryPercent, final boolean hasState,
+                                                final boolean suspended, final boolean charging,
+                                                final boolean cartridgeEmpty,
+                                                final int phoneBattery) throws JSONException {
+        final JSONObject json = new JSONObject();
+        json.put("device", "iLet");
+
+        final JSONObject pump = new JSONObject();
+        if (reservoir >= 0) pump.put("reservoir", reservoir);
+        if (batteryPercent >= 0) pump.put("battery", batteryPercent);
+        if (hasState) {
+            pump.put("suspended", suspended);
+            if (suspended) pump.put("status", "suspended");
+            pump.put("charging", charging);
+            pump.put("cartridgeEmpty", cartridgeEmpty);
+        }
+        json.put("pump", pump);
+
+        final JSONObject openaps = new JSONObject();
+        if (iob >= 0) openaps.put("iob", new JSONObject().put("iob", iob));
+        json.put("openaps", openaps);
+
+        final JSONObject uploader = new JSONObject();
+        if (phoneBattery > 0) uploader.put("battery", phoneBattery);
+        json.put("uploader", uploader);
+        return json;
+    }
 
     private boolean doMongoUpload(SharedPreferences prefs, List<BgReading> glucoseDataSets,
                                   List<Calibration> meterRecords, List<Calibration> calRecords, List<TransmitterData> transmittersData,

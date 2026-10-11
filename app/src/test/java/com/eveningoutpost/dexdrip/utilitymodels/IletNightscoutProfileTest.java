@@ -107,4 +107,35 @@ public class IletNightscoutProfileTest extends RobolectricTestWithConfig {
         assertThat(NightscoutUploader.firstProfileDocument("[]")).isNull();
         assertThat(NightscoutUploader.firstProfileDocument("")).isNull();
     }
+
+    @Test
+    public void buildDeviceStatus_omitsNormalStatus() throws Exception {
+        // Nightscout defaults a missing pump.status to "normal"; emitting "normal"
+        // explicitly renders as redundant "normal iLet" text on the pill.
+        final org.json.JSONObject json = NightscoutUploader.buildIletDeviceStatusJson(
+                100.0, 2.5, 80, true, false, false, false, 90);
+
+        assertThat(json.getString("device")).isEqualTo("iLet");
+        assertThat(json.getJSONObject("pump").has("status")).isFalse();
+        assertThat(json.getJSONObject("pump").getBoolean("suspended")).isFalse();
+    }
+
+    @Test
+    public void buildDeviceStatus_emitsSuspendedStatus() throws Exception {
+        final org.json.JSONObject json = NightscoutUploader.buildIletDeviceStatusJson(
+                100.0, 2.5, 80, true, true, false, false, 90);
+
+        assertThat(json.getJSONObject("pump").getString("status")).isEqualTo("suspended");
+    }
+
+    @Test
+    public void buildDeviceStatus_emitsOpenapsIobObject() throws Exception {
+        // The OpenAPS plugin reads openaps.iob.iob; a bare pump.iob number or a
+        // missing object leaves the Nightscout IOB pill empty.
+        final org.json.JSONObject json = NightscoutUploader.buildIletDeviceStatusJson(
+                100.0, 2.5, 80, false, false, false, false, 90);
+
+        assertThat(json.getJSONObject("openaps").getJSONObject("iob").getDouble("iob"))
+                .isWithin(0.0001).of(2.5);
+    }
 }
