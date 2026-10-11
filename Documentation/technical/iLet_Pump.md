@@ -48,17 +48,13 @@ device info + a real-time packet, and publishes the snapshot into `PumpStatus`/`
 When the background service is running it does not open a second BLE connection — it asks the
 service for an immediate cycle and reports the fresh contact/status, since the pump allows
 only one link), the account/login link, data-download toggles (**backfill glucose** — opt-in,
-off by default — plus boluses and meal labels), the pump-IOB line toggle, a set of **iLet
-extra-status-line options** (master switch plus run-suspend state, last-update age, **glucose
-delta** and **time since the last reading**, wired into `StatusLine.extraStatusLineReal()` and
-shown by `Home` whenever `status_line_ilet` is on and iLet is enabled, independently of the
-general `extra_status_line`; delta/time come from `BestGlucose.getDisplayGlucose()`). Pump IOB / reservoir /
-battery use xDrip's **built-in** pump status line (`status_line_pump_reservoir` block from
-`PumpStatus`), which also renders when the iLet line is on — the iLet line no longer
-duplicates those fields. The run/suspend item shows "INSULIN DELIVERY SUSPENDED" plus the
-elapsed time only while suspended, and nothing while running. `Home` hides the extra status
-line entirely when it would be empty (e.g. iLet disabled or no items selected), and "backfill
-from date" (with the **account/login** link directly under the master switch).
+off by default — plus boluses and meal labels), the pump-IOB line toggle, and "backfill
+from date" (with the **account/login** link directly under the master switch). Like the
+Dexcom/other collectors, iLet does **not** add its own extra status line: glucose, delta and
+"time since last reading" come from the standard Home display (driven by `BgReading` +
+`BestGlucose`), pump reservoir/battery/IOB from the generic `status_line_pump_reservoir`
+option, and all iLet-specific detail (connection, pump status, clock drift, infusion set,
+backfill) from the System Status "iLet Pump Status" section.
 The **Advanced options** sub-screen sits last and holds **Pair pump**, the Bluetooth address
 and the non-working-on-this-firmware **Download basal** toggle, plus **Unpair pump** (removes
 the Bluetooth bond via reflection `removeBond()`, behind a confirmation dialog). **Pair pump**
