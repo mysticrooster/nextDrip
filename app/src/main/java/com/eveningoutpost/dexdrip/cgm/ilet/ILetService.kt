@@ -128,9 +128,9 @@ class ILetService : JamBaseBluetoothService() {
 
             val time = client.getTime()
             processor.updateEpoch(time.clockOffset, time.localTimeEpoch)
-            // Residual pump-vs-phone drift after the timezone auto-correction.
-            val pumpNowSeconds = time.rtcTimeEpoch + processor.epochOffsetSeconds
-            IletPrefs.setClockDriftSeconds(System.currentTimeMillis() / 1000L - pumpNowSeconds)
+            // Residual pump-vs-phone drift: already folded into the timestamp offset, and
+            // kept here so the UI can warn that the pump clock itself needs setting.
+            IletPrefs.setClockDriftSeconds(processor.clockDriftSeconds)
             IletPrefs.setLastContact(System.currentTimeMillis())
             IletStatus.markContact()
             setState("Running")

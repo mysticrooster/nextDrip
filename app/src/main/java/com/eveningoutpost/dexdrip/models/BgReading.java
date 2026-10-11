@@ -1265,6 +1265,11 @@ public class BgReading extends Model implements ShareUploadableBg {
     }
 
 
+    /** True when this row was imported by the iLet collector (source_info contains "iLet"). */
+    private static boolean isIletSourced(final BgReading reading) {
+        return reading.source_info != null && reading.source_info.contains("iLet");
+    }
+
     public static synchronized BgReading bgReadingInsertFromIlet(final double calculated_value, final long timestamp, final String sourceInfoAppend, final long dedupeWindowMs) {
 
         final Sensor sensor = Sensor.createDefaultIfMissing();
@@ -1283,6 +1288,17 @@ public class BgReading extends Model implements ShareUploadableBg {
         // existing-vs-inserted rows from a single query.
         final BgReading existing = getForPreciseTimestamp(timestamp, dedupeWindowMs);
         if (existing != null) {
+            // A row for this slot already exists. If it is one of ours and its time is off by
+            // more than a second, it was stamped under an older clock correction (e.g. before
+            // the pump-vs-phone drift was folded into the offset). Move it to the corrected
+            // time so the import converges instead of staying stuck on the old offset; rows
+            // from another collector are left untouched.
+            if (isIletSourced(existing) && Math.abs(existing.timestamp - timestamp) > 1000) {
+                UserError.Log.d(TAG, "re-stamping iLet bg reading " +
+                        JoH.dateTimeText(existing.timestamp) + " -> " + JoH.dateTimeText(timestamp));
+                existing.timestamp = timestamp;
+                existing.save();
+            }
             return null;
         }
         final BgReading bgr = new BgReading();

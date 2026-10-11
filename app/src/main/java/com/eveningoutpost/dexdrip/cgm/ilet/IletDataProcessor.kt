@@ -32,6 +32,16 @@ class IletDataProcessor {
     var rawPumpOffsetSeconds: Long = -1L
         private set
 
+    /**
+     * Residual pump-vs-phone clock error in seconds after the timezone correction
+     * (positive = the pump clock is behind true time). Folded into
+     * [epochOffsetSeconds] so every pump timestamp lands on real time, and stored so
+     * the UI can still warn that the pump clock itself is wrong.
+     */
+    @Volatile
+    var clockDriftSeconds: Long = 0L
+        private set
+
     private var lastIobStoreMs = 0L
     private var lastAlgoMs = 0L
     private var lastMealAnnouncementState = -1
@@ -74,11 +84,19 @@ class IletDataProcessor {
             val localError = kotlin.math.abs(drift + tzOffsetSeconds)
             if (localError < utcError) correction = tzOffsetSeconds
         }
-        epochOffsetSeconds = offsetSeconds - correction
+        // Residual pump-vs-phone clock error after that timezone correction. Folding it
+        // in means every pump timestamp (glucose, insulin, basal, suspend, patch session,
+        // realtime) lands on the phone's true clock instead of the pump's own clock.
+        var driftSeconds = 0L
+        if (pumpWallEpochSeconds > 0) {
+            driftSeconds = nowMs / 1000L - (pumpWallEpochSeconds - correction)
+        }
+        clockDriftSeconds = driftSeconds
+        epochOffsetSeconds = offsetSeconds - correction + driftSeconds
         UserError.Log.d(
             TAG,
             "epoch: pumpOffset=$offsetSeconds wall=$pumpWallEpochSeconds tz=$tzOffsetSeconds " +
-                "correction=$correction adjusted=$epochOffsetSeconds"
+                "correction=$correction drift=$driftSeconds adjusted=$epochOffsetSeconds"
         )
     }
 
@@ -96,17 +114,18 @@ class IletDataProcessor {
     /**
      * Dedupe window for iLet glucose rows: half the primary collector's sample period, but at
      * least the iLet-wide window (realtime vs backfilled rows for one pump CGM slot can differ
-     * by clock skew), widened by the measured pump-vs-phone clock drift. One value used by both
-     * the realtime and history paths so they cannot disagree.
+     * by a little). One value used by both the realtime and history paths so they cannot
+     * disagree. The measured pump-vs-phone drift is already folded into the timestamps, so it
+     * is no longer added to the window — the old widening against the drift was what made
+     * corrected rows collapse onto the stale, uncorrected ones.
      */
     private fun glucoseDedupeWindow(): Long {
-        val driftMs = Math.abs(IletPrefs.clockDriftSeconds()) * 1000L
         return maxOf(
             BgReading.ILET_DEDUPE_WINDOW_MS,
             com.eveningoutpost.dexdrip.utils.DexCollectionType.getCollectorSamplePeriod(
                 com.eveningoutpost.dexdrip.utils.DexCollectionType.getDexCollectionType()
             ) / 2,
-        ) + driftMs
+        )
     }
 
     private fun hex(bytes: ByteArray, from: Int, to: Int): String =
@@ -184,6 +203,7 @@ class IletDataProcessor {
 
         logMealAnnouncement(data.mealAnnouncementState)
         logPatchSession(data)
+        UserError.Log.uel(TAG, "iLet 0x1515 " + data.debugString())
     }
 
     private fun logMealAnnouncement(state: Int) {
@@ -300,6 +320,7 @@ class IletDataProcessor {
     }
 
     fun processAlgoStep(rec: IletAlgoStepRecord) {
+        UserError.Log.uel(TAG, "iLet algo-step " + rec.debugString())
         if (!IletPrefs.downloadBasal()) return
         val rate = IletMapping.basalRate(rec.instantBasalX10, rec.nominalBasalX10) ?: return
         val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, epochOffsetSeconds)
