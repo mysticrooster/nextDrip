@@ -212,8 +212,9 @@ public class UploadChunk implements NamedSliderProcessor {
                 current = new EBasal(this_rate, apStatus.timestamp, 0, UUID.nameUUIDFromBytes(("tidepool-basal" + apStatus.timestamp).getBytes()).toString()); // start duration is 0
             }
         }
-        // The iLet has no scheduled basal; advertise a 0 U/hr profile when opted in.
-        if (com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.publishZeroBasal()) {
+        // The iLet has no scheduled basal; advertise a 0 U/hr profile when opted in, but
+        // only when there is no real basal for the window so the two never overlap.
+        if (com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.publishZeroBasal() && basals.isEmpty()) {
             basals.add(EBasal.scheduledZeroBasal(
                     start,
                     end - start,

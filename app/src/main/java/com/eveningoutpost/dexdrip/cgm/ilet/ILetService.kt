@@ -73,24 +73,34 @@ class ILetService : JamBaseBluetoothService() {
         instance = this
         while (scope.isActive) {
             if (!shouldServiceRun()) {
-                setState("Stopped")
-                stopSelf()
+                stopForDisabled()
                 return
             }
+            var failed = false
             try {
                 collectOnce()
             } catch (t: Throwable) {
+                failed = true
                 setState("Error: ${t.message}")
                 UserError.Log.e(TAG, "iLet cycle failed: ${t.message}")
             }
             if (!shouldServiceRun()) {
-                setState("Stopped")
-                stopSelf()
+                stopForDisabled()
                 return
             }
-            // Wait for the retry interval, but wake early on a user request.
-            kotlinx.coroutines.withTimeoutOrNull(RETRY_DELAY_MS) { wakeups.receive() }
+            // Healthy cycles idle longer; a failure retries quickly. A user request
+            // (wakeups) still cuts the wait short.
+            val interval = if (failed) RETRY_DELAY_MS else IDLE_INTERVAL_MS
+            kotlinx.coroutines.withTimeoutOrNull(interval) { wakeups.receive() }
         }
+    }
+
+    /** Service stop path: drop any pending forward-fill so a stale flag cannot linger. */
+    private fun stopForDisabled() {
+        IletPrefs.setForwardFillActive(false)
+        IletPrefs.setForwardFillStalledCycles(0)
+        setState("Stopped")
+        stopSelf()
     }
 
     private suspend fun collectOnce() {
@@ -168,6 +178,7 @@ class ILetService : JamBaseBluetoothService() {
             UserError.Log.d(TAG, "acting on backfill-from-date request: ${JoH.dateTimeText(requested)}")
             setFloors(client, requested, newestFirst = false)
             IletPrefs.setForwardFillActive(true)
+            IletPrefs.setForwardFillStalledCycles(0)
             IletPrefs.setBackfillFrom(0L)
             // Don't let the one-time deep fill rewind over the user's chosen range.
             if (deepFloor == 0L) {
@@ -189,9 +200,14 @@ class ILetService : JamBaseBluetoothService() {
     /**
      * After a user "backfill from date" fill finally catches up to the newest sequence,
      * tell the user once. Uses the max each type reported this cycle vs its watermark.
+     * A stalled fill (no progress for several cycles) gives up quietly so a stale
+     * request cannot keep toasting or hold the flag forever.
      */
     private fun notifyIfBackfillComplete() {
-        if (!IletPrefs.forwardFillActive()) return
+        if (!IletPrefs.forwardFillActive()) {
+            if (IletPrefs.forwardFillStalledCycles() != 0) IletPrefs.setForwardFillStalledCycles(0)
+            return
+        }
         val snapshot = IletStatus.latest() ?: return
         var allDone = true
         var sawAny = false
@@ -208,9 +224,34 @@ class ILetService : JamBaseBluetoothService() {
                 break
             }
         }
-        if (sawAny && allDone) {
+        if (!sawAny) {
+            // No comparable type yet: count the cycle and give up if it stays that way.
+            noteForwardFillStall()
+            return
+        }
+        if (allDone) {
             IletPrefs.setForwardFillActive(false)
+            IletPrefs.setForwardFillStalledCycles(0)
             JoH.static_toast_long(getString(com.eveningoutpost.dexdrip.R.string.ilet_backfill_complete))
+            return
+        }
+        // Still catching up: reset on any real progress, otherwise count toward the give-up.
+        if (snapshot.types.values.any { it.processed > 0 }) {
+            IletPrefs.setForwardFillStalledCycles(0)
+        } else {
+            noteForwardFillStall()
+        }
+    }
+
+    /** Increment the no-progress counter; clear the request once it is exhausted. */
+    private fun noteForwardFillStall() {
+        val cycles = IletPrefs.forwardFillStalledCycles() + 1
+        if (cycles >= MAX_FORWARD_FILL_STALLED_CYCLES) {
+            IletPrefs.setForwardFillActive(false)
+            IletPrefs.setForwardFillStalledCycles(0)
+            UserError.Log.e(TAG, "giving up on forward-fill after $cycles cycles with no progress")
+        } else {
+            IletPrefs.setForwardFillStalledCycles(cycles)
         }
     }
 
@@ -509,12 +550,20 @@ class ILetService : JamBaseBluetoothService() {
 
     companion object {
         private const val RETRY_DELAY_MS = 15_000L
+
+        // Healthy-cycle interval: the pump link drops after ~2.5 s idle, so a 60 s cadence
+        // keeps glucose visible without re-handshaking every 15 s.
+        private const val IDLE_INTERVAL_MS = 60_000L
         // Records attempted per type per cycle. With the batched sector path this is
         // cheap, so a multi-day "from date to now" fill completes in a few cycles.
         private const val MAX_BACKFILL_PER_CYCLE = 1500
 
         // The pump answers one sector per 0x2333 request, so loop several per cycle.
         private const val MAX_SECTOR_REQUESTS_PER_CYCLE = 25
+
+        // Give up on a forward-fill after this many cycles with no progress, so a stale
+        // request cannot hold the flag (and keep toasting) forever.
+        private const val MAX_FORWARD_FILL_STALLED_CYCLES = 3
         private val BACKFILL_TYPES = listOf(
             IletHistoricalRecordType.GLUCOSE,
             IletHistoricalRecordType.INSULIN,
