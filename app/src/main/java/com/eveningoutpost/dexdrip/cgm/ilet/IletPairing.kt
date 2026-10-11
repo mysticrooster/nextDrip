@@ -30,17 +30,34 @@ object IletPairing {
             val device = adapter.getRemoteDevice(address)
             when (device.bondState) {
                 BluetoothDevice.BOND_BONDED -> "iLet is already paired."
-                BluetoothDevice.BOND_BONDING -> "Pairing already in progress; check the Android pairing prompt."
+                BluetoothDevice.BOND_BONDING -> awaitBond(context, device)
                 else -> {
                     val started = device.createBond()
-                    if (started) "Confirm the Android pairing request for the iLet."
-                    else "Could not start pairing. Pair the iLet in Android Bluetooth settings."
+                    if (!started) return "Could not start pairing. Pair the iLet in Android Bluetooth settings."
+                    awaitBond(context, device)
                 }
             }
         } catch (t: Throwable) {
             UserError.Log.e(TAG, "pairPump failed: ${t.message}")
             "Pairing failed: ${t.message}"
         }
+    }
+
+    /** Block until the bond resolves (or times out) and report the outcome. */
+    private fun awaitBond(context: Context, device: BluetoothDevice, timeoutMs: Long = 30_000): String {
+        JoH.static_toast_long("Confirm the Android pairing request for the iLet")
+        val deadline = System.currentTimeMillis() + timeoutMs
+        var sawBonding = false
+        while (System.currentTimeMillis() < deadline) {
+            when (device.bondState) {
+                BluetoothDevice.BOND_BONDED -> return "iLet paired successfully."
+                BluetoothDevice.BOND_BONDING -> sawBonding = true
+                else -> if (sawBonding) return "Pairing failed or was cancelled."
+            }
+            Thread.sleep(250)
+        }
+        return if (device.bondState == BluetoothDevice.BOND_BONDED) "iLet paired successfully."
+        else "Pairing did not complete. Confirm the Android prompt, or pair the iLet in Bluetooth settings."
     }
 
     @JvmStatic
