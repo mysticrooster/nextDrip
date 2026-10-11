@@ -39,7 +39,8 @@ models/PumpIobReading.java   ActiveAndroid table
 
 The pump driver lives under **Insulin Pens and Pumps** (`pens_screen` in
 `res/xml/xdrip_plus_prefs.xml`; only the `insulin_pens` string *value* was changed, so the
-key and translations keep working). The `ilet_screen` sub-screen holds the read-only notice,
+key and translations keep working). That section was moved from the Experimental category
+into the **Data Sync** screen (the Experimental category is gone). The `ilet_screen` sub-screen holds the read-only notice,
 a master **switch**, the Bluetooth address, pump identity, a
 **Test connection / live status** entry (`ILetStatusActivity`, which connects once and shows
 device info + a real-time packet, and publishes the snapshot into `PumpStatus`/`IletState`.

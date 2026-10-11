@@ -1178,33 +1178,6 @@
                 android:targetClass="com.eveningoutpost.dexdrip.utilitymodels.SendFeedBack"
                 android:targetPackage="@string/local_target_package" />
         </Preference>
-    </PreferenceScreen>
-
-    <PreferenceCategory
-        android:key="xdrip_plus_move_settings"
-        android:title="@string/copying_settings">
-        <Preference
-            android:icon="@drawable/ic_qrcode_grey600_48dp"
-            android:key="show_qr_codes"
-            android:title="@string/show_settings_qr_codes">
-            <intent
-                android:action="android.intent.action.MAIN"
-                android:targetClass="com.eveningoutpost.dexdrip.utils.DisplayQRCode"
-                android:targetPackage="@string/local_target_package" />
-        </Preference>
-        <Preference
-            android:icon="@drawable/ic_content_save_grey600_48dp"
-            android:key="show_external_save"
-            android:title="@string/load_save_settings_to_sdcard">
-            <intent
-                android:action="android.intent.action.MAIN"
-                android:targetClass="com.eveningoutpost.dexdrip.utils.SdcardImportExport"
-                android:targetPackage="@string/local_target_package" />
-        </Preference>
-    </PreferenceCategory>
-    <PreferenceCategory
-        android:key="xdrip_plus_experimental"
-        android:title="@string/title_xdrip_plus_experimental">
         <PreferenceScreen
             android:icon="@drawable/ic_mode_edit_grey_600_48dp"
             android:key="pens_screen"
@@ -1465,6 +1438,28 @@
                 </PreferenceScreen>
             </PreferenceScreen>
         </PreferenceScreen>
+    </PreferenceScreen>
 
+    <PreferenceCategory
+        android:key="xdrip_plus_move_settings"
+        android:title="@string/copying_settings">
+        <Preference
+            android:icon="@drawable/ic_qrcode_grey600_48dp"
+            android:key="show_qr_codes"
+            android:title="@string/show_settings_qr_codes">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.utils.DisplayQRCode"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
+        <Preference
+            android:icon="@drawable/ic_content_save_grey600_48dp"
+            android:key="show_external_save"
+            android:title="@string/load_save_settings_to_sdcard">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.utils.SdcardImportExport"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
     </PreferenceCategory>
 </PreferenceScreen>
