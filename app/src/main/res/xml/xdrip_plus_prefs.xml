@@ -1378,6 +1378,11 @@
                 </Preference>
                 <Preference
                     android:dependency="ilet_enabled"
+                    android:key="ilet_pair"
+                    android:summary="@string/ilet_pair_summary"
+                    android:title="@string/ilet_pair_title" />
+                <Preference
+                    android:dependency="ilet_enabled"
                     android:key="ilet_test_connection"
                     android:summary="@string/ilet_test_connection_summary"
                     android:title="@string/ilet_test_connection_title">
@@ -1459,11 +1464,6 @@
                 <PreferenceScreen
                     android:key="ilet_advanced"
                     android:title="@string/ilet_advanced_title">
-                    <Preference
-                        android:dependency="ilet_enabled"
-                        android:key="ilet_pair"
-                        android:summary="@string/ilet_pair_summary"
-                        android:title="@string/ilet_pair_title" />
                     <EditTextPreference
                         android:dependency="ilet_enabled"
                         android:key="ilet_last_address"
