@@ -2059,6 +2059,10 @@
     <string name="ilet_status_line_state_title">Run / suspend state</string>
     <string name="ilet_status_line_state_summary">Whether the pump reports insulin running or suspended</string>
     <string name="ilet_status_line_age_title">Last update age</string>
+    <string name="ilet_status_line_delta_title">Glucose delta</string>
+    <string name="ilet_status_line_delta_summary">Change since the previous reading</string>
+    <string name="ilet_status_line_reading_age_title">Time since last reading</string>
+    <string name="ilet_status_line_reading_age_summary">How long ago the last glucose reading arrived</string>
     <string name="ilet_status_line_age_summary">How long ago the last real-time packet arrived</string>
     <string name="ilet_login_title">iLet account</string>
     <string name="ilet_login_summary">Sign in with your Beta Bionics account to enroll this phone</string>

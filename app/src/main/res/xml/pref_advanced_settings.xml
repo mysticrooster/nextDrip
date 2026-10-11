@@ -1100,12 +1100,24 @@
                 android:key="status_line_ilet_state"
                 android:summary="@string/ilet_status_line_state_summary"
                 android:title="@string/ilet_status_line_state_title" />
-            <CheckBoxPreference
-                android:defaultValue="false"
-                android:dependency="status_line_ilet"
-                android:key="status_line_ilet_age"
-                android:summary="@string/ilet_status_line_age_summary"
-                android:title="@string/ilet_status_line_age_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_age"
+                    android:summary="@string/ilet_status_line_age_summary"
+                    android:title="@string/ilet_status_line_age_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_delta"
+                    android:summary="@string/ilet_status_line_delta_summary"
+                    android:title="@string/ilet_status_line_delta_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="status_line_ilet"
+                    android:key="status_line_ilet_reading_age"
+                    android:summary="@string/ilet_status_line_reading_age_summary"
+                    android:title="@string/ilet_status_line_reading_age_title" />
             <Preference
                 android:dependency="ilet_enabled"
                 android:key="ilet_backfill_from"

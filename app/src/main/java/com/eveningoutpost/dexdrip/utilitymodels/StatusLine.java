@@ -211,6 +211,21 @@ public class StatusLine {
                     append(sb, "iLet " + (JoH.msSince(state.getTimestamp()) / 60000) + "m");
                 }
             }
+            // Glucose delta and time since the last reading (from BgReading).
+            if (Pref.getBoolean("status_line_ilet_delta", true)
+                    || Pref.getBoolean("status_line_ilet_reading_age", true)) {
+                final com.eveningoutpost.dexdrip.BestGlucose.DisplayGlucose dg =
+                        com.eveningoutpost.dexdrip.BestGlucose.getDisplayGlucose();
+                if (dg != null) {
+                    if (Pref.getBoolean("status_line_ilet_delta", true)
+                            && dg.unitized_delta != null && !dg.unitized_delta.trim().isEmpty()) {
+                        append(sb, dg.unitized_delta);
+                    }
+                    if (Pref.getBoolean("status_line_ilet_reading_age", true) && dg.mssince >= 0) {
+                        append(sb, JoH.niceTimeScalar(dg.mssince) + " ago");
+                    }
+                }
+            }
         }
         return sb.toString();
 
