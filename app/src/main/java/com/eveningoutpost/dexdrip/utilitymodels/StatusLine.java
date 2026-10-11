@@ -138,12 +138,11 @@ public class StatusLine {
 
         } // if using stats result
 
-        // Use the built-in pump status line (IOB/reservoir/battery from PumpStatus) for
-        // the iLet too, rather than duplicating it: it renders when either the generic
-        // option or the iLet status line is enabled.
+        // The generic pump status block and the iLet status block render the same
+        // PumpStatus values; showing both duplicates every real-time field. The iLet
+        // line (when enabled from the iLet settings) supersedes the generic one.
         if (Pref.getBoolean("status_line_pump_reservoir", false)
-                || (Pref.getBooleanDefaultFalse("status_line_ilet")
-                    && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled())) {
+                && !Pref.getBooleanDefaultFalse("status_line_ilet")) {
             append(sb, PumpStatus.getBolusIoBString());
             sb.append(PumpStatus.getReservoirString());
             sb.append(PumpStatus.getBatteryString());
@@ -191,12 +190,19 @@ public class StatusLine {
             append(sb, sdf.format(new Date()));
         }
 
-        // iLet-only status items (the pump IOB/reservoir/battery come from the built-in
-        // pump status block above). Only when iLet is enabled.
-        if (Pref.getBooleanDefaultFalse("status_line_ilet")
-                && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
+        // iLet pump status items, configured from the iLet connector settings.
+        if (Pref.getBooleanDefaultFalse("status_line_ilet")) {
             final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
                     com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
+            if (Pref.getBoolean("status_line_ilet_iob", true)) {
+                append(sb, "IOB " + PumpStatus.getBolusIoBString());
+            }
+            if (Pref.getBoolean("status_line_ilet_reservoir", true)) {
+                append(sb, PumpStatus.getReservoirString());
+            }
+            if (Pref.getBoolean("status_line_ilet_battery", true)) {
+                append(sb, PumpStatus.getBatteryString());
+            }
             if (state != null) {
                 if (Pref.getBooleanDefaultFalse("status_line_ilet_state") && state.getInsulinPaused()) {
                     final long since = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.insulinPausedSinceMs();
@@ -209,21 +215,6 @@ public class StatusLine {
                 }
                 if (Pref.getBooleanDefaultFalse("status_line_ilet_age")) {
                     append(sb, "iLet " + (JoH.msSince(state.getTimestamp()) / 60000) + "m");
-                }
-            }
-            // Glucose delta and time since the last reading (from BgReading).
-            if (Pref.getBoolean("status_line_ilet_delta", true)
-                    || Pref.getBoolean("status_line_ilet_reading_age", true)) {
-                final com.eveningoutpost.dexdrip.BestGlucose.DisplayGlucose dg =
-                        com.eveningoutpost.dexdrip.BestGlucose.getDisplayGlucose();
-                if (dg != null) {
-                    if (Pref.getBoolean("status_line_ilet_delta", true)
-                            && dg.unitized_delta != null && !dg.unitized_delta.trim().isEmpty()) {
-                        append(sb, dg.unitized_delta);
-                    }
-                    if (Pref.getBoolean("status_line_ilet_reading_age", true) && dg.mssince >= 0) {
-                        append(sb, JoH.niceTimeScalar(dg.mssince) + " ago");
-                    }
                 }
             }
         }
