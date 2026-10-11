@@ -1159,7 +1159,19 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             }
             final Preference pair = findPreference("ilet_pair");
             if (pair != null) {
+                // Pairing requires the iLet account credential; without it the row is
+                // disabled and tapping it explains why.
+                final boolean hasCredential = com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCredentialStore.Companion
+                        .getInstance(getActivity()).hasIdentity();
+                if (!hasCredential) {
+                    pair.setSummary(R.string.ilet_pair_needs_credential);
+                }
                 pair.setOnPreferenceClickListener(preference -> {
+                    if (!com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCredentialStore.Companion
+                            .getInstance(getActivity()).hasIdentity()) {
+                        JoH.static_toast_long(getString(R.string.ilet_pair_requires_account));
+                        return true;
+                    }
                     JoH.static_toast_long(getString(R.string.ilet_pair_working));
                     final android.content.Context ctx = getActivity().getApplicationContext();
                     new Thread(() -> com.eveningoutpost.dexdrip.cgm.ilet.IletPairing.pairPumpWithToast(ctx)).start();

@@ -2018,6 +2018,8 @@
     <string name="ilet_pair_title">Pair pump</string>
     <string name="ilet_pair_summary">Search for the iLet nearby and start Bluetooth pairing</string>
     <string name="ilet_pair_working">Searching for the iLet…</string>
+    <string name="ilet_pair_needs_credential">Sign in to your iLet account before pairing the pump</string>
+    <string name="ilet_pair_requires_account">Set up your iLet account before pairing the pump</string>
     <string name="ilet_unpair_title">Unpair pump</string>
     <string name="ilet_unpair_summary">Remove the Bluetooth pairing with the iLet</string>
     <string name="ilet_unpair_confirm">This removes the Bluetooth bond with the iLet. You will need to pair it again before xDrip can reconnect. Continue?</string>
