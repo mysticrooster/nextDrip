@@ -1157,6 +1157,15 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
             }
+            final Preference pair = findPreference("ilet_pair");
+            if (pair != null) {
+                pair.setOnPreferenceClickListener(preference -> {
+                    JoH.static_toast_long(getString(R.string.ilet_pair_working));
+                    final android.content.Context ctx = getActivity().getApplicationContext();
+                    new Thread(() -> com.eveningoutpost.dexdrip.cgm.ilet.IletPairing.pairPumpWithToast(ctx)).start();
+                    return true;
+                });
+            }
             final Preference zeroBasal = findPreference("ilet_publish_zero_basal");
             if (zeroBasal != null) {
                 zeroBasal.setOnPreferenceChangeListener((preference, newValue) -> {

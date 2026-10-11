@@ -35,4 +35,27 @@ object IletScanner {
             null
         }
     }
+
+    /**
+     * Find the pump's MAC for pairing: first by advertised service UUID, then by an
+     * advertised name containing "iLet" (some firmware does not advertise the UUID
+     * until bonded).
+     */
+    fun findPumpMac(timeoutSeconds: Long = 20): String? {
+        scanForAddress(timeoutSeconds)?.let { return it }
+        return try {
+            val client = RxBleProvider.getSingleton()
+            val settings = ScanSettings.Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .build()
+            client.scanBleDevices(settings)
+                .timeout(timeoutSeconds, TimeUnit.SECONDS)
+                .filter { it.scanRecord?.deviceName?.contains("iLet", ignoreCase = true) == true }
+                .map { it.bleDevice.macAddress }
+                .blockingFirst()
+        } catch (t: Throwable) {
+            UserError.Log.e(TAG, "iLet name scan failed: ${t.message}")
+            null
+        }
+    }
 }

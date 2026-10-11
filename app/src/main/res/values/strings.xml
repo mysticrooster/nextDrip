@@ -2015,6 +2015,9 @@
     <string name="ilet_summary">Read-only pump data: boluses, basal, IOB, reservoir and battery</string>
     <string name="ilet_readonly_notice">Read-only. This is not medical software and cannot deliver insulin or change therapy. Credentials are stored encrypted on this device and never logged.</string>
     <string name="ilet_advanced_title">Advanced options</string>
+    <string name="ilet_pair_title">Pair pump</string>
+    <string name="ilet_pair_summary">Search for the iLet nearby and start Bluetooth pairing</string>
+    <string name="ilet_pair_working">Searching for the iLet…</string>
     <string name="ilet_enable_title">Enable iLet</string>
     <string name="ilet_enable_summary">Connect to the iLet over Bluetooth. First pair the pump in Android Settings &gt; Bluetooth (it must show as a bonded/paired device), then turn this on. Works alongside another CGM (pump-only) or as the glucose source when selected as the Hardware Data Source.</string>
     <string name="ilet_address_title">Bluetooth address</string>
