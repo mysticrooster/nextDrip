@@ -2087,6 +2087,7 @@
     <string name="ilet_session_label">Session:</string>
     <string name="ilet_present">present</string>
     <string name="ilet_none">none</string>
+    <string name="ilet_loading">Loading credential store...</string>
     <string name="editing">Editing</string>
     <string name="enable_missed_reading_alert">Enable Missed Reading Alert</string>
     <string name="alert_if_no_data_received_in_colon">Alert if no data received in:</string>

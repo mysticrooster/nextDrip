@@ -21,6 +21,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Login host for the iLet integration. Collects the Beta Bionics account
@@ -30,18 +31,24 @@ import kotlinx.coroutines.launch
 class ILetLoginActivity : BaseAppCompatActivity() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private lateinit var store: IletCredentialStore
+
+    // The store decrypts the keystore-backed file in its constructor, so it is
+    // loaded on a background dispatcher and every control is gated until then.
+    @Volatile
+    private var store: IletCredentialStore? = null
     private lateinit var status: TextView
     private lateinit var email: EditText
     private lateinit var password: EditText
     private lateinit var totp: EditText
     private lateinit var signIn: Button
+    private lateinit var forgetSession: Button
+    private lateinit var forgetCredential: Button
+    private lateinit var forgetAll: Button
     private var busy: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         title = getString(R.string.ilet_login_title)
-        store = IletCredentialStore.getInstance(this)
 
         val pad = (16 * resources.displayMetrics.density).toInt()
         val column = LinearLayout(this).apply {
@@ -67,29 +74,50 @@ class ILetLoginActivity : BaseAppCompatActivity() {
             setText(R.string.ilet_sign_in)
             setOnClickListener { doSignIn() }
         }
-        status = TextView(this).apply { text = statusText() }
+        status = TextView(this).apply { text = getString(R.string.ilet_loading) }
+
+        forgetSession = button(R.string.ilet_forget_session) { it.clearSession() }
+        forgetCredential = button(R.string.ilet_forget_credential) { it.clearIdentity() }
+        forgetAll = button(R.string.ilet_forget_all) { it.clearAll() }
 
         column.addView(email)
         column.addView(password)
         column.addView(totp)
         column.addView(signIn)
         column.addView(status)
-        column.addView(button(R.string.ilet_forget_session) { store.clearSession() })
-        column.addView(button(R.string.ilet_forget_credential) { store.clearIdentity() })
-        column.addView(button(R.string.ilet_forget_all) { store.clearAll() })
+        column.addView(forgetSession)
+        column.addView(forgetCredential)
+        column.addView(forgetAll)
         setContentView(ScrollView(this).apply { addView(column) })
+
+        setControlsEnabled(false)
+        scope.launch {
+            val loaded = withContext(Dispatchers.IO) { IletCredentialStore.getInstance(this@ILetLoginActivity) }
+            store = loaded
+            setControlsEnabled(true)
+            status.text = statusText()
+        }
     }
 
-    private fun button(label: Int, action: () -> Unit) = Button(this).apply {
+    private fun setControlsEnabled(enabled: Boolean) {
+        signIn.isEnabled = enabled
+        forgetSession.isEnabled = enabled
+        forgetCredential.isEnabled = enabled
+        forgetAll.isEnabled = enabled
+    }
+
+    private fun button(label: Int, action: (IletCredentialStore) -> Unit) = Button(this).apply {
         setText(label)
         setOnClickListener {
-            action()
+            val current = store ?: return@setOnClickListener
+            action(current)
             status.text = statusText()
         }
     }
 
     private fun doSignIn() {
         if (busy?.isActive == true) return
+        val current = store ?: return
         val user = email.text.toString().trim()
         val pass = password.text.toString()
         if (user.isEmpty() || pass.isEmpty()) return
@@ -98,9 +126,9 @@ class ILetLoginActivity : BaseAppCompatActivity() {
         busy = scope.launch {
             status.text = try {
                 val session = IletCognitoAuth().signIn(user, pass, totp.text.toString().ifBlank { null })
-                store.storeSession(session)
+                current.storeSession(session)
                 totp.visibility = View.GONE
-                mintIdentity(store)
+                mintIdentity(current)
                 getString(R.string.ilet_signed_in, session.username)
             } catch (e: IletMfaRequired) {
                 totp.visibility = View.VISIBLE
@@ -114,7 +142,7 @@ class ILetLoginActivity : BaseAppCompatActivity() {
     }
 
     private fun statusText(): String {
-        val summary = store.summary()
+        val summary = store?.summary() ?: return getString(R.string.ilet_loading)
         return buildString {
             append(getString(R.string.ilet_credential_label)).append(' ')
             append(if (summary["identity"] == true) getString(R.string.ilet_present) else getString(R.string.ilet_none))

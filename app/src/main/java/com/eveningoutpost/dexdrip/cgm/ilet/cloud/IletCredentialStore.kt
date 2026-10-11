@@ -3,6 +3,7 @@ package com.eveningoutpost.dexdrip.cgm.ilet.cloud
 import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletChannelIdentity
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletIdentityStore
 import org.json.JSONObject
@@ -102,7 +103,7 @@ class IletCredentialStore(
 ) : IletIdentityStore {
 
     private val file = File(context.filesDir, "ilet_credentials.bin")
-    private var data: JSONObject = load()
+    private var data: JSONObject = load().also { IletPrefs.setHasIdentityPref(identityPresent(it)) }
 
     private fun load(): JSONObject {
         if (!file.exists()) return JSONObject()
@@ -130,11 +131,19 @@ class IletCredentialStore(
 
     // ------------------------------------------------------------ identity
 
+    /** Whether a JSON blob carries the key material that defines an identity. */
+    private fun identityPresent(json: JSONObject): Boolean =
+        !json.optString("private_key").isEmpty() &&
+            !json.optString("nonce").isEmpty() &&
+            !json.optString("cloud_signature").isEmpty()
+
     @Synchronized
-    fun hasIdentity(): Boolean =
-        !data.optString("private_key").isEmpty() &&
-            !data.optString("nonce").isEmpty() &&
-            !data.optString("cloud_signature").isEmpty()
+    fun hasIdentity(): Boolean {
+        val present = identityPresent(data)
+        // Keep the cheap UI mirror in step with the authoritative in-memory store.
+        IletPrefs.setHasIdentityPref(present)
+        return present
+    }
 
     @Synchronized
     override fun appUuid(): UUID {
@@ -169,6 +178,7 @@ class IletCredentialStore(
         data.put("nonce", encode(identity.nonce))
         data.put("cloud_signature", encode(identity.cloudSignature))
         save()
+        IletPrefs.setHasIdentityPref(true)
     }
 
     /** Forget the key material but keep the app UUID the pump is bound to. */
@@ -178,6 +188,7 @@ class IletCredentialStore(
         data.remove("nonce")
         data.remove("cloud_signature")
         save()
+        IletPrefs.setHasIdentityPref(false)
     }
 
     // ------------------------------------------------------------ session
@@ -221,6 +232,7 @@ class IletCredentialStore(
     fun clearAll() {
         data = JSONObject()
         save()
+        IletPrefs.setHasIdentityPref(false)
     }
 
     @Synchronized

@@ -1160,15 +1160,14 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             final Preference pair = findPreference("ilet_pair");
             if (pair != null) {
                 // Pairing requires the iLet account credential; without it the row is
-                // disabled and tapping it explains why.
-                final boolean hasCredential = com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCredentialStore.Companion
-                        .getInstance(getActivity()).hasIdentity();
+                // disabled and tapping it explains why. Read the cached mirror pref so the
+                // keystore-backed store is never decrypted on the main thread.
+                final boolean hasCredential = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.hasIdentityPref();
                 if (!hasCredential) {
                     pair.setSummary(R.string.ilet_pair_needs_credential);
                 }
                 pair.setOnPreferenceClickListener(preference -> {
-                    if (!com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCredentialStore.Companion
-                            .getInstance(getActivity()).hasIdentity()) {
+                    if (!com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.hasIdentityPref()) {
                         JoH.static_toast_long(getString(R.string.ilet_pair_requires_account));
                         return true;
                     }
@@ -1221,6 +1220,9 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                         final java.util.Calendar picked = java.util.Calendar.getInstance();
                         picked.set(year, month, day, 0, 0, 0);
                         com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setBackfillFrom(picked.getTimeInMillis());
+                        // Replace any stale forward-fill state for this new request.
+                        com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setForwardFillActive(true);
+                        com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setForwardFillStalledCycles(0);
                         com.eveningoutpost.dexdrip.cgm.ilet.ILetEntry.requestBackfill(getActivity());
                         backfill.setSummary(getString(R.string.ilet_backfill_pending,
                                 new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)

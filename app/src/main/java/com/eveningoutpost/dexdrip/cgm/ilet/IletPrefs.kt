@@ -22,6 +22,12 @@ object IletPrefs {
     const val DEVICE_SERIAL = "ilet_device_serial"
     const val DEVICE_MODEL = "ilet_device_model"
 
+    /**
+     * Cheap mirror of IletCredentialStore.hasIdentity() so the UI can gate enrolment
+     * without decrypting the keystore-backed store on the main thread.
+     */
+    const val HAS_IDENTITY = "ilet_has_identity"
+
     const val WATERMARK_GLUCOSE = "ilet_watermark_glucose"
     const val WATERMARK_INSULIN = "ilet_watermark_insulin"
     const val WATERMARK_ALGO = "ilet_watermark_algo"
@@ -32,6 +38,9 @@ object IletPrefs {
 
     /** True while a user-requested "from date to now" fill is still catching up. */
     const val FORWARD_FILL_ACTIVE = "ilet_forward_fill_active"
+
+    /** Consecutive cycles with no forward-fill progress; resets when data advances. */
+    const val FORWARD_FILL_STALLED_CYCLES = "ilet_forward_fill_stalled_cycles"
 
     /** Publish a 0 U/hr basal profile to Nightscout/Nocturne/Tidepool. */
     const val PUBLISH_ZERO_BASAL = "ilet_publish_zero_basal"
@@ -135,6 +144,13 @@ object IletPrefs {
     @JvmStatic
     fun deviceModel(): String = Pref.getString(DEVICE_MODEL, "")
 
+    /** Cached identity flag; maintained by IletCredentialStore. Safe on the main thread. */
+    @JvmStatic
+    fun hasIdentityPref(): Boolean = Pref.getBooleanDefaultFalse(HAS_IDENTITY)
+
+    @JvmStatic
+    fun setHasIdentityPref(hasIdentity: Boolean) = Pref.setBoolean(HAS_IDENTITY, hasIdentity)
+
     /**
      * Stable identity for deterministic treatment UUIDs. The serial is derived
      * from GetDeviceInfo (0x2321); if it has not been seen yet, fall back to the
@@ -231,6 +247,12 @@ object IletPrefs {
 
     @JvmStatic
     fun setForwardFillActive(active: Boolean) = Pref.setBoolean(FORWARD_FILL_ACTIVE, active)
+
+    @JvmStatic
+    fun forwardFillStalledCycles(): Int = Pref.getInt(FORWARD_FILL_STALLED_CYCLES, 0)
+
+    @JvmStatic
+    fun setForwardFillStalledCycles(cycles: Int) = Pref.setInt(FORWARD_FILL_STALLED_CYCLES, cycles)
 
     @JvmStatic
     fun publishZeroBasal(): Boolean = Pref.getBooleanDefaultFalse(PUBLISH_ZERO_BASAL)
