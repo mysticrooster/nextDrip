@@ -1,7 +1,5 @@
 package com.eveningoutpost.dexdrip.cgm.ilet.protocol
 
-import kotlinx.coroutines.flow.Flow
-
 /** Raised for transport-level failures (link drop, timeout, wedged GATT). */
 class IletTransportError(message: String) : Exception(message)
 
@@ -30,9 +28,6 @@ interface IletTransport {
 
     /** Await the next framed response; throws [IletTransportError] on timeout. */
     suspend fun nextResponse(timeoutMs: Long): IletBlePacket
-
-    /** Completed packets from the real-time characteristic. */
-    fun realtime(): Flow<IletBlePacket>
 
     /** One direct GATT read of the real-time characteristic, if supported. */
     suspend fun readRealtimeOnce(): IletBlePacket

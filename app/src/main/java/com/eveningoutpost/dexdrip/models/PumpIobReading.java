@@ -44,18 +44,6 @@ public class PumpIobReading extends Model {
         reading.save();
     }
 
-    public static PumpIobReading last() {
-        try {
-            return new Select()
-                    .from(PumpIobReading.class)
-                    .orderBy("timestamp desc")
-                    .executeSingle();
-        } catch (android.database.sqlite.SQLiteException e) {
-            fixUpTable();
-            return null;
-        }
-    }
-
     public static List<PumpIobReading> latestForGraph(int number, long startTime, long endTime) {
         try {
             return new Select()

@@ -16,8 +16,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.UUID
@@ -28,9 +26,9 @@ import java.util.concurrent.TimeUnit
  *
  * Mirrors the verified Python transport: subscribe to the body and OOB response
  * characteristics and reassemble chunks terminated by an OOB, keep the frame
- * ahead of its OOB on the ATT layer, and subscribe to the real-time stream.
- * Chunk writes are kept at MTU-3; the pump drops the link on an out-of-order
- * OOB or a long-write prepare/execute sequence.
+ * ahead of its OOB on the ATT layer, and read the real-time characteristic on
+ * demand. Chunk writes are kept at MTU-3; the pump drops the link on an
+ * out-of-order OOB or a long-write prepare/execute sequence.
  */
 class IletTransport(
     private val address: String,
@@ -41,7 +39,6 @@ class IletTransport(
 
     private val disposables = CompositeDisposable()
     private val responseChannel = Channel<IletBlePacket>(Channel.UNLIMITED)
-    private val realtimeChannel = Channel<IletBlePacket>(Channel.UNLIMITED)
 
     private var bodyBuffer = ByteArray(1024)
     private var bodyLength = 0
@@ -121,10 +118,6 @@ class IletTransport(
             conn.setupNotification(IletConstants.CHAR_RESP_OOB).flatMap { it }
                 .subscribe({ onOob(it) }, { onDropped() })
         )
-        disposables.add(
-            conn.setupNotification(IletConstants.CHAR_REALTIME).flatMap { it }
-                .subscribe({ onRealtime(it) }, { onDropped() })
-        )
     }
 
     private fun onDropped() {
@@ -167,14 +160,6 @@ class IletTransport(
         if (bodyLength < 4) return false
         val declared = (bodyBuffer[2].toInt() and 0xFF) or ((bodyBuffer[3].toInt() and 0xFF) shl 8)
         return declared <= 4 || bodyLength >= declared
-    }
-
-    private fun onRealtime(value: ByteArray) {
-        try {
-            realtimeChannel.trySend(splitRealtimeNotification(value))
-        } catch (e: Exception) {
-            // ignore malformed notifications
-        }
     }
 
     override suspend fun disconnect() {
@@ -227,12 +212,6 @@ class IletTransport(
             throw IletTransportError("no response within ${timeoutMs}ms")
         }
         return packet
-    }
-
-    override fun realtime(): Flow<IletBlePacket> = flow {
-        while (true) {
-            emit(realtimeChannel.receive())
-        }
     }
 
     override suspend fun readRealtimeOnce(): IletBlePacket = withContext(Dispatchers.IO) {

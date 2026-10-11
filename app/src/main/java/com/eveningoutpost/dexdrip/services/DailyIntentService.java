@@ -12,6 +12,7 @@ import com.eveningoutpost.dexdrip.models.BgReading;
 import com.eveningoutpost.dexdrip.models.DesertSync;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.Libre2RawValue;
+import com.eveningoutpost.dexdrip.models.PumpIobReading;
 import com.eveningoutpost.dexdrip.models.RollCall;
 import com.eveningoutpost.dexdrip.models.StepCounter;
 import com.eveningoutpost.dexdrip.models.Treatments;
@@ -129,6 +130,11 @@ public class DailyIntentService extends IntentService {
                             Treatments.cleanup(bg_retention_days);
                         } catch (Exception e) {
                             Log.e(TAG, "Exception cleaning up treatment data " + e);
+                        }
+                        try {
+                            PumpIobReading.cleanup(bg_retention_days);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Exception cleaning up pump IOB data " + e);
                         }
                     }
                 } catch (Exception e) {

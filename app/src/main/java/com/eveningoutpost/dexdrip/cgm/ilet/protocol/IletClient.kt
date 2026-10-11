@@ -195,8 +195,6 @@ class IletClient(
 
     // ------------------------------------------------------------ real-time
 
-    suspend fun readRealtime(): IletRealTimeData = parseRealtime(transport.readRealtimeOnce())
-
     /**
      * Read one real-time packet, accepting both the 0x1506 stream and the 0x1515
      * control superset. The pump emits 0x1515 on the same characteristic; it carries
@@ -214,24 +212,6 @@ class IletClient(
                 IletRealtimeSnapshot.Control(IletRealTimeControlPumpData.parse(frame.payload))
             else -> throw IletClientError("unexpected real-time opcode ${frame.opcodeName}")
         }
-    }
-
-    fun watchRealtime(): Flow<IletRealTimeData> = flow {
-        transport.realtime().collect { packet ->
-            try {
-                emit(parseRealtime(packet))
-            } catch (e: Exception) {
-                // bad packets are skipped rather than terminating the iteration
-            }
-        }
-    }
-
-    private fun parseRealtime(packet: IletBlePacket): IletRealTimeData {
-        val frame = if (packet.isEncrypted) activeChannel.open(packet) else packet.toFrame()
-        if (frame.opcode != IletOpcode.REAL_TIME_DATA.value) {
-            throw IletClientError("expected RealTimeData on the real-time channel, got ${frame.opcodeName}")
-        }
-        return IletRealTimeData.parse(frame.payload)
     }
 
     /**
