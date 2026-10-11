@@ -290,9 +290,11 @@ wait short via the conflated wake-up channel.
 ## Cloud uploads
 
 - **Nightscout**: additive `devicestatus` (`device: "iLet"`) with `pump{reservoir,battery,
-  suspended,charging,cartridgeEmpty}` (`pump.status` is only emitted as `"suspended"` when
-  insulin delivery is paused — Nightscout already renders a missing status as normal, so an
-  explicit `"normal"` would show as redundant text), `openaps.iob.iob` and `uploader.battery`.
+  suspended,charging,cartridgeEmpty}` (`pump.battery` as a `{percent: N}` object, the shape
+  Nightscout's pump plugin reads — a bare number is ignored and left the phone's
+  `uploader.battery` as the only battery shown; `pump.status` as a
+  `{status,suspended,bolusing}` object only while suspended, otherwise omitted since
+  Nightscout defaults a missing status to normal), `openaps.iob.iob` and `uploader.battery`.
   Fingerprinted in `PersistentStore` (`last-ilet-ns-device-status`) so it only uploads on
   change; battery-only behaviour is unchanged when iLet is disabled.
 - **Nocturne**: boluses/meals flow via `Treatments`. Its bolus/meal resources have no notes

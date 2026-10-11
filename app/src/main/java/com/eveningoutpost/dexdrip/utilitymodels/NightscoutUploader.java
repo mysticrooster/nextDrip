@@ -1414,11 +1414,13 @@ public class NightscoutUploader {
 
     /**
      * Assemble the additive iLet devicestatus document. Pure (no prefs/state) so it can be
-     * unit tested. Follows the standard shape: `pump.status` only carries "suspended" (when
-     * insulin delivery is paused) and is otherwise omitted — Nightscout already defaults a
-     * missing status to "normal", so emitting "normal" would just render as redundant text.
-     * IOB is emitted as the `openaps.iob.iob` object (not a bare number) so the Nightscout
-     * IOB pill and OpenAPS plugin read it.
+     * unit tested. Follows the standard shape Nightscout's pump plugin reads:
+     * `pump.battery` as a `{percent: N}` object (a bare number is ignored, which left the
+     * phone's `uploader.battery` as the only battery shown for the iLet), and `pump.status`
+     * as a `{status, suspended, bolusing}` object — emitted only while suspended, since
+     * Nightscout already defaults a missing status to normal. IOB is emitted as the
+     * `openaps.iob.iob` object (not a bare number) so the Nightscout IOB pill and OpenAPS
+     * plugin read it.
      */
     static JSONObject buildIletDeviceStatusJson(final double reservoir, final double iob,
                                                 final int batteryPercent, final boolean hasState,
@@ -1430,10 +1432,15 @@ public class NightscoutUploader {
 
         final JSONObject pump = new JSONObject();
         if (reservoir >= 0) pump.put("reservoir", reservoir);
-        if (batteryPercent >= 0) pump.put("battery", batteryPercent);
+        if (batteryPercent >= 0) pump.put("battery", new JSONObject().put("percent", batteryPercent));
         if (hasState) {
             pump.put("suspended", suspended);
-            if (suspended) pump.put("status", "suspended");
+            if (suspended) {
+                pump.put("status", new JSONObject()
+                        .put("status", "suspended")
+                        .put("suspended", true)
+                        .put("bolusing", false));
+            }
             pump.put("charging", charging);
             pump.put("cartridgeEmpty", cartridgeEmpty);
         }

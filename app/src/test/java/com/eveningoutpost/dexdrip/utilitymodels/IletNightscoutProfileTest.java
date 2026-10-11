@@ -125,7 +125,20 @@ public class IletNightscoutProfileTest extends RobolectricTestWithConfig {
         final org.json.JSONObject json = NightscoutUploader.buildIletDeviceStatusJson(
                 100.0, 2.5, 80, true, true, false, false, 90);
 
-        assertThat(json.getJSONObject("pump").getString("status")).isEqualTo("suspended");
+        assertThat(json.getJSONObject("pump").getJSONObject("status").getString("status"))
+                .isEqualTo("suspended");
+        assertThat(json.getJSONObject("pump").getJSONObject("status").getBoolean("suspended")).isTrue();
+    }
+
+    @Test
+    public void buildDeviceStatus_emitsPumpBatteryObject() throws Exception {
+        // Nightscout's pump plugin only reads pump.battery as {percent}/{voltage}; a bare
+        // number is ignored, which left the phone's uploader.battery as the visible battery.
+        final org.json.JSONObject json = NightscoutUploader.buildIletDeviceStatusJson(
+                100.0, 2.5, 80, true, false, false, false, 42);
+
+        assertThat(json.getJSONObject("pump").getJSONObject("battery").getInt("percent")).isEqualTo(80);
+        assertThat(json.getJSONObject("uploader").getInt("battery")).isEqualTo(42);
     }
 
     @Test
