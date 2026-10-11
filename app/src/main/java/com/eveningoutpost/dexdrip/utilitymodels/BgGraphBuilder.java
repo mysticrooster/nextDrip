@@ -803,7 +803,8 @@ public class BgGraphBuilder {
                     lines.addAll(motionLine());
                 }
                 lines.addAll(basalLines());
-                if (Pref.getBooleanDefaultFalse("show_ilet_pump_iob_line")) {
+                if (Pref.getBooleanDefaultFalse("show_ilet_pump_iob_line")
+                        && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
                     lines.addAll(pumpIobLines());
                 }
                 lines.addAll(heartLines());
