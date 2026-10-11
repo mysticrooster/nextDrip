@@ -47,13 +47,15 @@ When the background service is running it does not open a second BLE connection 
 service for an immediate cycle and reports the fresh contact/status, since the pump allows
 only one link), the account/login link, data-download toggles (**backfill glucose** — opt-in,
 off by default — plus boluses and meal labels), the pump-IOB line toggle, a set of **iLet
-extra-status-line options** (master switch plus Pump IOB / reservoir / battery / run-suspend
-state / last-update age, wired into `StatusLine.extraStatusLineReal()` and shown by `Home`
-whenever `status_line_ilet` is on, independently of the general `extra_status_line`; when it
-is on it supersedes the generic "Pump Status" (`status_line_pump_reservoir`) block, which
-renders the same `PumpStatus` values and would otherwise duplicate every real-time field;
-the run/suspend item shows "INSULIN DELIVERY SUSPENDED" plus the elapsed time only while
-suspended, and nothing while running), and "backfill from date" (with the **account/login** link directly under the master switch).
+extra-status-line options** (master switch plus run-suspend state and last-update age, wired
+into `StatusLine.extraStatusLineReal()` and shown by `Home` whenever `status_line_ilet` is on
+and iLet is enabled, independently of the general `extra_status_line`). Pump IOB / reservoir /
+battery use xDrip's **built-in** pump status line (`status_line_pump_reservoir` block from
+`PumpStatus`), which also renders when the iLet line is on — the iLet line no longer
+duplicates those fields. The run/suspend item shows "INSULIN DELIVERY SUSPENDED" plus the
+elapsed time only while suspended, and nothing while running. `Home` hides the extra status
+line entirely when it would be empty (e.g. iLet disabled or no items selected), and "backfill
+from date" (with the **account/login** link directly under the master switch).
 The **Advanced options** sub-screen sits last and holds **Pair pump**, the Bluetooth address
 and the non-working-on-this-firmware **Download basal** toggle, plus **Unpair pump** (removes
 the Bluetooth bond via reflection `removeBond()`, behind a confirmation dialog). **Pair pump**

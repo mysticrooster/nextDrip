@@ -2054,12 +2054,6 @@
     <string name="ilet_device_info_value">Serial %1$s · Model %2$s</string>
     <string name="ilet_status_line_title">Show iLet status line</string>
     <string name="ilet_status_line_summary">Show selected iLet values on the Home extra status line (works independently of the general extra status line)</string>
-    <string name="ilet_status_line_iob_title">Pump IOB</string>
-    <string name="ilet_status_line_iob_summary">The pump\'s own insulin-on-board estimate</string>
-    <string name="ilet_status_line_reservoir_title">Reservoir</string>
-    <string name="ilet_status_line_reservoir_summary">Cartridge remaining</string>
-    <string name="ilet_status_line_battery_title">Pump battery</string>
-    <string name="ilet_status_line_battery_summary">Pump battery percentage</string>
     <string name="ilet_status_line_state_title">Run / suspend state</string>
     <string name="ilet_status_line_state_summary">Whether the pump reports insulin running or suspended</string>
     <string name="ilet_status_line_age_title">Last update age</string>
