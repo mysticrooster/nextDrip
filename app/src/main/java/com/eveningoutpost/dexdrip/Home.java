@@ -2440,9 +2440,11 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
         initializeGraphicTrendArrow();
         final TextView notificationText = (TextView) findViewById(R.id.notices);
         final TextView lowPredictText = (TextView) findViewById(R.id.lowpredict);
+        final TextView iletPredictText = (TextView) findViewById(R.id.iletpredict);
         if (BgGraphBuilder.isXLargeTablet(getApplicationContext())) {
             notificationText.setTextSize(40);
             lowPredictText.setTextSize(30);
+            iletPredictText.setTextSize(24);
         }
         notificationText.setText("");
         notificationText.setTextColor(Color.RED);
@@ -2583,6 +2585,22 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
                 lowPredictText.setVisibility(View.VISIBLE);
             }
             BgGraphBuilder.previous_low_occurs_at = BgGraphBuilder.low_occurs_at;
+        }
+
+        // iLet pump predicted BG, shown next to the low prediction in the same colour as
+        // the iLet prediction graph line. Only while the pump value is current.
+        iletPredictText.setText("");
+        iletPredictText.setVisibility(View.INVISIBLE);
+        if (Pref.getBooleanDefaultFalse("show_ilet_predicted_bg_line")
+                && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
+            final int predictedBg = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.predictedBgMgdl();
+            final long predictedReadingMs = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.predictedReadingMs();
+            if (predictedBg > 0 && predictedReadingMs > 0
+                    && (JoH.tsl() - predictedReadingMs) <= (15 * 60 * 1000L)) {
+                iletPredictText.setText(getString(R.string.ilet_predicted_bg_text, bgGraphBuilder.unitized_string(predictedBg)));
+                iletPredictText.setTextColor(getCol(X.color_ilet_predicted_bg));
+                iletPredictText.setVisibility(View.VISIBLE);
+            }
         }
 
         if (navigationDrawerFragment == null) Log.e("Runtime", "navigationdrawerfragment is null");

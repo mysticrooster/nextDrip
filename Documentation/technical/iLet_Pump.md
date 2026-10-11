@@ -202,8 +202,10 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   draws a single live straight stub from that reading to the prediction, gated by
   `show_ilet_predicted_bg_line` (**off by default**, colour `color_ilet_predicted_bg`). The
   stub is hidden once the value goes stale, so it only ever shows for the newest reading, not
-  a history. The pump protocol does not document the forecast horizon, so the stub extends a
-  fixed `PREDICTED_STUB_HORIZON_MS` (30 min) ahead.
+  a history. On the home screen a matching `{bg} predicted in 20 minutes` label is shown next
+  to the low-prediction text, in the same colour. The pump protocol does not document the
+  forecast horizon; Beta Bionics' "Urgent Low Soon" alert predicts 20 minutes ahead, so the
+  stub and the label use `PREDICTED_STUB_HORIZON_MS` (20 min) as a reasonable reference.
 - Pump identity is never hardcoded: the serial is derived from `GetDeviceInfo` (0x2321) on
   first connection, and the Bluetooth address is user-settable, falling back to a scan when
   left blank. Deterministic dedupe falls back to the address when the serial is unknown.

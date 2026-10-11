@@ -142,7 +142,7 @@ public class BgGraphBuilder {
 
     // iLet predicted-BG stub: forward extent of the line, and how long the last pump
     // prediction is still considered current before the stub is hidden.
-    private static final long PREDICTED_STUB_HORIZON_MS = Constants.MINUTE_IN_MS * 30;
+    private static final long PREDICTED_STUB_HORIZON_MS = Constants.MINUTE_IN_MS * 20;
     private static final long PREDICTED_STUB_MAX_AGE_MS = Constants.MINUTE_IN_MS * 15;
 
     // flag to indicate if readings data has been adjusted
