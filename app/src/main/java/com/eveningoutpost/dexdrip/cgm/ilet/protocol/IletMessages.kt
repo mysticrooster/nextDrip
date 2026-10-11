@@ -24,13 +24,6 @@ val ILET_HIST_MAGIC_GLUCOSE: ByteArray = byteArrayOf(0xCE.toByte(), 0xFA.toByte(
 val ILET_HIST_MAGIC_INSULIN: ByteArray = byteArrayOf(0xCE.toByte(), 0xFA.toByte(), 0x99.toByte(), 0x10)
 val ILET_GLUCOSE_ACTIVE_MARKER: ByteArray = byteArrayOf(0x8B.toByte(), 0x42, 0xBC.toByte(), 0x38)
 
-/**
- * The pump's RTC-to-Unix offset at the time the protocol was captured. Kept as
- * a test reference only: production code must derive the offset from GetTime
- * (0x2510) and treat a mismatch as "layout changed -> skip and log".
- */
-const val ILET_PUMP_EPOCH_REFERENCE: Long = 835_479_720L
-
 const val ILET_GLUCOSE_BACKFILL_BYTES: Int = 51
 const val ILET_INSULIN_BACKFILL_BYTES: Int = 30
 const val ILET_ALARM_BACKFILL_BYTES: Int = 38
@@ -241,6 +234,42 @@ data class IletRealTimeControlPumpData(
     val unixTimestamp: Long get() = rtcTimestamp + clockOffset
     val cartridgeRemainingUnits: Double get() = cartridgeRemainingUl / 10.0
     val iobUnits: Double get() = iob / 1000.0
+
+    /** One-line field dump for on-device diagnosis (UserError log only, never uploaded). */
+    fun debugString(): String = buildString {
+        append("rt=").append(rtcTimestamp)
+        append(" off=").append(clockOffset)
+        append(" unix=").append(unixTimestamp)
+        append(" g=").append(glucose.readingMgDl)
+        append(" pred=").append(glucose.predictedReading)
+        append(" trend=").append(glucose.cgmTrend)
+        append(" sensStat=").append(glucose.sensorStatus)
+        append(" readStat=").append(glucose.readingStatus)
+        append(" dispStat=").append(glucose.displayStatus)
+        append(" warmupEnd=").append(glucose.warmupEndTime)
+        append(" seq=").append(glucose.sequenceNumber)
+        append(" cgmType=").append(glucose.cgmType)
+        append(" batt=").append(batteryPct).append('%')
+        append(" chg=").append(isCharging)
+        append(" cart=").append(cartridgeRemainingUnits).append('U')
+        append(" cartEmpty=").append(isCartridgeEmpty)
+        append(" iob=").append(iobUnits).append('U')
+        append(" meal=").append(mealAnnouncementState)
+        append(" mealAdapt=").append(mealAdaptationStatusBitmask)
+        append(" cgmInfo=").append(cgmInfoBitmask)
+        append(" cgmSess=").append(cgmSessionStartTime).append('/').append(cgmSessionEndTime)
+        append(" patch=").append(pumpPatchInfoSessionStartTime).append('/').append(pumpPatchInfoSessionEndTime)
+        append(" fillDet=").append(fillDetectStatus)
+        append(" silent=").append(silentMode).append(' ').append(silentModeStartTime).append('/').append(silentModeEndTime)
+        append(" bgRun=").append(bgRunStatus)
+        append(" bgSusp=").append(bgSuspendTime)
+        append(" bgExp=").append(bgExpirationTime)
+        append(" insPause=").append(isInsulinPaused).append(' ').append(insulinPausedTime).append('/').append(insulinPausedEndTime)
+        append(" dose=").append(insulin.totalDoseUnits).append('U')
+        append(" insSeq=").append(insulin.sequenceNumber)
+        append(" icon=").append(bionicDisplayBgIconBitmask)
+        append(" ver=").append(dataVersion)
+    }
 
     companion object {
         fun parse(payload: ByteArray): IletRealTimeControlPumpData {
@@ -756,6 +785,9 @@ fun parseHistoricalBody(recordType: Int, body: ByteArray): Any? {
             if (!body.copyOfRange(4, 8).contentEquals(ILET_HIST_MAGIC_INSULIN)) null
             else IletHistoricalInsulinRecord.parse(body)
         }
+        // The 180-byte algo-step body carries no magic; the fixed size is the check.
+        IletHistoricalRecordType.ALGORITHM_DATA ->
+            if (body.size == ILET_ALGO_STEP_BYTES) IletAlgoStepRecord.parse(body) else null
         else -> null
     }
 }
@@ -994,6 +1026,59 @@ data class IletAlgoStepRecord(
     val currentStepFIobUnits: Float,
     val openLoopStatus: Int,
 ) {
+    /** One-line field dump for on-device diagnosis (UserError log only, never uploaded). */
+    fun debugString(): String = buildString {
+        append("seq=").append(sequenceNumber)
+        append(" rtc=").append(recordTimestampRtc)
+        append(" utc=").append(recordTimestampUtc)
+        append(" tz=").append(timeZoneOffset)
+        append(" execT=").append(algorithmExecutionTime)
+        append(" t=").append(time)
+        append(" cgm=").append(cgmValue).append('/').append(cgmValueTMinus1)
+        append(" cgmRaw=").append(cgmValuesRaw.joinToString(","))
+        append(" nRaw=").append(numCgmValuesRaw)
+        append(" bg=").append(bgValue).append('/').append(bgCal)
+        append(" cgmType=").append(cgmType)
+        append(" secsNoCgm=").append(secondsSinceLastValidCgm)
+        append(" nomBasal=").append(nominalBasalX10 / 10.0)
+        append(" instBasal=").append(instantBasalX10 / 10.0)
+        append(" mult=").append(basalRateMultiplier)
+        append(" compBasal=").append(insulinBolusBasalComputedX1000 / 1000.0)
+        append(" compMeal=").append(mealInsulinComputedX1000 / 1000.0)
+        append(" delBolus=").append(bolusInsulinDeliveredX1000 / 1000.0)
+        append(" delBasal=").append(basalInsulinDeliveredX1000 / 1000.0)
+        append(" delMeal=").append(mealInsulinDeliveredX1000 / 1000.0)
+        append(" curStepComp=").append(currentStepInsulinComputedX1000)
+        append(" curStepDel=").append(currentStepInsulinDeliveredX1000)
+        append(" curStepFIob=").append(currentStepFIobUnits)
+        append(" iob=").append(iob)
+        append(" warn=").append(algorithmWarning)
+        append(" execIdx=").append(executedIndex)
+        append(" glucComp=").append(glucagonComputedX1000 / 1000.0)
+        append(" glucDel=").append(glucagonDeliveredX1000 / 1000.0)
+        append(" insPumpReq=").append(insulinPumpStatus.unitsRequested)
+        append(" insPumpDel=").append(insulinPumpStatus.unitsDelivered)
+        append(" insPumpAvail=").append(insulinPumpStatus.available)
+        append(" olBolus=").append(olBolusX10 / 10.0)
+        append(" olIsf=").append(openLoopIsf)
+        append(" olBR=").append(openLoopBasalPerHour)
+        append(" olCF=").append(olCf)
+        append(" olStat=").append(openLoopStatus)
+        append(" setPt=").append(setPoint)
+        append(" target=").append(glucoseTarget)
+        append(" paused=").append(insulinPaused)
+        append(" mealT=").append(mealTime).append(" mealPct=").append(mealSizePct)
+        append(" mb=").append(userMbEntry)
+        append(" tMax=").append(tMax).append(" dynSp=").append(dynamicSp)
+        append(" gBasal=").append(gBasal).append(" dType=").append(dType).append(" pbh=").append(pbh)
+        append(" gLilly=").append(gRelToLillyX100)
+        append(" offTgt=").append(offsetTargets)
+        append(" wt=").append(subjectWeight)
+        append(" prime=").append(priming)
+        append(" burst=").append(glucagonBurst)
+        append(" ver=").append(version)
+    }
+
     companion object {
         fun parse(payload: ByteArray): IletAlgoStepRecord {
             if (payload.size != ILET_ALGO_STEP_BYTES) {
