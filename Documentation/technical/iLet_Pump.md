@@ -163,11 +163,14 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   drift (from the primary CGM or a previous import) is skipped, so pump glucose never pads
   alongside live xDrip data even though the pump clock is not perfectly in sync. Real-time
   glucose is unaffected by the toggle and still follows the collector selection.
-- Glucose is de-duplicated with a two-minute window (`BgReading.ILET_DEDUPE_WINDOW_MS`) rather
-  than the usual one minute, so realtime and backfilled rows for the same pump CGM slot with
-  small clock skew do not overlap, and a backfill that restarts from an earlier date is safe.
-  Basal already collapses duplicates in `APStatus.createEfficientRecord` (same-value rows and
-  out-of-order timestamps are rejected).
+- Glucose is de-duplicated with a single query per record: `bgReadingInsertFromIlet` takes
+  the dedupe window and returns `null` when a row already exists, so the realtime and history
+  paths cannot disagree and the historical import no longer double-checks the timestamp. The
+  window is `max(ILET_DEDUPE_WINDOW_MS, collectorSamplePeriod/2) + clockDrift`, i.e. at least
+  `BgReading.ILET_DEDUPE_WINDOW_MS` (two minutes), so realtime and backfilled rows for the same
+  pump CGM slot with small clock skew do not overlap, and a backfill that restarts from an
+  earlier date is safe. Basal already collapses duplicates in
+  `APStatus.createEfficientRecord` (same-value rows and out-of-order timestamps are rejected).
 - Basal is written oldest→newest only (`APStatus.createEfficientRecord` rejects out-of-order
   timestamps); the walk resets its ordering guard per backfill pass.
 - `PumpIobReading` feeds an optional graph line (`show_ilet_pump_iob_line`, **off by default**)
@@ -225,7 +228,14 @@ chosen date up to now. That forward gap is batched too, so a multi-day range com
 few short cycles (`MAX_BACKFILL_PER_CYCLE`). Existing dedupe (timestamp for glucose, UUID
 for insulin) makes overlap safe, and the System Status section shows `high` advancing toward
 the newest sequence. When the fill finally catches up to the newest sequence the service
-shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`).
+shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`). If it makes no
+progress for three consecutive cycles (no comparable type, or nothing processed) the request
+is abandoned and the flag cleared, so a stale request cannot keep the flag set or keep
+toasting; disabling iLet also clears it.
+
+The service cycle is split by outcome: a healthy cycle idles for `IDLE_INTERVAL_MS` (60 s),
+while a failed cycle retries after `RETRY_DELAY_MS` (15 s). A user request still cuts the
+wait short via the conflated wake-up channel.
 
 ## Alarms and meal announcements
 
@@ -257,6 +267,11 @@ shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`).
 - `IletCredentialStore` keeps everything in a Keystore-wrapped AES-256-GCM file under
   `filesDir`. `clearIdentity()` forgets the key material but keeps the app UUID the pump is
   bound to; `clearSession()` forgets the Cognito tokens; `clearAll()` wipes everything.
+  The store decrypts on construction, so it is loaded off the main thread: the settings screen
+  and the login page read the cheap `ilet_has_identity` mirror pref
+  (`IletPrefs.hasIdentityPref`, kept in step by the store) instead of touching the store on the
+  UI thread, and the login page warms the store on `Dispatchers.IO` before enabling its
+  controls.
 - `IletCognitoAuth` implements Cognito `USER_SRP_AUTH` (self-contained BigInteger + HMAC,
   no AWS SDK) with optional `SOFTWARE_TOKEN_MFA`; only the refresh/access/id tokens are
   persisted, never the password. This is the highest-risk component; it is unit-tested at
@@ -284,13 +299,28 @@ shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`).
   resource alongside the bolus/meal. Pump status (reservoir, battery %, IOB, suspended) is
   uploaded as a `PumpSnapshot` (fingerprint-deduped), an insulin suspension is sent as a
   `PumpSuspend`/`PumpResume` `DeviceEvent` on each transition, and the opt-in 0 U/hr profile
-  is sent as a `BasalSchedule`.
-- **Tidepool**: glucose, boluses and `APStatus` basal already upload. When the 0 U/hr profile
-  option is on, a scheduled 0 U/hr basal is added to each upload chunk.
+  is sent as a `BasalSchedule` plus a `TherapySettings` profile of the same name, then set as
+  the active profile.
+- **Tidepool**: glucose, boluses and `APStatus` basal already upload. The scheduled 0 U/hr
+  basal is only added when there is no real basal data in the window, so it never overlaps
+  real basal segments.
 - **0 U/hr basal profile** (opt-in, `ilet_publish_zero_basal`): the iLet has no scheduled
-  basal, so this tells Nightscout (a `profile` document), Nocturne (a `BasalSchedule`) and
-  Tidepool (a scheduled 0 U/hr basal) that the profile is 0 U/hr. Nightscout and Nocturne are
-  one-shot; Tidepool is reconstructed per chunk.
+  basal, so this tells Nightscout and Tidepool that basal is 0 U/hr, and Nocturne to make a
+  0 U/hr profile active. Nightscout and Nocturne are one-shot; Tidepool is reconstructed per
+  chunk.
+  - **Nightscout**: a **new** profile named `iLet 0 U/hr` is created and set as
+    `defaultProfile`, leaving the user's existing profile contents intact — the prior default
+    entry is cloned so its therapy fields (carbratio/sens/target_low/target_high/units/dia/…)
+    are preserved and only `basal` is overridden with a single `00:00 0 U/hr` entry; other
+    `store` entries are preserved. The document is assembled by the pure, unit-tested
+    `NightscoutUploader.buildZeroBasalProfileDocument`; the existing profile is read via
+    `GET profile/current`, falling back to the first document from `GET profile`. With nothing
+    readable, a basal-only entry is created (never fabricating zeros for the existing profile).
+  - **Nocturne**: `publishIletZeroBasalSchedule` creates the `BasalSchedule`, ensures a
+    `TherapySettings` profile of the same name exists (creating one only if
+    `profileGetTherapySettingsByName` returns nothing), then calls `profileSetDefaultProfile`
+    so the profile is actually active — a basal schedule alone is not. The app's OAuth token
+    may lack profile-write scope; a 403 is logged once as non-fatal and not retried.
 - **UploaderQueue caveat**: destinations are snapshotted at insert time, so pump rows written
   while a cloud destination is disabled are not retro-uploaded.
 

@@ -164,6 +164,12 @@ public class NightscoutUploader {
         @POST("profile")
         Call<ResponseBody> uploadProfile(@Header("api-secret") String secret, @Body RequestBody body);
 
+        @GET("profile/current")
+        Call<ResponseBody> getCurrentProfile(@Header("api-secret") String secret);
+
+        @GET("profile")
+        Call<ResponseBody> getProfiles(@Header("api-secret") String secret);
+
     }
 
     private class UploaderException extends RuntimeException {
@@ -1189,9 +1195,14 @@ public class NightscoutUploader {
     }
 
     /**
-     * Publish a 0 U/hr basal profile once (opt-in). The iLet delivers insulin
-     * automatically, so it has no scheduled basal; this tells Nightscout the
-     * profile is 0 U/hr rather than leaving it unknown.
+     * Publish a 0 U/hr basal profile once (opt-in), as a *new* profile that is set
+     * active, leaving the user's existing profile contents untouched.
+     *
+     * The iLet delivers insulin automatically, so it has no scheduled basal; this
+     * tells Nightscout the active profile is 0 U/hr rather than leaving it unknown.
+     * The existing profile's therapy fields (carbratio/sens/target_low/target_high)
+     * are carried over so activating the new profile does not change active therapy
+     * values.
      */
     private void postIletZeroBasalProfile(NightscoutService nightscoutService, String apiSecret) {
         if (!com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()
@@ -1200,24 +1211,15 @@ public class NightscoutUploader {
             return;
         }
         try {
-            final String name = "iLet 0 U/hr";
-            final JSONObject entry = new JSONObject()
-                    .put("time", "00:00").put("value", 0).put("timeAsSeconds", 0);
-            final org.json.JSONArray schedule = new org.json.JSONArray().put(entry);
-            final JSONObject profile = new JSONObject()
-                    .put("basal", schedule)
-                    .put("carbratio", schedule)
-                    .put("sens", schedule)
-                    .put("target_low", schedule)
-                    .put("target_high", schedule)
-                    .put("timezone", java.util.TimeZone.getDefault().getID())
-                    .put("units", "mg/dl")
-                    .put("startDate", com.eveningoutpost.dexdrip.models.DateUtil.toISOString(System.currentTimeMillis()));
-            final JSONObject store = new JSONObject().put(name, profile);
-            final JSONObject document = new JSONObject()
-                    .put("defaultProfile", name)
-                    .put("store", store)
-                    .put("created_at", com.eveningoutpost.dexdrip.models.DateUtil.toISOString(System.currentTimeMillis()));
+            final String existingJson = readExistingProfileDocument(nightscoutService, apiSecret);
+            if (existingJson == null) {
+                // Neither endpoint gave a definitive answer (network error/5xx): leave
+                // zeroBasalPublished false so the next cycle retries, rather than posting a
+                // basal-only document that would drop the user's existing profiles.
+                UserError.Log.d(TAG, "iLet 0 U/hr profile: could not read existing profile; will retry");
+                return;
+            }
+            final JSONObject document = buildZeroBasalProfileDocument(existingJson);
 
             final RequestBody body = RequestBody.create(document.toString(), MediaType.parse("application/json"));
             final Response<ResponseBody> r = (apiSecret != null)
@@ -1233,6 +1235,129 @@ public class NightscoutUploader {
         } catch (Exception e) {
             UserError.Log.d(TAG, "iLet 0 U/hr profile error: " + e);
         }
+    }
+
+    /**
+     * Read the current profile document, falling back to the newest from the list.
+     *
+     * Returns the document string when one was found, an empty string when the endpoint(s)
+     * answered definitively but there is no profile yet (a basal-only document is then safe
+     * to create), and null when neither endpoint could be reached (retry, do not overwrite).
+     */
+    private String readExistingProfileDocument(NightscoutService nightscoutService, String apiSecret) {
+        boolean definitive = false;
+        try {
+            final Response<ResponseBody> current = (apiSecret != null)
+                    ? nightscoutService.getCurrentProfile(apiSecret).execute()
+                    : nightscoutService.getCurrentProfile("").execute();
+            definitive |= responseAnswered(current);
+            if (current.isSuccessful() && current.body() != null) {
+                final String body = current.body().string();
+                if (body != null) {
+                    final String trimmed = body.trim();
+                    if (!trimmed.isEmpty() && !"{}".equals(trimmed) && !"null".equals(trimmed)) {
+                        return body;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            UserError.Log.d(TAG, "profile/current read failed: " + e);
+        }
+        try {
+            final Response<ResponseBody> list = (apiSecret != null)
+                    ? nightscoutService.getProfiles(apiSecret).execute()
+                    : nightscoutService.getProfiles("").execute();
+            definitive |= responseAnswered(list);
+            if (list.isSuccessful() && list.body() != null) {
+                final String first = firstProfileDocument(list.body().string());
+                if (first != null) return first;
+            }
+        } catch (Exception e) {
+            UserError.Log.d(TAG, "profile list read failed: " + e);
+        }
+        return definitive ? "" : null;
+    }
+
+    /** True when the server answered: success, or a client error that is a definitive "no". */
+    private static boolean responseAnswered(final Response<?> response) {
+        return response != null && (response.isSuccessful() || (response.code() >= 400 && response.code() < 500));
+    }
+
+    /**
+     * Extract a single profile document from the `/profile` list response. Returns the
+     * raw string when it is already a single object, the first array element otherwise.
+     */
+    static String firstProfileDocument(final String listJson) {
+        if (listJson == null) return null;
+        final String trimmed = listJson.trim();
+        if (trimmed.isEmpty()) return null;
+        try {
+            if (trimmed.startsWith("[")) {
+                final JSONArray arr = new JSONArray(trimmed);
+                if (arr.length() == 0) return null;
+                final JSONObject first = arr.optJSONObject(0);
+                return first != null ? first.toString() : null;
+            }
+            if (trimmed.startsWith("{")) return trimmed;
+        } catch (JSONException e) {
+            UserError.Log.d(TAG, "unparseable profile list: " + e);
+        }
+        return null;
+    }
+
+    /**
+     * Assemble the Nightscout profile document for the iLet 0 U/hr profile.
+     *
+     * Pure (no network/state) so it can be unit tested. When [existingProfileJson]
+     * parses to a document with a default entry, that entry is cloned so its therapy
+     * fields (carbratio/sens/target_low/target_high/units/dia/...) are preserved; only
+     * the basal schedule is replaced with a single 0 U/hr entry, and the result is made
+     * the default profile. Other `store` entries are preserved. With no readable profile
+     * a basal-only entry is created (the therapy fields are then left to the user's own
+     * profile).
+     */
+    static JSONObject buildZeroBasalProfileDocument(final String existingProfileJson) throws JSONException {
+        final String name = "iLet 0 U/hr";
+        final String nowIso = DateUtil.toISOString(System.currentTimeMillis());
+
+        JSONObject existing = null;
+        if (existingProfileJson != null && !existingProfileJson.trim().isEmpty()) {
+            try {
+                existing = new JSONObject(existingProfileJson);
+            } catch (JSONException e) {
+                UserError.Log.d(TAG, "unparseable existing profile; creating basal-only: " + e);
+            }
+        }
+
+        final JSONObject store = (existing != null && existing.optJSONObject("store") != null)
+                ? existing.getJSONObject("store")
+                : new JSONObject();
+        final String existingName = existing != null ? existing.optString("defaultProfile") : "";
+        final JSONObject existingEntry = existingName.isEmpty() ? null : store.optJSONObject(existingName);
+
+        final JSONObject entry;
+        if (existingEntry != null) {
+            // Clone every therapy field, then override only the basal schedule.
+            entry = new JSONObject(existingEntry.toString());
+            UserError.Log.d(TAG, "cloning profile '" + existingName + "' therapy fields for " + name);
+        } else {
+            entry = new JSONObject();
+            UserError.Log.d(TAG, "no existing Nightscout profile readable; creating basal-only " + name);
+        }
+
+        final JSONArray zeroBasal = new JSONArray()
+                .put(new JSONObject().put("time", "00:00").put("value", 0).put("timeAsSeconds", 0));
+        entry.put("basal", zeroBasal);
+        entry.put("startDate", nowIso);
+        if (!entry.has("timezone")) entry.put("timezone", java.util.TimeZone.getDefault().getID());
+        if (!entry.has("units")) entry.put("units", "mg/dl");
+
+        store.put(name, entry);
+
+        return new JSONObject()
+                .put("defaultProfile", name)
+                .put("store", store)
+                .put("created_at", nowIso);
     }
 
     /**

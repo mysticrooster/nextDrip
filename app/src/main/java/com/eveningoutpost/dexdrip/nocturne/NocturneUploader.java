@@ -51,6 +51,7 @@ import org.nightscoutfoundation.nocturne.model.UpsertNoteRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertPumpSnapshotRequest;
 import org.nightscoutfoundation.nocturne.model.BasalSchedule;
 import org.nightscoutfoundation.nocturne.model.ScheduleEntry;
+import org.nightscoutfoundation.nocturne.model.TherapySettings;
 import org.nightscoutfoundation.nocturne.model.UpsertSensorGlucoseRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertStepCountRequest;
 import org.nightscoutfoundation.nocturne.model.UpsertUploaderSnapshotRequest;
@@ -515,34 +516,80 @@ public class NocturneUploader {
         }
     }
 
-    /** Publish a one-off 0 U/hr basal schedule (opt-in) for the iLet. */
+    /**
+     * Publish a 0 U/hr basal schedule (opt-in) and make it the active Nocturne profile.
+     *
+     * A basal schedule alone is not active: Nocturne also needs a therapy-settings
+     * profile of the same name and a set-default call. The user's other profiles are
+     * left untouched; only a missing "iLet 0 U/hr" therapy profile is created.
+     */
     public boolean publishIletZeroBasalSchedule() {
         if (!ready || apiClient == null) return false;
+        final String name = "iLet 0 U/hr";
+        final long now = JoH.tsl();
         try {
+            final ProfileApi profileApi = new ProfileApi(apiClient);
+
             final ScheduleEntry entry = new ScheduleEntry().time("00:00").value(0.0).timeAsSeconds(0);
-            final long now = JoH.tsl();
             final BasalSchedule schedule = new BasalSchedule()
-                    .profileName("iLet 0 U/hr")
+                    .profileName(name)
                     .app("xDrip+")
                     .dataSource(DATA_SOURCE)
                     .timestamp(toOffsetDateTime(now))
                     .utcOffset(utcOffsetMinutes(now))
                     .entries(Collections.singletonList(entry));
-            new ProfileApi(apiClient).profileCreateBasalSchedule(schedule);
+            profileApi.profileCreateBasalSchedule(schedule);
+
+            // A therapy profile of the same name must exist before it can be activated.
+            if (!therapyProfileExists(profileApi, name)) {
+                // The iLet has no scheduled therapy: neutral values, with the basal
+                // schedule being the only meaningful content of this profile.
+                final TherapySettings settings = new TherapySettings()
+                        .profileName(name)
+                        .timezone(TimeZone.getDefault().getID())
+                        .units(profileUnits())
+                        .dia(0.0)
+                        .carbsHr(0)
+                        .delay(0)
+                        .isDefault(false)
+                        .app("xDrip+")
+                        .dataSource(DATA_SOURCE)
+                        .timestamp(toOffsetDateTime(now))
+                        .utcOffset(utcOffsetMinutes(now));
+                profileApi.profileCreateTherapySettings(settings);
+            }
+
+            profileApi.profileSetDefaultProfile(name);
             return true;
         } catch (ApiException e) {
             if (e.getCode() == 403) {
                 // The token used for glucose/bolus uploads is not authorized to write
                 // therapy profiles on this instance. Not an error worth retrying.
-                UserError.Log.w(TAG, "Nocturne refused the 0 U/hr basal schedule (403): this token cannot write profiles");
+                UserError.Log.w(TAG, "Nocturne refused the 0 U/hr profile (403): this token cannot write profiles");
             } else {
-                logFailure("iLet 0 U/hr basal schedule", e);
+                logFailure("iLet 0 U/hr profile", e);
             }
             return false;
         } catch (Exception e) {
-            logFailure("iLet 0 U/hr basal schedule", e);
+            logFailure("iLet 0 U/hr profile", e);
             return false;
         }
+    }
+
+    /** True when a therapy-settings profile of this name already exists. */
+    private boolean therapyProfileExists(final ProfileApi profileApi, final String name) throws ApiException {
+        try {
+            final List<TherapySettings> existing = profileApi.profileGetTherapySettingsByName(name);
+            return existing != null && !existing.isEmpty();
+        } catch (ApiException e) {
+            if (e.getCode() == 404) return false; // not created yet
+            throw e;
+        }
+    }
+
+    /** The xDrip glucose unit, in the Nocturne profile spelling. */
+    private static String profileUnits() {
+        return "mmol".equals(Pref.getString("units", "mgdl")) ? "mmol/L" : "mg/dL";
     }
 
     void uploadDeviceStatus() {
