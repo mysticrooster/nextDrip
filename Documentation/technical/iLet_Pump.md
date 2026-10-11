@@ -6,6 +6,12 @@ prototype. It can act as the primary glucose collector or as an independent pump
 source, and uploads to Nightscout, Nocturne and Tidepool to the extent each supports pump
 data.
 
+Beta Bionics' Mint patch pump (FDA-cleared September 2026, full US launch expected Q1 2027)
+is **not** supported yet: the protocol items that *may* be Mint-specific are documented in
+"Mint patch pump (unverified)" below but have never been exercised against Mint hardware,
+and there is no in-repo evidence tying them to Mint — only that they are inert on the
+sampled iLet firmware.
+
 This worktree is plain NightscoutFoundation xDrip: **ActiveAndroid ORM** and legacy XML
 `PreferenceScreen` settings. The protocol/cloud/BLE Kotlin is shared with the prototype and
 is ported nearly verbatim; the Android-facing pieces were adapted (no Compose, no Room).
@@ -15,8 +21,10 @@ is ported nearly verbatim; the Android-facing pieces were adapted (no Compose, n
 - **Read-only.** No bolus, no basal change, no therapy command. The following are
   deliberately not implemented: `CmdReset` (0x1316), `CmdResetBle` (0x3002), the
   firmware-update family, `CmdRecordRead` (0x1509), `CmdGetRtcTime` (0x160C),
-  `CmdPatchBackFillHistory` (0x1380), `CmdGetControlSequenceNumberRanges` (0x1381) and
-  `CmdSetTime` (0x1511).
+  `CmdSetTime` (0x1511). The control-plane read commands `CmdPatchBackFillHistory`
+  (0x1380) and `CmdGetControlSequenceNumberRanges` (0x1381) are not sent either: they
+  are unsupported on the sampled iLet firmware and may be Mint patch-pump commands
+  (see "Mint patch pump (unverified)").
 - No dosing UI anywhere in the feature.
 - Credentials are a medical-device key: stored encrypted, excluded from Android backup
   (`android:allowBackup="false"`), never logged.
@@ -111,10 +119,15 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   BLE notifications, which are not delivered on the sampled firmware — the connection test
   uses the same read.
 - Unsupported on the sampled firmware (accepted then ignored or link-dropped): 0x2509,
-  0x160C, 0x1380, 0x1381 — and the 0x2508 partition family is not used because it reports the
+  0x160C — and the 0x2508 partition family is not used because it reports the
   smaller flash partition. Their client methods and request builders were **removed**
-  (`getRtcTime`, `flushRecords`/`recordBounds`/`readRecord`, `patchBackFillHistory`), so the
-  code cannot even attempt them. Working primitives only: handshake, 0x2321 info, 0x2510 time,
+  (`getRtcTime`, `flushRecords`/`recordBounds`/`readRecord`), so the
+  code cannot even attempt them. The control-plane family 0x1380/0x1381/0x2380/0x2381 is
+  inert on the sampled iLet firmware and may be Mint patch-pump specific
+  (see "Mint patch pump (unverified)"): it is
+  never sent, but its *response parsers* are kept so the layout is not lost
+  (`IletPatchBackFillHistoryResponse`, `IletControlSequenceNumberRangesResponse`).
+  Working primitives only: handshake, 0x2321 info, 0x2510 time,
   0x1506 realtime, 0x2334 single records, 0x2333 backfill sectors, 0x2335 bounds.
 - Glucose reading/predicted are **i16 little-endian** at 0x2334 body offsets 49-50 / 51-52.
   Historical import requires only `reading_mg_dl > 0`; a zero reading is a sensor artifact,
@@ -123,15 +136,17 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   treated as a clock-skew *warning* (logged) rather than a hard gate — hard-gating on the
   GetTime-derived offset silently dropped every record when the two differed. The epoch
   warning compares against the *raw* GetTime offset, while timestamps use the
-  timezone-corrected offset (below).
+  timezone- and drift-corrected offset (below).
 - Two incompatible record-type enums share numbers (`IletRecordType` for 0x2508/0x2509 vs
   `IletHistoricalRecordType` for 0x2333/0x2334/0x2335); mixing them returns nonsense.
 - The RTC→Unix offset is derived from GetTime (0x2510), never hardcoded; a record whose
   embedded epoch does not match is logged and the record is still parsed (the body magic and
   checksum already prove the layout).
 - **Clock drift**: after the timezone correction the service stores the residual pump-vs-phone
-  drift (`ilet_clock_drift_seconds`) and shows it in System Status and in the iLet settings
-  ("Pump clock"). When it exceeds two minutes the settings screen raises a one-off dialog
+  drift (`ilet_clock_drift_seconds`), shows it in System Status and in the iLet settings
+  ("Pump clock"), and **folds it into the timestamp offset** so every pump timestamp (glucose,
+  insulin, basal, suspend, patch session, realtime) lands on the phone's true clock rather than
+  the pump's own. When it exceeds two minutes the settings screen raises a one-off dialog
   (at most twice a day) asking the user to set the pump clock. `CmdSetTime` (0x1511) is **not**
   implemented: it is uninstrumented by the reference app with an undocumented payload, and this
   app is deliberately read-only, so it never writes the pump clock.
@@ -139,7 +154,10 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   wall clock. `IletDataProcessor.updateEpoch` compares the pump's wall clock against the phone
   clock and, when treating it as UTC is clearly worse than treating it as local, subtracts the
   device UTC offset so timestamps are true UTC. This fixes a timezone-sized (e.g. 4 h) error
-  without disturbing pumps that store true UTC. Unit-tested in `IletEpochTest`.
+  without disturbing pumps that store true UTC. It then adds the residual clock drift
+  (`clockDriftSeconds`, positive when the pump is behind) to the same offset, so a residual
+  pump clock error — a pump that is simply set wrong — no longer shifts pump data by that
+  error. Unit-tested in `IletEpochTest`.
 
 ## Data mapping
 
@@ -159,17 +177,21 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   are skipped; the realtime snapshot is **never** a bolus.
 - Historical glucose is **opt-in** (`ilet_backfill_glucose`, off by default) and independent
   of the live collector, so it also works in pump-only mode. It only fills gaps: any row
-  already within half the collector's sample period plus the measured pump-vs-phone clock
-  drift (from the primary CGM or a previous import) is skipped, so pump glucose never pads
-  alongside live xDrip data even though the pump clock is not perfectly in sync. Real-time
+  already within half the collector's sample period (from the primary CGM or a previous
+  import) is skipped, so pump glucose never pads alongside live xDrip data. Real-time
   glucose is unaffected by the toggle and still follows the collector selection.
 - Glucose is de-duplicated with a single query per record: `bgReadingInsertFromIlet` takes
   the dedupe window and returns `null` when a row already exists, so the realtime and history
   paths cannot disagree and the historical import no longer double-checks the timestamp. The
-  window is `max(ILET_DEDUPE_WINDOW_MS, collectorSamplePeriod/2) + clockDrift`, i.e. at least
+  window is `max(ILET_DEDUPE_WINDOW_MS, collectorSamplePeriod/2)`, i.e. at least
   `BgReading.ILET_DEDUPE_WINDOW_MS` (two minutes), so realtime and backfilled rows for the same
-  pump CGM slot with small clock skew do not overlap, and a backfill that restarts from an
-  earlier date is safe. Basal already collapses duplicates in
+  pump CGM slot do not overlap, and a backfill that restarts from an earlier date is safe. It
+  is **not** widened by the clock drift: the drift is already folded into the timestamps, and
+  the old widening made freshly corrected rows collapse onto rows stamped under the previous
+  offset, pinning the graph to the stale times. When the existing row is an iLet row whose time
+  differs by more than a second, it is **re-stamped** to the corrected time (rows from another
+  collector are left alone), so a clock-offset change converges as history is re-read instead
+  of leaving old rows behind. Basal already collapses duplicates in
   `APStatus.createEfficientRecord` (same-value rows and out-of-order timestamps are rejected).
 - Basal is written oldest→newest only (`APStatus.createEfficientRecord` rejects out-of-order
   timestamps); the walk resets its ordering guard per backfill pass.
@@ -182,7 +204,8 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
 ### Backfill
 
 Bounds come from `CmdGetSequenceNumberHistory` (0x1335/0x2335) using `HistoricalRecordType`
-numbering; the control-plane 0x1381 family is unsupported on current firmware and is never
+numbering; the control-plane 0x1381 family is inert on the sampled firmware (and may be
+Mint-specific — see below) and is never
 used. On first run the look-back is bounded **by time** (`FIRST_RUN_LOOKBACK_MS`, 24 h) via a
 binary search on record timestamps, not by a fixed record count — some record types (insulin
 snapshots) are emitted densely, so a count cap only reached back a few hours. Because an
@@ -257,10 +280,12 @@ wait short via the conflated wake-up channel.
   opcode — so if the pump only emits 0x1506 nothing is lost but no alarms/meals appear from
   that source.
 - **Infusion set (pump patch) age** comes only from those 0x1515 fields
-  (`pumpPatchInfoSessionStartTime`/`EndTime`); there is no command to request them and the
-  historical ALARM partition is empty on this firmware. When a 0x1515 packet is seen the
-  converted window is stored (`ilet_patch_start_ms`/`ilet_patch_end_ms`) and shown as an
-  "Infusion set" row (age + expired flag) in System Status.
+  (`pumpPatchInfoSessionStartTime`/`EndTime`); there is no iLet command to request them
+  and the historical ALARM partition is empty on this firmware. When a 0x1515 packet is seen
+  the converted window is stored (`ilet_patch_start_ms`/`ilet_patch_end_ms`) and shown as an
+  "Infusion set" row (age + expired flag) in System Status. The field names are
+  patch-pump vocabulary carried over from the shared Beta Bionics protocol — on the iLet
+  they describe the infusion-set session, not a Mint disposable.
 
 ## Credential handling
 
@@ -340,3 +365,31 @@ wait short via the conflated wake-up channel.
    rendering — validate against a local Nightscout.
 6. On-device validation of login, live glucose, bolus/basal/IOB display, disconnect backfill,
    backfill-from-date, pump-only mode and each enabled cloud destination.
+
+## Mint patch pump (unverified)
+
+Mint (FDA-cleared September 2026, full US launch expected Q1 2027) is a patch pump on the
+same protocol family, but nothing here has been exercised against Mint hardware. The
+following *may* be Mint-specific — the honest position is that they are inert on the
+sampled iLet firmware and carry patch-session semantics a durable pump has no obvious use
+for; **there is no in-repo evidence tying them to Mint** and nothing is sent:
+
+- `CmdPatchBackFillHistory` (0x1380) / `RspPatchBackFillHistory` (0x2380) — "patch"
+  backfill. The response parser (`IletPatchBackFillHistoryResponse`, 10-byte header:
+  status/recordType/fromSeq/toSeq + fixed-size records) is kept for the layout, but no
+  request builder or client method exists and 0x1380 is never sent.
+- `CmdGetControlSequenceNumberRanges` (0x1381) / `RspGetControlSequenceNumberRanges`
+  (0x2381) — control-plane sequence bounds. Only the response parser
+  (`IletControlSequenceNumberRangesResponse`: glucose/insulin/event/alarm/algoStep
+  min/max) is kept; 0x1381 is never sent.
+- `0x1515 pumpPatchInfoSessionStartTime/EndTime` — parsed today and used for the iLet's
+  infusion-set age (above); on Mint the same window presumably describes the disposable
+  patch session, but that mapping is unconfirmed. The names are protocol vocabulary that
+  predates Mint in this codebase — on the iLet the fields describe the infusion-set
+  session, not a Mint disposable. Per your note, on Mint hardware these fields should
+  describe the disposable patch session; that still needs confirming against the device.
+
+If Mint is added later: confirm the 0x1380/0x1381 request layouts and status codes
+against Mint hardware, confirm whether the 0x1515 patch fields need different handling
+per device model (the model string from 0x2321 `GetDeviceInfo` is the natural
+discriminator), and extend the infusion-set row rather than forking the protocol layer.
