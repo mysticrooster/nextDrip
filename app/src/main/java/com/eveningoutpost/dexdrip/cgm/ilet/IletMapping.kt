@@ -53,11 +53,11 @@ object IletMapping {
             3 -> "Dinner"
             else -> "Meal"
         }
-        // Meal size is user-confirmed: 0 = Less, 1 = Usual, 2 = More.
+        // Meal size, per the pump UI: 0 = More, 1 = Usual, 2 = Less.
         val size = when (mealSize) {
-            0 -> "Less"
+            0 -> "More"
             1 -> "Usual"
-            2 -> "More"
+            2 -> "Less"
             else -> "size $mealSize"
         }
         return "$type, $size"

@@ -227,13 +227,16 @@ class IletDataProcessor {
         val timestamp = IletMapping.glucoseMillis(rec.currentTimestamp, epochOffsetSeconds)
         // Only fill gaps: skip if any BgReading already covers this slot, whether from a
         // previous iLet import or from the primary xDrip CGM. Use half the collector's
-        // sample period as the window so pump rows do not pad alongside live CGM data.
+        // sample period as the window, widened by the measured pump-vs-phone clock drift,
+        // because the pump clock is not perfectly in sync so the same slot can land a
+        // little either side of the xDrip row.
+        val driftMs = Math.abs(IletPrefs.clockDriftSeconds()) * 1000L
         val window = maxOf(
             BgReading.ILET_DEDUPE_WINDOW_MS,
             com.eveningoutpost.dexdrip.utils.DexCollectionType.getCollectorSamplePeriod(
                 com.eveningoutpost.dexdrip.utils.DexCollectionType.getDexCollectionType()
             ) / 2,
-        )
+        ) + driftMs
         if (BgReading.getForPreciseTimestamp(timestamp, window) != null) {
             statGlucoseExisting++
             return

@@ -33,9 +33,9 @@ class IletMappingTest {
     @Test
     fun mealLabelMapsTypeAndSize() {
         check(IletMapping.mealLabel(0, 4) == null)
-        check(IletMapping.mealLabel(1, 0) == "Breakfast, Less")
+        check(IletMapping.mealLabel(1, 0) == "Breakfast, More")
         check(IletMapping.mealLabel(2, 1) == "Lunch, Usual")
-        check(IletMapping.mealLabel(3, 2) == "Dinner, More")
+        check(IletMapping.mealLabel(3, 2) == "Dinner, Less")
         check(IletMapping.mealLabel(9, 9) == "Meal, size 9")
     }
 }

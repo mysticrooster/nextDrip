@@ -143,9 +143,10 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   are skipped; the realtime snapshot is **never** a bolus.
 - Historical glucose is **opt-in** (`ilet_backfill_glucose`, off by default) and independent
   of the live collector, so it also works in pump-only mode. It only fills gaps: any row
-  already within half the collector's sample period (from the primary CGM or a previous
-  import) is skipped, so pump glucose never pads alongside live xDrip data. Real-time glucose
-  is unaffected by the toggle and still follows the collector selection.
+  already within half the collector's sample period plus the measured pump-vs-phone clock
+  drift (from the primary CGM or a previous import) is skipped, so pump glucose never pads
+  alongside live xDrip data even though the pump clock is not perfectly in sync. Real-time
+  glucose is unaffected by the toggle and still follows the collector selection.
 - Glucose is de-duplicated with a two-minute window (`BgReading.ILET_DEDUPE_WINDOW_MS`) rather
   than the usual one minute, so realtime and backfilled rows for the same pump CGM slot with
   small clock skew do not overlap, and a backfill that restarts from an earlier date is safe.
@@ -277,7 +278,7 @@ shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`).
 
 ## Open questions / unverified
 
-1. Meal **size** is confirmed (0 = Less, 1 = Usual, 2 = More). Meal **type** (1 = Breakfast,
+1. Meal **size** is confirmed (0 = More, 1 = Usual, 2 = Less). Meal **type** (1 = Breakfast,
    2 = Lunch, 3 = Dinner) is still a best guess. Raw codes are always stored in the note so a
    wrong guess is recoverable.
 2. Whether the pump ever emits `0x1515` (CGM-session/silent-mode/fill-detect are out of scope).
