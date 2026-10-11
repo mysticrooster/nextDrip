@@ -1368,15 +1368,14 @@
                     android:key="ilet_enabled"
                     android:summary="@string/ilet_enable_summary"
                     android:title="@string/ilet_enable_title" />
-                <EditTextPreference
-                    android:dependency="ilet_enabled"
-                    android:key="ilet_last_address"
-                    android:summary="@string/ilet_address_summary"
-                    android:title="@string/ilet_address_title" />
                 <Preference
-                    android:key="ilet_device_info"
-                    android:selectable="false"
-                    android:title="@string/ilet_device_info_title" />
+                    android:key="ilet_login"
+                    android:summary="@string/ilet_login_summary"
+                    android:title="@string/ilet_login_title">
+                    <intent
+                        android:targetClass="com.eveningoutpost.dexdrip.cgm.ilet.ILetLoginActivity"
+                        android:targetPackage="@string/local_target_package" />
+                </Preference>
                 <Preference
                     android:dependency="ilet_enabled"
                     android:key="ilet_test_connection"
@@ -1386,26 +1385,6 @@
                         android:targetClass="com.eveningoutpost.dexdrip.cgm.ilet.ILetStatusActivity"
                         android:targetPackage="@string/local_target_package" />
                 </Preference>
-                <Preference
-                    android:key="ilet_login"
-                    android:summary="@string/ilet_login_summary"
-                    android:title="@string/ilet_login_title">
-                    <intent
-                        android:targetClass="com.eveningoutpost.dexdrip.cgm.ilet.ILetLoginActivity"
-                        android:targetPackage="@string/local_target_package" />
-                </Preference>
-                <CheckBoxPreference
-                    android:defaultValue="false"
-                    android:dependency="ilet_enabled"
-                    android:key="ilet_backfill_glucose"
-                    android:summary="@string/ilet_backfill_glucose_summary"
-                    android:title="@string/ilet_backfill_glucose_title" />
-                <CheckBoxPreference
-                    android:defaultValue="false"
-                    android:dependency="ilet_enabled"
-                    android:key="ilet_publish_zero_basal"
-                    android:summary="@string/ilet_publish_zero_basal_summary"
-                    android:title="@string/ilet_publish_zero_basal_title" />
                 <CheckBoxPreference
                     android:defaultValue="true"
                     android:dependency="ilet_enabled"
@@ -1418,21 +1397,23 @@
                     android:key="ilet_download_meals"
                     android:summary="@string/ilet_download_meals_summary"
                     android:title="@string/ilet_download_meals_title" />
-                <PreferenceScreen
-                    android:key="ilet_advanced"
-                    android:title="@string/ilet_advanced_title">
-                    <CheckBoxPreference
-                        android:defaultValue="true"
-                        android:dependency="ilet_enabled"
-                        android:key="ilet_download_basal"
-                        android:summary="@string/ilet_download_basal_summary"
-                        android:title="@string/ilet_download_basal_title" />
-                </PreferenceScreen>
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_publish_zero_basal"
+                    android:summary="@string/ilet_publish_zero_basal_summary"
+                    android:title="@string/ilet_publish_zero_basal_title" />
                 <CheckBoxPreference
                     android:defaultValue="false"
                     android:key="show_ilet_pump_iob_line"
                     android:summary="@string/ilet_pump_iob_line_summary"
                     android:title="@string/ilet_pump_iob_line_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_backfill_glucose"
+                    android:summary="@string/ilet_backfill_glucose_summary"
+                    android:title="@string/ilet_backfill_glucose_title" />
                 <SwitchPreference
                     android:defaultValue="false"
                     android:key="status_line_ilet"
@@ -1475,6 +1456,21 @@
                     android:key="ilet_backfill_from"
                     android:summary="@string/ilet_backfill_summary"
                     android:title="@string/ilet_backfill_title" />
+                <PreferenceScreen
+                    android:key="ilet_advanced"
+                    android:title="@string/ilet_advanced_title">
+                    <EditTextPreference
+                        android:dependency="ilet_enabled"
+                        android:key="ilet_last_address"
+                        android:summary="@string/ilet_address_summary"
+                        android:title="@string/ilet_address_title" />
+                    <CheckBoxPreference
+                        android:defaultValue="true"
+                        android:dependency="ilet_enabled"
+                        android:key="ilet_download_basal"
+                        android:summary="@string/ilet_download_basal_summary"
+                        android:title="@string/ilet_download_basal_title" />
+                </PreferenceScreen>
             </PreferenceScreen>
         </PreferenceScreen>
 
