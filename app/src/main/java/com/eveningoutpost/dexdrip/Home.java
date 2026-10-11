@@ -2491,7 +2491,8 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
             displayCurrentInfo();
             Inevitable.task("home-notifications-start", 5000, Notifications::start);
             // TODO add dexcollectiontype set handling for these
-        } else if (!alreadyDisplayedBgInfoCommon && (collector == LibreAlarm || collector == Medtrum || collector == GluPro)) {
+        } else if (!alreadyDisplayedBgInfoCommon
+                && (collector == LibreAlarm || collector == Medtrum || collector == GluPro || collector == DexCollectionType.ILet)) {
             updateCurrentBgInfoCommon(collector, notificationText);
         }
         if (collector.equals(DexCollectionType.Disabled)) {
@@ -2736,7 +2737,8 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
         }
 
         // we can't use the Dex related code below so we handle things here
-        if (DexCollectionType.getDexCollectionType() == GluPro) {
+        if (DexCollectionType.getDexCollectionType() == GluPro
+                || DexCollectionType.getDexCollectionType() == DexCollectionType.ILet) {
             displayCurrentInfo();
             return;
         }
