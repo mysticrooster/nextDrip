@@ -3047,7 +3047,9 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
             display_delta = "";
         }
 
-        if (Pref.getBoolean("extra_status_line", false) || Pref.getBooleanDefaultFalse("status_line_ilet")) {
+        if (Pref.getBoolean("extra_status_line", false)
+                || (Pref.getBooleanDefaultFalse("status_line_ilet")
+                    && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled())) {
             extraStatusLineText.setText(StatusLine.extraStatusLine());
             extraStatusLineText.setVisibility(View.VISIBLE);
         } else {

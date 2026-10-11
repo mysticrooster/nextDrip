@@ -191,7 +191,9 @@ public class StatusLine {
         }
 
         // iLet pump status items, configured from the iLet connector settings.
-        if (Pref.getBooleanDefaultFalse("status_line_ilet")) {
+        // Only when iLet itself is enabled, so disabling it hides these too.
+        if (Pref.getBooleanDefaultFalse("status_line_ilet")
+                && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
             final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
                     com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
             if (Pref.getBoolean("status_line_ilet_iob", true)) {

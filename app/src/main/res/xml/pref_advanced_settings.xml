@@ -1089,6 +1089,7 @@
                 android:title="@string/ilet_backfill_glucose_title" />
             <SwitchPreference
                 android:defaultValue="false"
+                android:dependency="ilet_enabled"
                 android:key="status_line_ilet"
                 android:summary="@string/ilet_status_line_summary"
                 android:switchTextOff="@string/short_off_text_for_switches"
