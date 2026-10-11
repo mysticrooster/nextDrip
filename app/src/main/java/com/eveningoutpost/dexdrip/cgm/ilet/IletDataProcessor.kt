@@ -9,6 +9,7 @@ import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletRealtimeSnapshot
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletRealTimeData
 import com.eveningoutpost.dexdrip.models.APStatus
 import com.eveningoutpost.dexdrip.models.BgReading
+import com.eveningoutpost.dexdrip.models.IletPredictedBg
 import com.eveningoutpost.dexdrip.models.PumpIobReading
 import com.eveningoutpost.dexdrip.models.Treatments
 import com.eveningoutpost.dexdrip.models.UserError
@@ -43,6 +44,7 @@ class IletDataProcessor {
         private set
 
     private var lastIobStoreMs = 0L
+    private var lastPredictedRtc = -1L
     private var lastAlgoMs = 0L
     private var lastMealAnnouncementState = -1
     private var lastGlucoseMarkerLog = 0L
@@ -159,11 +161,12 @@ class IletDataProcessor {
 
         maybeStorePumpIob(data)
 
-        if (!IletPrefs.downloadGlucose()) return
         val reading = data.glucose.readingMgDl
         if (reading <= 0) return
         val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
         val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
+        maybeStorePredictedBg(data.glucose.predictedReading, timestamp, data.glucose.currentTimestamp)
+        if (!IletPrefs.downloadGlucose()) return
         BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
     }
 
@@ -192,11 +195,12 @@ class IletDataProcessor {
             IletPrefs.setInsulinPausedSinceMs(0L)
         }
 
-        if (IletPrefs.downloadGlucose()) {
-            val reading = data.glucose.readingMgDl
-            if (reading > 0) {
-                val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
-                val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
+        val reading = data.glucose.readingMgDl
+        if (reading > 0) {
+            val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
+            val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
+            maybeStorePredictedBg(data.glucose.predictedReading, timestamp, data.glucose.currentTimestamp)
+            if (IletPrefs.downloadGlucose()) {
                 BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
             }
         }
@@ -242,6 +246,18 @@ class IletDataProcessor {
         if (now - lastIobStoreMs < IOB_STORE_INTERVAL_MS) return
         lastIobStoreMs = now
         PumpIobReading.store(now, iobUnits, reservoirUnits, batteryPct)
+    }
+
+    /**
+     * Persist the pump's predicted BG once per CGM slot (the realtime packet repeats the
+     * same value until the next slot). Stored even when the collector toggle is off so the
+     * line has history once the user enables the setting; drawn only when it is enabled.
+     */
+    private fun maybeStorePredictedBg(predictedMgdl: Int, timestampMs: Long, rtcSeconds: Long) {
+        if (predictedMgdl <= 0) return
+        if (rtcSeconds == lastPredictedRtc) return
+        lastPredictedRtc = rtcSeconds
+        IletPredictedBg.store(timestampMs, predictedMgdl.toDouble())
     }
 
     // ------------------------------------------------------------ history

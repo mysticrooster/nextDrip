@@ -91,6 +91,7 @@ public class ColorCache {
         color_lower_flair_bar("color_lower_flair_bar"),
         color_heart_rate1("color_heart_rate1"),
         color_ilet_pump_iob("color_ilet_pump_iob"),
+        color_ilet_predicted_bg("color_ilet_predicted_bg"),
         color_smb_icon("color_smb_icon"),
         color_smb_line("color_smb_line"),
         color_number_wall("color_number_wall"),

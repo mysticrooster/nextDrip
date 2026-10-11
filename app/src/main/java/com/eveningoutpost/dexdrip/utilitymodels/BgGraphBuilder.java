@@ -28,6 +28,7 @@ import com.eveningoutpost.dexdrip.models.HeartRate;
 import com.eveningoutpost.dexdrip.models.Iob;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.models.PumpIobReading;
+import com.eveningoutpost.dexdrip.models.IletPredictedBg;
 import com.eveningoutpost.dexdrip.models.Libre2RawValue;
 import com.eveningoutpost.dexdrip.models.Prediction;
 import com.eveningoutpost.dexdrip.models.Profile;
@@ -719,6 +720,30 @@ public class BgGraphBuilder {
         return pumpIobLines;
     }
 
+    /** Pump-reported predicted BG from the iLet real-time stream (off by default). */
+    private List<Line> iletPredictedBgLines() {
+        final List<Line> lines = new ArrayList<>();
+        final List<IletPredictedBg> readings = IletPredictedBg.latestForGraph(4000, loaded_start, loaded_end);
+        if (readings.isEmpty()) return lines;
+
+        // A predicted BG is a glucose value, so it shares the glucose axis (no pan offset).
+        final float yscale = !doMgdl ? (float) Constants.MGDL_TO_MMOLL : 1f;
+        final List<PointValue> points = new ArrayList<>();
+        for (IletPredictedBg reading : readings) {
+            final float ypos = (float) (reading.predicted * yscale);
+            points.add(new HPointValue((double) reading.timestamp / FUZZER, ypos));
+        }
+        final Line line = new Line(points);
+        line.setColor(getCol(X.color_ilet_predicted_bg));
+        line.setStrokeWidth(2);
+        line.setHasPoints(false);
+        line.setHasLines(true);
+        line.setCubic(false); // "can be straight"
+        line.setTag("ilet_predicted_bg");
+        lines.add(line);
+        return lines;
+    }
+
     public LineChartData lineData() {
         // if (d) Log.d(TAG, "START lineData from: " + JoH.backTrace());
         JoH.benchmark(null);
@@ -806,6 +831,10 @@ public class BgGraphBuilder {
                 if (Pref.getBooleanDefaultFalse("show_ilet_pump_iob_line")
                         && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
                     lines.addAll(pumpIobLines());
+                }
+                if (Pref.getBooleanDefaultFalse("show_ilet_predicted_bg_line")
+                        && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) {
+                    lines.addAll(iletPredictedBgLines());
                 }
                 lines.addAll(heartLines());
                 lines.addAll(stepsLines());

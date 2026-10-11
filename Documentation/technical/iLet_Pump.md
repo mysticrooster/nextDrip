@@ -197,6 +197,13 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   timestamps); the walk resets its ordering guard per backfill pass.
 - `PumpIobReading` feeds an optional graph line (`show_ilet_pump_iob_line`, **off by default**)
   with its own `color_ilet_pump_iob` colour, distinct from xDrip's treatment-derived IOB.
+- The pump's predicted BG (`IletRealTimeData.glucose.predictedReading`, mg/dL) is stored once
+  per CGM slot in `IletPredictedBg` (timestamp, value; drift-corrected like every other
+  timestamp, cleaned up with `bg_retention_days`) and pulled up by an optional straight graph
+  line (`show_ilet_predicted_bg_line`, **off by default**, colour `color_ilet_predicted_bg`).
+  It is recorded even when the collector toggle is off so the line has history once enabled.
+  The pump protocol does not document the forecast horizon, so the value is plotted at the
+  sample time it was received.
 - Pump identity is never hardcoded: the serial is derived from `GetDeviceInfo` (0x2321) on
   first connection, and the Bluetooth address is user-settable, falling back to a scan when
   left blank. Deterministic dedupe falls back to the address when the serial is unknown.

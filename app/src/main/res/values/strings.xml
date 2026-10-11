@@ -1494,6 +1494,7 @@
     <string name="title_plugins_and_features">Plugins and Features</string>
     <string name="title_color_heart_rate1">Heart rate monitor</string>
     <string name="title_color_ilet_pump_iob">iLet pump IOB</string>
+    <string name="title_color_ilet_predicted_bg">iLet predicted BG</string>
     <string name="title_insulin_colors">Insulin</string>
     <string name="title_color_basal_tbr">Basal TBR</string>
     <string name="title_color_smb_icon">SMB Icon</string>
@@ -2039,6 +2040,8 @@
     <string name="ilet_download_basal_summary">Basal rate from algorithm records when available</string>
     <string name="ilet_pump_iob_line_title">Show pump IOB line</string>
     <string name="ilet_pump_iob_line_summary">Extra graph line of the pump\'s own IOB estimate; may duplicate xDrip IOB</string>
+    <string name="ilet_predicted_bg_line_title">Show predicted BG line</string>
+    <string name="ilet_predicted_bg_line_summary">Extra graph line of the pump\'s predicted blood glucose</string>
     <string name="ilet_device_info_title">Pump identity</string>
     <string name="ilet_clock_prompt_title">iLet clock is off</string>
     <string name="ilet_clock_prompt_message">The iLet clock is off by about %1$s. Please set it on the pump (or via the Beta Bionics app) so pump records and xDrip line up. This app is read-only and will not change the pump time.</string>

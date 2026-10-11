@@ -294,6 +294,14 @@
                         app:colorpicker_showHex="false" />
 
                     <com.eveningoutpost.dexdrip.utilitymodels.ColorPicker
+                        android:defaultValue="#B07B68EE"
+                        android:key="color_ilet_predicted_bg"
+                        android:title="@string/title_color_ilet_predicted_bg"
+                        app:colorpicker_noneSelectedSummaryText="@string/default_color_selected"
+                        app:colorpicker_selectNoneButtonText="@string/revert_to_default"
+                        app:colorpicker_showHex="false" />
+
+                    <com.eveningoutpost.dexdrip.utilitymodels.ColorPicker
                         android:defaultValue="#2B212FDE"
                         android:key="color_heart_rate1"
                         android:title="@string/title_color_heart_rate1"

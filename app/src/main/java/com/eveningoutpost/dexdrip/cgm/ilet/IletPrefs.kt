@@ -17,6 +17,7 @@ object IletPrefs {
     const val DOWNLOAD_BASAL = "ilet_download_basal"
     const val BACKFILL_GLUCOSE = "ilet_backfill_glucose"
     const val SHOW_PUMP_IOB_LINE = "show_ilet_pump_iob_line"
+    const val SHOW_PREDICTED_BG_LINE = "show_ilet_predicted_bg_line"
 
     const val LAST_ADDRESS = "ilet_last_address"
     const val DEVICE_SERIAL = "ilet_device_serial"
@@ -128,6 +129,13 @@ object IletPrefs {
 
     @JvmStatic
     fun setShowPumpIobLine(enabled: Boolean) = Pref.setBoolean(SHOW_PUMP_IOB_LINE, enabled)
+
+    /** The pump's own predicted-BG graph line is off by default. */
+    @JvmStatic
+    fun showPredictedBgLine(): Boolean = Pref.getBooleanDefaultFalse(SHOW_PREDICTED_BG_LINE)
+
+    @JvmStatic
+    fun setShowPredictedBgLine(enabled: Boolean) = Pref.setBoolean(SHOW_PREDICTED_BG_LINE, enabled)
 
     @JvmStatic
     fun lastAddress(): String = Pref.getString(LAST_ADDRESS, "")

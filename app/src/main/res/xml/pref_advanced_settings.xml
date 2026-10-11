@@ -1082,6 +1082,12 @@
                     android:key="show_ilet_pump_iob_line"
                     android:summary="@string/ilet_pump_iob_line_summary"
                     android:title="@string/ilet_pump_iob_line_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ilet_enabled"
+                    android:key="show_ilet_predicted_bg_line"
+                    android:summary="@string/ilet_predicted_bg_line_summary"
+                    android:title="@string/ilet_predicted_bg_line_title" />
             <CheckBoxPreference
                 android:defaultValue="false"
                 android:dependency="ilet_enabled"
