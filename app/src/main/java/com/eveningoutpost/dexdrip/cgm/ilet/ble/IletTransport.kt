@@ -12,6 +12,7 @@ import com.polidea.rxandroidble2.RxBleClient
 import com.polidea.rxandroidble2.RxBleConnection
 import com.polidea.rxandroidble2.RxBleDevice
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -52,6 +53,10 @@ class IletTransport(
     @Volatile
     private var connection: RxBleConnection? = null
 
+    /** The in-flight/live establishConnection subscription; disposing it closes the GATT. */
+    @Volatile
+    private var connectionDisposable: Disposable? = null
+
     @Volatile
     private var mtu: Int = 23
 
@@ -68,21 +73,51 @@ class IletTransport(
         if (!ensureBonded()) {
             throw IletTransportError("iLet $address is not bonded; refusing to connect")
         }
-        val ready = CompletableDeferred<RxBleConnection>()
-        disposables.add(
-            device.establishConnection(false).subscribe(
-                { conn -> ready.complete(conn) },
-                { error -> ready.completeExceptionally(IletTransportError("connect failed: ${error.message}")) },
-            )
-        )
-        val conn = ready.await()
-        mtu = try {
-            conn.requestMtu(247).timeout(5, TimeUnit.SECONDS).blockingGet()
-        } catch (e: Exception) {
-            23
+        var lastError: Throwable? = null
+        for (attempt in 0 until CONNECT_ATTEMPTS) {
+            try {
+                val conn = establishOnce()
+                mtu = try {
+                    conn.requestMtu(247).timeout(5, TimeUnit.SECONDS).blockingGet()
+                } catch (e: Exception) {
+                    23
+                }
+                connection = conn
+                subscribeNotifications(conn)
+                return@withContext
+            } catch (t: Throwable) {
+                lastError = t
+                UserError.Log.w(TAG, "connect attempt ${attempt + 1}/$CONNECT_ATTEMPTS failed: ${t.message}")
+                // GATT 133 (GATT_ERROR) is transient: a stale link or a busy controller.
+                // Dropping the half-open attempt and waiting a moment before retrying clears
+                // it far more often than retrying immediately.
+                closeAttempt()
+                if (attempt < CONNECT_ATTEMPTS - 1) delay(RETRY_DELAYS_MS[attempt])
+            }
         }
-        connection = conn
-        subscribeNotifications(conn)
+        throw IletTransportError("connect failed after $CONNECT_ATTEMPTS attempts: ${lastError?.message}")
+    }
+
+    /** One establishConnection attempt, bounded by [CONNECT_TIMEOUT_MS]. */
+    private suspend fun establishOnce(): RxBleConnection {
+        val ready = CompletableDeferred<RxBleConnection>()
+        connectionDisposable = device.establishConnection(false).subscribe(
+            { conn -> ready.complete(conn) },
+            { error -> ready.completeExceptionally(IletTransportError("connect failed: ${error.message}")) },
+        )
+        return withTimeoutOrNull(CONNECT_TIMEOUT_MS) { ready.await() }
+            ?: throw IletTransportError("connect timed out after ${CONNECT_TIMEOUT_MS}ms")
+    }
+
+    /** Drop the in-flight attempt so the next one starts from a clean controller state. */
+    private fun closeAttempt() {
+        try {
+            connectionDisposable?.dispose()
+        } catch (t: Throwable) {
+            // ignore
+        }
+        connectionDisposable = null
+        connection = null
     }
 
     /** Ensure the pump is bonded, prompting the OS to bond when needed. */
@@ -164,10 +199,21 @@ class IletTransport(
 
     override suspend fun disconnect() {
         withContext(Dispatchers.IO) {
+            try {
+                connectionDisposable?.dispose()
+            } catch (t: Throwable) {
+                // ignore
+            }
+            connectionDisposable = null
             disposables.clear()
             connection = null
             pendingOob = null
             bodyLength = 0
+            // Drop any packets left from this link so the next cycle's handshake cannot
+            // read a stale response.
+            while (responseChannel.tryReceive().isSuccess) {
+                // discard
+            }
         }
     }
 
@@ -222,5 +268,10 @@ class IletTransport(
 
     private companion object {
         const val TAG = "iLetTransport"
+
+        /** Establish attempts per cycle, so a transient GATT 133 (GATT_ERROR) self-heals. */
+        const val CONNECT_ATTEMPTS = 3
+        const val CONNECT_TIMEOUT_MS = 20_000L
+        val RETRY_DELAYS_MS = longArrayOf(1_500L, 3_000L)
     }
 }
