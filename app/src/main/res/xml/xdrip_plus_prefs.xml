@@ -1378,14 +1378,6 @@
                     android:selectable="false"
                     android:title="@string/ilet_device_info_title" />
                 <Preference
-                    android:key="ilet_live_status"
-                    android:selectable="false"
-                    android:title="@string/ilet_live_status_title" />
-                <Preference
-                    android:key="ilet_clock"
-                    android:selectable="false"
-                    android:title="@string/ilet_clock_title" />
-                <Preference
                     android:dependency="ilet_enabled"
                     android:key="ilet_test_connection"
                     android:summary="@string/ilet_test_connection_summary"
@@ -1426,12 +1418,16 @@
                     android:key="ilet_download_meals"
                     android:summary="@string/ilet_download_meals_summary"
                     android:title="@string/ilet_download_meals_title" />
-                <CheckBoxPreference
-                    android:defaultValue="true"
-                    android:dependency="ilet_enabled"
-                    android:key="ilet_download_basal"
-                    android:summary="@string/ilet_download_basal_summary"
-                    android:title="@string/ilet_download_basal_title" />
+                <PreferenceScreen
+                    android:key="ilet_advanced"
+                    android:title="@string/ilet_advanced_title">
+                    <CheckBoxPreference
+                        android:defaultValue="true"
+                        android:dependency="ilet_enabled"
+                        android:key="ilet_download_basal"
+                        android:summary="@string/ilet_download_basal_summary"
+                        android:title="@string/ilet_download_basal_title" />
+                </PreferenceScreen>
                 <CheckBoxPreference
                     android:defaultValue="false"
                     android:key="show_ilet_pump_iob_line"

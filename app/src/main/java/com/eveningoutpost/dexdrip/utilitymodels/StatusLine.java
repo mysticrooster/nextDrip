@@ -204,8 +204,14 @@ public class StatusLine {
                 append(sb, PumpStatus.getBatteryString());
             }
             if (state != null) {
-                if (Pref.getBooleanDefaultFalse("status_line_ilet_state")) {
-                    append(sb, state.getInsulinPaused() ? "iLet suspended" : "iLet running");
+                if (Pref.getBooleanDefaultFalse("status_line_ilet_state") && state.getInsulinPaused()) {
+                    final long since = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.insulinPausedSinceMs();
+                    if (since > 0) {
+                        append(sb, "INSULIN DELIVERY SUSPENDED "
+                                + com.eveningoutpost.dexdrip.models.JoH.niceTimeScalar(System.currentTimeMillis() - since));
+                    } else {
+                        append(sb, "INSULIN DELIVERY SUSPENDED");
+                    }
                 }
                 if (Pref.getBooleanDefaultFalse("status_line_ilet_age")) {
                     append(sb, "iLet " + (JoH.msSince(state.getTimestamp()) / 60000) + "m");

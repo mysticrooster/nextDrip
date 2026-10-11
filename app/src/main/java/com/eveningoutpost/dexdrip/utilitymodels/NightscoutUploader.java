@@ -1272,6 +1272,7 @@ public class NightscoutUploader {
             if (battery >= 0) pump.put("battery", batteryRounded);
             if (state != null) {
                 pump.put("suspended", state.getInsulinPaused());
+                pump.put("status", state.getInsulinPaused() ? "suspended" : "normal");
                 pump.put("charging", state.getCharging());
                 pump.put("cartridgeEmpty", state.getCartridgeEmpty());
             }

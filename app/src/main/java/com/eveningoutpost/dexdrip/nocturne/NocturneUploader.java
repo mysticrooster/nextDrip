@@ -185,6 +185,8 @@ public class NocturneUploader {
 
         // iLet pump status (reservoir/battery/IOB/suspended), fingerprint-deduped.
         uploadIletPumpSnapshot();
+        // iLet insulin-delivery suspend/resume events.
+        uploadIletSuspendEvents();
 
         if (Pref.getBooleanDefaultFalse("nocturne_upload_motion")) {
             uploadMotionTracking();
@@ -480,6 +482,36 @@ public class NocturneUploader {
             com.eveningoutpost.dexdrip.utilitymodels.PersistentStore.setString("nocturne-ilet-pump-snapshot", fingerprint);
         } catch (Exception e) {
             logFailure("iLet pump snapshot", e);
+        }
+    }
+
+    /** Upload a suspend/resume device event when iLet insulin delivery changes state. */
+    void uploadIletSuspendEvents() {
+        if (!com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.isEnabled()) return;
+        try {
+            final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
+                    com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
+            if (state == null) return;
+            final boolean suspended = state.getInsulinPaused();
+            final String key = "nocturne-ilet-suspended";
+            final String previous = com.eveningoutpost.dexdrip.utilitymodels.PersistentStore.getString(key);
+            if (previous != null && suspended == previous.equals("1")) return;
+            final long timestamp = (suspended && com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.insulinPausedSinceMs() > 0)
+                    ? com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.insulinPausedSinceMs()
+                    : JoH.tsl();
+            final UpsertDeviceEventRequest request = new UpsertDeviceEventRequest()
+                    .timestamp(toOffsetDateTime(timestamp))
+                    .utcOffset(utcOffsetMinutes(timestamp))
+                    .device("iLet")
+                    .app("xDrip+")
+                    .dataSource(DATA_SOURCE)
+                    .eventType(suspended ? DeviceEventType.PUMP_SUSPEND : DeviceEventType.PUMP_RESUME)
+                    .notes(suspended ? "iLet insulin delivery suspended" : "iLet insulin delivery resumed")
+                    .syncIdentifier("ilet-suspend-" + timestamp);
+            new DeviceEventApi(apiClient).deviceEventCreate(request);
+            com.eveningoutpost.dexdrip.utilitymodels.PersistentStore.setString(key, suspended ? "1" : "0");
+        } catch (Exception e) {
+            logFailure("iLet suspend event", e);
         }
     }
 

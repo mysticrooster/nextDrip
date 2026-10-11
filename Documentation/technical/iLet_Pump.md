@@ -40,20 +40,24 @@ models/PumpIobReading.java   ActiveAndroid table
 The pump driver lives under **Insulin Pens and Pumps** (`pens_screen` in
 `res/xml/xdrip_plus_prefs.xml`; only the `insulin_pens` string *value* was changed, so the
 key and translations keep working). The `ilet_screen` sub-screen holds the read-only notice,
-a master **switch**, the Bluetooth address, pump identity, the latest pump status, a
+a master **switch**, the Bluetooth address, pump identity, a
 **Test connection / live status** entry (`ILetStatusActivity`, which connects once and shows
 device info + a real-time packet, and publishes the snapshot into `PumpStatus`/`IletState`.
 When the background service is running it does not open a second BLE connection — it asks the
 service for an immediate cycle and reports the fresh contact/status, since the pump allows
-only one link), the account/login link, data-download toggles (**backfill glucose** — opt-in, off by default —
-plus boluses, meal labels, basal), the pump-IOB line toggle, a set of **iLet extra-status-line options** (master switch plus
-Pump IOB / reservoir / battery / run-suspend state / BG run status / last-update age, wired
-into `StatusLine.extraStatusLineReal()` and shown by `Home` whenever `status_line_ilet` is
-on, independently of the general `extra_status_line`; when it is on it supersedes the
-generic "Pump Status" (`status_line_pump_reservoir`) block, which renders the same
-`PumpStatus` values and would otherwise duplicate every real-time field), "backfill from date", and three
-credential actions (forget session / forget credential / forget everything), each with a
-confirmation. Handlers are registered in `Preferences.setupIletPreferences()` **after**
+only one link), the account/login link, data-download toggles (**backfill glucose** — opt-in,
+off by default — plus boluses and meal labels), the pump-IOB line toggle, a set of **iLet
+extra-status-line options** (master switch plus Pump IOB / reservoir / battery / run-suspend
+state / last-update age, wired into `StatusLine.extraStatusLineReal()` and shown by `Home`
+whenever `status_line_ilet` is on, independently of the general `extra_status_line`; when it
+is on it supersedes the generic "Pump Status" (`status_line_pump_reservoir`) block, which
+renders the same `PumpStatus` values and would otherwise duplicate every real-time field;
+the run/suspend item shows "INSULIN DELIVERY SUSPENDED" plus the elapsed time only while
+suspended, and nothing while running), and "backfill from date". The non-working-on-this-firmware **Download basal** toggle lives in
+an **Advanced options** sub-screen. The credential actions (forget session / credential /
+everything) live only on the account/login page, not in settings. The latest pump status and
+pump-clock drift are shown on the System Status screen, not in settings. Handlers are
+registered in `Preferences.setupIletPreferences()` **after**
 `addPreferencesFromResource(R.xml.xdrip_plus_prefs)`.
 
 iLet is also added to the Hardware Data Source list (`DexCollectionMethods` /
@@ -259,14 +263,16 @@ shows a one-off "iLet backfill complete" toast (`notifyIfBackfillComplete`).
 ## Cloud uploads
 
 - **Nightscout**: additive `devicestatus` (`device: "iLet"`) with `pump{reservoir,battery,
-  suspended,charging,cartridgeEmpty,bgRunStatus}`, `openaps.iob.iob` and `uploader.battery`.
+  suspended,status,charging,cartridgeEmpty}` (`status` is the standard `suspended`/`normal`
+  field, so an insulin suspension is visible), `openaps.iob.iob` and `uploader.battery`.
   Fingerprinted in `PersistentStore` (`last-ilet-ns-device-status`) so it only uploads on
   change; battery-only behaviour is unchanged when iLet is disabled.
 - **Nocturne**: boluses/meals flow via `Treatments`. Its bolus/meal resources have no notes
   field, so a treatment note (e.g. an iLet meal label) is also sent as a Nocturne **Note**
   resource alongside the bolus/meal. Pump status (reservoir, battery %, IOB, suspended) is
-  uploaded as a `PumpSnapshot` (fingerprint-deduped), and the opt-in 0 U/hr profile is sent as
-  a `BasalSchedule`.
+  uploaded as a `PumpSnapshot` (fingerprint-deduped), an insulin suspension is sent as a
+  `PumpSuspend`/`PumpResume` `DeviceEvent` on each transition, and the opt-in 0 U/hr profile
+  is sent as a `BasalSchedule`.
 - **Tidepool**: glucose, boluses and `APStatus` basal already upload. When the 0 U/hr profile
   option is on, a scheduled 0 U/hr basal is added to each upload chunk.
 - **0 U/hr basal profile** (opt-in, `ilet_publish_zero_basal`): the iLet has no scheduled

@@ -586,6 +586,23 @@ class ILetService : JamBaseBluetoothService() {
                 if (contact > 0 && com.eveningoutpost.dexdrip.models.JoH.msSince(contact) < 15 * 60 * 1000L)
                     com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.GOOD
                 else com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.NOTICE))
+            // Latest pump status (moved here from the settings screen).
+            rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
+                "Battery", com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getBatteryString().trim()))
+            rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
+                "IOB", com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getBolusIoBString().trim()))
+            rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
+                "Reservoir", com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getReservoirString().trim()))
+            val pumpState = IletState.latest()
+            if (pumpState?.insulinPaused == true) {
+                val since = IletPrefs.insulinPausedSinceMs()
+                rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(
+                    "Insulin",
+                    "SUSPENDED" + if (since > 0)
+                        " for " + com.eveningoutpost.dexdrip.models.JoH.niceTimeScalar(System.currentTimeMillis() - since)
+                    else "",
+                    com.eveningoutpost.dexdrip.utilitymodels.StatusItem.Highlight.NOTICE))
+            }
             val drift = IletPrefs.clockDriftSeconds()
             val driftOff = kotlin.math.abs(drift) >= IletPrefs.CLOCK_DRIFT_WARN_SECONDS
             rows.add(com.eveningoutpost.dexdrip.utilitymodels.StatusItem(

@@ -1141,30 +1141,21 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                         ? getString(R.string.ilet_device_info_none)
                         : getString(R.string.ilet_device_info_value, serial, model));
             }
-            final Preference status = findPreference("ilet_live_status");
-            if (status != null) {
-                status.setSummary(iletLiveStatusSummary());
-            }
-            final Preference clock = findPreference("ilet_clock");
-            if (clock != null) {
-                final long drift = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.clockDriftSeconds();
-                final long absDrift = Math.abs(drift);
-                final boolean off = absDrift >= com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.CLOCK_DRIFT_WARN_SECONDS;
+            // Pump clock drift is shown in System Status; here we only nudge the user
+            // (at most twice a day) when it is well off.
+            final long drift = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.clockDriftSeconds();
+            final long absDrift = Math.abs(drift);
+            if (absDrift >= com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.CLOCK_DRIFT_WARN_SECONDS
+                    && JoH.msSince(com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.lastClockDriftPrompt()) > 12 * 60 * 60 * 1000L) {
                 final String amount = absDrift < 3600
                         ? (absDrift / 60) + " min"
                         : String.format(java.util.Locale.US, "%.1f h", absDrift / 3600.0);
-                clock.setSummary(off
-                        ? getString(R.string.ilet_clock_drift, amount)
-                        : getString(R.string.ilet_clock_on_time));
-                // Nudge the user (at most twice a day) when the pump clock is well off.
-                if (off && JoH.msSince(com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.lastClockDriftPrompt()) > 12 * 60 * 60 * 1000L) {
-                    com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setLastClockDriftPrompt(System.currentTimeMillis());
-                    new android.app.AlertDialog.Builder(getActivity())
-                            .setTitle(R.string.ilet_clock_prompt_title)
-                            .setMessage(getString(R.string.ilet_clock_prompt_message, amount))
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show();
-                }
+                com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.setLastClockDriftPrompt(System.currentTimeMillis());
+                new android.app.AlertDialog.Builder(getActivity())
+                        .setTitle(R.string.ilet_clock_prompt_title)
+                        .setMessage(getString(R.string.ilet_clock_prompt_message, amount))
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
             }
             final Preference zeroBasal = findPreference("ilet_publish_zero_basal");
             if (zeroBasal != null) {
@@ -1202,23 +1193,6 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                     return true;
                 });
             }
-        }
-
-        private String iletLiveStatusSummary() {
-            final long last = com.eveningoutpost.dexdrip.cgm.ilet.IletPrefs.lastContact();
-            final com.eveningoutpost.dexdrip.cgm.ilet.IletState.Snapshot state =
-                    com.eveningoutpost.dexdrip.cgm.ilet.IletState.latest();
-            if (state == null) {
-                return last > 0
-                        ? getString(R.string.ilet_live_status_contact_only, JoH.dateTimeText(last))
-                        : getString(R.string.ilet_live_status_none);
-            }
-            return getString(R.string.ilet_live_status_value,
-                    com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getBatteryString(),
-                    com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getBolusIoBString(),
-                    com.eveningoutpost.dexdrip.utilitymodels.PumpStatus.getReservoirString(),
-                    JoH.dateTimeText(state.getTimestamp()))
-                    + " \u00b7 " + getString(R.string.ilet_live_status_contact, JoH.dateTimeText(last));
         }
 
         @SuppressLint("ApplySharedPref")

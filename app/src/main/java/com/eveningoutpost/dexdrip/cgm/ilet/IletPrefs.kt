@@ -46,6 +46,9 @@ object IletPrefs {
     const val PATCH_SESSION_START_MS = "ilet_patch_start_ms"
     const val PATCH_SESSION_END_MS = "ilet_patch_end_ms"
 
+    /** Unix millis when insulin delivery was suspended (0 = not suspended), from 0x1515. */
+    const val INSULIN_PAUSED_SINCE_MS = "ilet_insulin_paused_since_ms"
+
     /** Last observed pump-vs-phone clock drift, seconds (positive = pump behind). */
     const val CLOCK_DRIFT_SECONDS = "ilet_clock_drift_seconds"
 
@@ -237,6 +240,12 @@ object IletPrefs {
 
     @JvmStatic
     fun setZeroBasalPublished(published: Boolean) = Pref.setBoolean(ZERO_BASAL_PUBLISHED, published)
+
+    @JvmStatic
+    fun insulinPausedSinceMs(): Long = Pref.getLong(INSULIN_PAUSED_SINCE_MS, 0L)
+
+    @JvmStatic
+    fun setInsulinPausedSinceMs(millis: Long) = Pref.setLong(INSULIN_PAUSED_SINCE_MS, millis)
 
     @JvmStatic
     fun patchSessionStartMs(): Long = Pref.getLong(PATCH_SESSION_START_MS, 0L)

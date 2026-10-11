@@ -106,7 +106,7 @@ class ILetStatusActivity : BaseAppCompatActivity() {
             sb.append("Cartridge empty: ").append(state.cartridgeEmpty).append('\n')
             sb.append("Updated: ").append(JoH.dateTimeText(state.timestamp))
         } else {
-            sb.append(getString(R.string.ilet_live_status_contact_only, JoH.dateTimeText(last)))
+            sb.append("No real-time snapshot yet (last contact ${JoH.dateTimeText(last)})")
         }
         return sb.toString()
     }

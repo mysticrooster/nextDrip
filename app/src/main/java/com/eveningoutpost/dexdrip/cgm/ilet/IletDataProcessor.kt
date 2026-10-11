@@ -120,6 +120,7 @@ class IletDataProcessor {
         PumpStatus.setBattery(data.batteryPct.toDouble())
         PumpStatus.syncUpdate()
         IletState.update(data)
+        if (!data.isInsulinPaused) IletPrefs.setInsulinPausedSinceMs(0L)
 
         maybeStorePumpIob(data)
 
@@ -147,6 +148,14 @@ class IletDataProcessor {
         PumpStatus.syncUpdate()
         IletState.updateControl(data)
         maybeStorePumpIobRaw(data.iobUnits, data.cartridgeRemainingUnits, data.batteryPct.toDouble())
+
+        // Suspend start time is only in the 0x1515 control packet.
+        val controlOffset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
+        if (data.isInsulinPaused && data.insulinPausedTime > 0) {
+            IletPrefs.setInsulinPausedSinceMs((data.insulinPausedTime + controlOffset) * 1000L)
+        } else if (!data.isInsulinPaused) {
+            IletPrefs.setInsulinPausedSinceMs(0L)
+        }
 
         if (IletPrefs.downloadGlucose()) {
             val reading = data.glucose.readingMgDl

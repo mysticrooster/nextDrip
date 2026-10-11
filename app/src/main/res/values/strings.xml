@@ -2014,6 +2014,7 @@
     <string name="ilet_title">Beta Bionics iLet</string>
     <string name="ilet_summary">Read-only pump data: boluses, basal, IOB, reservoir and battery</string>
     <string name="ilet_readonly_notice">Read-only. This is not medical software and cannot deliver insulin or change therapy. Credentials are stored encrypted on this device and never logged.</string>
+    <string name="ilet_advanced_title">Advanced options</string>
     <string name="ilet_enable_title">Enable iLet</string>
     <string name="ilet_enable_summary">Connect to the iLet over Bluetooth. Works alongside another CGM (pump-only) or as the glucose source when selected as the Hardware Data Source.</string>
     <string name="ilet_address_title">Bluetooth address</string>
@@ -2031,16 +2032,8 @@
     <string name="ilet_pump_iob_line_title">Show pump IOB line</string>
     <string name="ilet_pump_iob_line_summary">Extra graph line of the pump\'s own IOB estimate; may duplicate xDrip IOB</string>
     <string name="ilet_device_info_title">Pump identity</string>
-    <string name="ilet_clock_title">Pump clock</string>
-    <string name="ilet_clock_on_time">On time with the phone</string>
-    <string name="ilet_clock_drift">Off by about %1$s — set the time on the pump</string>
     <string name="ilet_clock_prompt_title">iLet clock is off</string>
     <string name="ilet_clock_prompt_message">The iLet clock is off by about %1$s. Please set it on the pump (or via the Beta Bionics app) so pump records and xDrip line up. This app is read-only and will not change the pump time.</string>
-    <string name="ilet_live_status_title">Latest pump status</string>
-    <string name="ilet_live_status_none">Not seen yet — enable iLet and connect, or run the connection test</string>
-    <string name="ilet_live_status_value">Battery %1$s · IOB %2$s · Reservoir %3$s · updated %4$s</string>
-    <string name="ilet_live_status_contact">pump contacted %1$s</string>
-    <string name="ilet_live_status_contact_only">Pump contacted %1$s (no real-time snapshot yet)</string>
     <string name="ilet_test_connection_title">Test connection / live status</string>
     <string name="ilet_test_connection_summary">Connect to the pump now and show device info and real-time status</string>
     <string name="ilet_status_activity_title">iLet status</string>
@@ -2066,7 +2059,7 @@
     <string name="ilet_status_line_age_title">Last update age</string>
     <string name="ilet_status_line_age_summary">How long ago the last real-time packet arrived</string>
     <string name="ilet_login_title">iLet account</string>
-    <string name="ilet_login_summary">Sign in with your Beta Bionics account to enrol this phone</string>
+    <string name="ilet_login_summary">Sign in with your Beta Bionics account to enroll this phone</string>
     <string name="ilet_backfill_title">Backfill from date</string>
     <string name="ilet_backfill_summary">Re-read pump history starting from a chosen date</string>
     <string name="ilet_backfill_requested">iLet backfill requested</string>
