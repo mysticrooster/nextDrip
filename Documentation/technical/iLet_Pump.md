@@ -167,7 +167,7 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
 | Glucose history | 0x2334 / 0x2333 sectors | `BgReading` backfill |
 | Bolus | `IletHistoricalInsulinRecord.totalDose1000` | `Treatments.createWithNotes` for `>0` rows |
 | Meal | `mealType` / `mealSize` | No carbs; label `"<Type>, <Size>"` (e.g. `Dinner, More`) written as the bolus treatment's note, or a note-only treatment when the dose is zero |
-| Basal | `IletAlgoStepRecord.nominal/instantBasalX10` | `APStatus.createEfficientRecord` |
+| Basal | `IletAlgoStepRecord.nominal/instantBasalX10` (**unsupported on this firmware** — see below) | `APStatus.createEfficientRecord` |
 | IOB / reservoir / battery | 0x1506 (`iob` f32 / 1000) | `PumpStatus` + `PumpIobReading` sample; re-read every 25 records during a backfill so the live value does not go stale |
 | Suspend / charging / cartridge-empty / BG run | 0x1506 | `IletState` (PersistentStore) + Nightscout devicestatus |
 | Pump identity | `IletDeviceInfoResponse` | `IletPrefs` (`ilet_device_serial/model`) |
@@ -195,6 +195,13 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   `APStatus.createEfficientRecord` (same-value rows and out-of-order timestamps are rejected).
 - Basal is written oldest→newest only (`APStatus.createEfficientRecord` rejects out-of-order
   timestamps); the walk resets its ordering guard per backfill pass.
+- **Algorithm history and the `0x1515` control superset are unsupported on the sampled
+  firmware.** The `0x2335` bounds call for `ALGORITHM_DATA` (and `ALARM`) returns status 3, so
+  `IletAlgoStepRecord` is never read and the Basal mapping above never fires; and the real-time
+  characteristic always returns `0x1506`, so `IletRealTimeControlPumpData` (`0x1515`) is never
+  produced. Both parsers are retained for the documented layout and for firmware that exposes
+  them, but on this firmware their code paths are inert (the service logs the unsupported
+  bounds each cycle).
 - `PumpIobReading` feeds an optional graph line (`show_ilet_pump_iob_line`, **off by default**)
   with its own `color_ilet_pump_iob` colour, distinct from xDrip's treatment-derived IOB.
 - The pump's predicted BG (`IletRealTimeData.glucose.predictedReading`, mg/dL) is **not
@@ -281,17 +288,17 @@ wait short via the conflated wake-up channel.
   the 0x1506 stream has no alert field (reference: "alarm ... empty on this firmware"). The
   infusion-set-expired notification is a pump-side annunciation; its likely source is the
   0x1515 superset's pump-patch session window.
-- **0x1515** is parsed if the pump emits it on the real-time characteristic:
-  `IletClient.readRealtimeSnapshot()` returns either the 0x1506 stream or the 0x1515 control
-  superset, and the control path (`IletDataProcessor.processControl`) updates status, logs
-  the meal-announcement state, and logs the patch/infusion-set session end (marking it
-  `EXPIRED` when it is in the past). The 0x1515 packet is unsolicited — there is no request
-  opcode — so if the pump only emits 0x1506 nothing is lost but no alarms/meals appear from
-  that source.
-- **Infusion set (pump patch) age** comes only from those 0x1515 fields
-  (`pumpPatchInfoSessionStartTime`/`EndTime`); there is no iLet command to request them
-  and the historical ALARM partition is empty on this firmware. When a 0x1515 packet is seen
-  the converted window is stored (`ilet_patch_start_ms`/`ilet_patch_end_ms`) and shown as an
+- **0x1515 is unsupported on the sampled firmware** — the real-time characteristic always
+  returns the standard `0x1506` packet, so `IletRealTimeControlPumpData` is never produced.
+  The parser is kept for firmware that emits it: `IletClient.readRealtimeSnapshot()` returns
+  either the `0x1506` stream or the `0x1515` control superset, and the control path
+  (`IletDataProcessor.processControl`) would update status, log the meal-announcement state,
+  and log the patch/infusion-set session end (marking it `EXPIRED` when it is in the past).
+  The `0x1515` packet is unsolicited — there is no request opcode.
+- **Infusion set (pump patch) age** comes only from those `0x1515` fields
+  (`pumpPatchInfoSessionStartTime`/`EndTime`) — which the sampled firmware never sends — and
+  there is no iLet command to request them (the historical ALARM partition is empty too). When
+  a `0x1515` packet *is* seen the converted window is stored (`ilet_patch_start_ms`/`ilet_patch_end_ms`) and shown as an
   "Infusion set" row (age + expired flag) in System Status. The field names are
   patch-pump vocabulary carried over from the shared Beta Bionics protocol — on the iLet
   they describe the infusion-set session, not a Mint disposable.
@@ -366,7 +373,9 @@ wait short via the conflated wake-up channel.
 1. Meal **size** is confirmed (0 = More, 1 = Usual, 2 = Less). Meal **type** (1 = Breakfast,
    2 = Lunch, 3 = Dinner) is still a best guess. Raw codes are always stored in the note so a
    wrong guess is recoverable.
-2. Whether the pump ever emits `0x1515` (CGM-session/silent-mode/fill-detect are out of scope).
+2. ~~Whether the pump ever emits `0x1515`.~~ **Resolved: it does not on the sampled firmware**
+   (the stream is always `0x1506`; CGM-session/silent-mode/fill-detect remain out of scope),
+   so `IletRealTimeControlPumpData` is marked unsupported.
 3. Alarm-record enum values (`alertEnum`/`alertLevel`) — records are empty on the sampled
    firmware; mapping is a debug event-log line only.
 4. Nocturne pump/device-status support in the bundled SDK.

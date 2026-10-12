@@ -198,7 +198,14 @@ data class IletRealTimeData(
     }
 }
 
-/** Extended real-time stream 0x1515, 216 bytes. Superset of [IletRealTimeData]. */
+/**
+ * Extended real-time stream 0x1515, 216 bytes. Superset of [IletRealTimeData].
+ *
+ * Unsupported on the sampled firmware: the real-time characteristic always returns the
+ * standard 0x1506 packet, so this control superset is never produced (no meal-announcement,
+ * no patch/infusion-set session window). The parser is retained for the documented layout
+ * and for firmware that emits it.
+ */
 data class IletRealTimeControlPumpData(
     val dataVersion: Int,
     val rtcTimestamp: Long,
@@ -1002,7 +1009,13 @@ data class IletAlarmHistory(
     }
 }
 
-/** BleAlgoStepPayload (record type 5), 180 bytes. */
+/**
+ * BleAlgoStepPayload (record type 5), 180 bytes.
+ *
+ * Unsupported on the sampled firmware: the `ALGORITHM_DATA` bounds call (0x2335) returns
+ * status 3, so no algo-step record is ever read and no basal history is written from it.
+ * The parser is retained for the documented layout and for firmware that exposes it.
+ */
 data class IletAlgoStepRecord(
     val recordType: Int,
     val version: Int,
