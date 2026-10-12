@@ -186,6 +186,7 @@ class IletDataProcessor {
             }
         )
         latestAlgoStep?.let { UserError.Log.uel(TAG, "iLet realtime algo-step " + it.debugString()) }
+            ?: UserError.Log.uel(TAG, "iLet realtime algo-step not received yet")
     }
 
     /** 0x1515 adds meal-announcement state and the pump-patch (infusion set) session window. */
