@@ -117,7 +117,6 @@ class ILetService : JamBaseBluetoothService() {
             // Only re-enrol (clear + mint + cloud-sign) on the permitted cycle, so a
             // persistently rejected credential does not hit the cloud every 15s.
             if (reenrol) IletPrefs.noteReenrolAttempt()
-            UserError.Log.e(TAG, "handshake rejected: ${e.message} (appUuid=${store.summary()["app_uuid"]})")
             throw e
         }
         try {
@@ -373,23 +372,17 @@ class ILetService : JamBaseBluetoothService() {
             // 0x2335 is the confirmed bounds primitive; 0x2381 is unsupported on
             // current firmware (no reply, link drop), so we never depend on it.
             if (expected) UserError.Log.e(TAG, "bounds for $type unavailable: ${t.message}")
-            else UserError.Log.d(TAG, "bounds for $type unavailable: ${t.message}")
             return
         }
         if (!bounds.isOk) {
             // Only glucose and insulin answer on the sampled firmware; algorithm/alarm
-            // return status 3 (unsupported). Logged so the missing algo-step body is
-            // explained rather than silent.
+            // return status 3 (unsupported). Silently skip those, no log.
             if (expected) UserError.Log.e(TAG, "bounds for $type not ok: status=${bounds.status}")
-            else UserError.Log.d(TAG, "bounds for $type unsupported: status=${bounds.status}")
             return
         }
         val min = bounds.oldestSequenceNumber
         val max = bounds.newestSequenceNumber
-        if (max <= 0 || max < min) {
-            UserError.Log.d(TAG, "bounds for $type empty (min=$min max=$max)")
-            return
-        }
+        if (max <= 0 || max < min) return
 
         val isOrdered = type == IletHistoricalRecordType.ALGORITHM_DATA
         if (isOrdered) processor.resetAlgoOrdering()

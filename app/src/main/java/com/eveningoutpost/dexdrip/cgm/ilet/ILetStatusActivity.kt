@@ -10,9 +10,7 @@ import com.eveningoutpost.dexdrip.R
 import com.eveningoutpost.dexdrip.cgm.ilet.ble.IletTransport
 import com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCloudSigner
 import com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCredentialStore
-import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletAlgoStepRecord
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletClient
-import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletHistoricalRecordType
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletRealtimeSnapshot
 import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.utilitymodels.PumpStatus
@@ -167,12 +165,9 @@ class ILetStatusActivity : BaseAppCompatActivity() {
                     sb.append("Patch session end: ")
                         .append(pumpTime(data.pumpPatchInfoSessionEndTime, processor)).append('\n')
                     sb.append("Silent mode: ").append(data.silentMode).append('\n')
-                    sb.append("Raw fields: ").append(data.debugString()).append('\n')
                 }
             }
 
-            sb.append('\n')
-            sb.append(readNewestAlgoStep(client, processor))
             return sb.toString()
         } finally {
             try {
@@ -217,47 +212,6 @@ class ILetStatusActivity : BaseAppCompatActivity() {
 
     private fun pumpTime(epochSeconds: Long, processor: IletDataProcessor): String =
         if (epochSeconds <= 0) "-" else JoH.dateTimeText((epochSeconds + processor.epochOffsetSeconds) * 1000L)
-
-    /**
-     * Read-only probe: fetch the newest ALGORITHM_DATA record (0x1335 bounds, then a
-     * single 0x2334 read) and render the full raw-field dump. Never writes therapy.
-     */
-    private suspend fun readNewestAlgoStep(client: IletClient, processor: IletDataProcessor): String {
-        val sb = StringBuilder()
-        try {
-            val bounds = withTimeout(REALTIME_TIMEOUT_MS) {
-                client.sequenceNumberHistory(IletHistoricalRecordType.ALGORITHM_DATA)
-            }
-            sb.append("Algo bounds: min=").append(bounds.oldestSequenceNumber)
-                .append(" max=").append(bounds.newestSequenceNumber).append('\n')
-            if (!bounds.isOk || bounds.newestSequenceNumber <= 0) {
-                sb.append("Algo: no records (status=").append(bounds.status).append(")\n")
-                return sb.toString()
-            }
-            val reply = withTimeout(REALTIME_TIMEOUT_MS) {
-                client.getHistoricalRecord(
-                    IletHistoricalRecordType.ALGORITHM_DATA,
-                    bounds.newestSequenceNumber,
-                )
-            }
-            if (!reply.isOk) {
-                sb.append("Algo: read refused status=").append(reply.status).append('\n')
-                return sb.toString()
-            }
-            val record = reply.record()
-            if (record is IletAlgoStepRecord) {
-                sb.append("Algo seq=").append(bounds.newestSequenceNumber)
-                    .append(" at ").append(pumpTime(record.recordTimestampRtc, processor)).append('\n')
-                sb.append("Raw fields: ").append(record.debugString()).append('\n')
-            } else {
-                sb.append("Algo: unexpected body type\n")
-            }
-        } catch (t: Throwable) {
-            UserError.Log.e(TAG, "iLet algo-step probe failed: ${t.message}")
-            sb.append("Algo probe failed: ").append(t.message ?: t.javaClass.simpleName).append('\n')
-        }
-        return sb.toString()
-    }
 
     override fun onDestroy() {
         scope.cancel()

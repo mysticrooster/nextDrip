@@ -44,7 +44,6 @@ class IletDataProcessor {
 
     private var lastIobStoreMs = 0L
     private var lastAlgoMs = 0L
-    private var lastRealtimeKind = -1
     private var lastMealAnnouncementState = -1
     private var lastGlucoseMarkerLog = 0L
     private var lastPatchExpiryLogged = 0L
@@ -171,16 +170,6 @@ class IletDataProcessor {
 
     /** Dispatch a real-time packet that may be 0x1506 or the 0x1515 superset. */
     fun processRealtimeSnapshot(snapshot: IletRealtimeSnapshot) {
-        // Testing only: log when the packet kind changes so it is obvious whether the pump
-        // ever emits the 0x1515 control superset, without a line every cycle.
-        val kind = when (snapshot) {
-            is IletRealtimeSnapshot.Standard -> 0x1506
-            is IletRealtimeSnapshot.Control -> 0x1515
-        }
-        if (kind != lastRealtimeKind) {
-            lastRealtimeKind = kind
-            UserError.Log.uel(TAG, "iLet realtime packet switched to 0x" + kind.toString(16))
-        }
         when (snapshot) {
             is IletRealtimeSnapshot.Standard -> processRealtime(snapshot.data)
             is IletRealtimeSnapshot.Control -> processControl(snapshot.data)
@@ -216,7 +205,6 @@ class IletDataProcessor {
 
         logMealAnnouncement(data.mealAnnouncementState)
         logPatchSession(data)
-        UserError.Log.uel(TAG, "iLet 0x1515 body\n" + data.formatString())
     }
 
     private fun logMealAnnouncement(state: Int) {
@@ -343,7 +331,6 @@ class IletDataProcessor {
     }
 
     fun processAlgoStep(rec: IletAlgoStepRecord) {
-        UserError.Log.uel(TAG, "iLet algo-step body\n" + rec.formatString())
         if (!IletPrefs.downloadBasal()) return
         val rate = IletMapping.basalRate(rec.instantBasalX10, rec.nominalBasalX10) ?: return
         val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, epochOffsetSeconds)
