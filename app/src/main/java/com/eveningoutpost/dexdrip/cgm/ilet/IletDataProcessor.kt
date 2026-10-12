@@ -44,7 +44,6 @@ class IletDataProcessor {
 
     private var lastIobStoreMs = 0L
     private var lastAlgoMs = 0L
-    private var latestAlgoStep: IletAlgoStepRecord? = null
     private var lastMealAnnouncementState = -1
     private var lastGlucoseMarkerLog = 0L
     private var lastPatchExpiryLogged = 0L
@@ -175,18 +174,6 @@ class IletDataProcessor {
             is IletRealtimeSnapshot.Standard -> processRealtime(snapshot.data)
             is IletRealtimeSnapshot.Control -> processControl(snapshot.data)
         }
-        // Testing only: every realtime cycle gets the current control payload and, if the
-        // pump has sent one, the latest algo-step payload so their clocks and values can be
-        // compared without waiting for history.
-        UserError.Log.uel(
-            TAG,
-            "iLet realtime control " + when (snapshot) {
-                is IletRealtimeSnapshot.Control -> snapshot.data.debugString()
-                is IletRealtimeSnapshot.Standard -> "standard 0x1506 (no control payload)"
-            }
-        )
-        latestAlgoStep?.let { UserError.Log.uel(TAG, "iLet realtime algo-step " + it.debugString()) }
-            ?: UserError.Log.uel(TAG, "iLet realtime algo-step not received yet")
     }
 
     /** 0x1515 adds meal-announcement state and the pump-patch (infusion set) session window. */
@@ -345,7 +332,6 @@ class IletDataProcessor {
     }
 
     fun processAlgoStep(rec: IletAlgoStepRecord) {
-        latestAlgoStep = rec
         UserError.Log.uel(TAG, "iLet algo-step " + rec.debugString())
         if (!IletPrefs.downloadBasal()) return
         val rate = IletMapping.basalRate(rec.instantBasalX10, rec.nominalBasalX10) ?: return
