@@ -117,6 +117,7 @@ class ILetService : JamBaseBluetoothService() {
             // Only re-enrol (clear + mint + cloud-sign) on the permitted cycle, so a
             // persistently rejected credential does not hit the cloud every 15s.
             if (reenrol) IletPrefs.noteReenrolAttempt()
+            UserError.Log.e(TAG, "handshake rejected: ${e.message} (appUuid=${store.summary()["app_uuid"]})")
             throw e
         }
         try {

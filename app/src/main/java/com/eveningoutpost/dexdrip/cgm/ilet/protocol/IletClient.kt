@@ -1,5 +1,6 @@
 package com.eveningoutpost.dexdrip.cgm.ilet.protocol
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
@@ -7,6 +8,10 @@ import kotlinx.coroutines.sync.withLock
 
 /** How long to wait for the next 0x2333 sector frame before ending the stream. */
 private const val BACKFILL_FRAME_TIMEOUT_MS = 2_000L
+
+/** Handshake attempts on a fresh link before giving up (or re-enrolling). */
+private const val HANDSHAKE_ATTEMPTS = 3
+private const val HANDSHAKE_RETRY_DELAY_MS = 1_500L
 
 /** Raised for protocol-level failures once the channel is up. */
 open class IletClientError(message: String) : Exception(message)
@@ -49,19 +54,37 @@ class IletClient(
      */
     suspend fun connect(allowReenrol: Boolean = true) {
         var (identity, freshlyMinted) = resolveIdentity()
-        ensureLink()
-        try {
-            handshake(identity)
-        } catch (e: IletPumpRejectedHandshake) {
-            if (freshlyMinted || !allowReenrol) throw e
-            transport.disconnect()
+        var lastRejection: IletPumpRejectedHandshake? = null
+
+        // A confirm-key rejection is often the pump still holding the previous session
+        // after an abrupt link drop, so retry on a fresh link before touching the
+        // credential. Only re-enrol (clear + mint + cloud-sign) as a last resort.
+        for (attempt in 0 until HANDSHAKE_ATTEMPTS) {
+            try {
+                ensureLink()
+                handshake(identity)
+                store.storeIdentity(identity)
+                return
+            } catch (e: IletPumpRejectedHandshake) {
+                lastRejection = e
+                try {
+                    transport.disconnect()
+                } catch (t: Throwable) {
+                    // ignore: the link may already be down
+                }
+                if (attempt < HANDSHAKE_ATTEMPTS - 1) delay(HANDSHAKE_RETRY_DELAY_MS)
+            }
+        }
+
+        if (!freshlyMinted && allowReenrol) {
             store.clearIdentity()
-            val resolved = resolveIdentity()
-            identity = resolved.first
+            identity = resolveIdentity().first
             ensureLink()
             handshake(identity)
+            store.storeIdentity(identity)
+            return
         }
-        store.storeIdentity(identity)
+        throw lastRejection ?: IletClientError("secure-channel handshake failed")
     }
 
     suspend fun disconnect() {
