@@ -205,7 +205,7 @@ class IletDataProcessor {
 
         logMealAnnouncement(data.mealAnnouncementState)
         logPatchSession(data)
-        UserError.Log.uel(TAG, "iLet 0x1515 " + data.debugString())
+        UserError.Log.uel(TAG, "iLet 0x1515 body\n" + data.formatString())
     }
 
     private fun logMealAnnouncement(state: Int) {
@@ -332,7 +332,7 @@ class IletDataProcessor {
     }
 
     fun processAlgoStep(rec: IletAlgoStepRecord) {
-        UserError.Log.uel(TAG, "iLet algo-step " + rec.debugString())
+        UserError.Log.uel(TAG, "iLet algo-step body\n" + rec.formatString())
         if (!IletPrefs.downloadBasal()) return
         val rate = IletMapping.basalRate(rec.instantBasalX10, rec.nominalBasalX10) ?: return
         val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, epochOffsetSeconds)
