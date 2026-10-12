@@ -43,8 +43,8 @@ class IletDataProcessor {
         private set
 
     private var lastIobStoreMs = 0L
-    private var lastPredictedRtc = -1L
     private var lastAlgoMs = 0L
+    private var latestAlgoStep: IletAlgoStepRecord? = null
     private var lastMealAnnouncementState = -1
     private var lastGlucoseMarkerLog = 0L
     private var lastPatchExpiryLogged = 0L
@@ -164,7 +164,7 @@ class IletDataProcessor {
         if (reading <= 0) return
         val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
         val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-        maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp, data.glucose.currentTimestamp)
+        maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp)
         if (!IletPrefs.downloadGlucose()) return
         BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
     }
@@ -175,6 +175,17 @@ class IletDataProcessor {
             is IletRealtimeSnapshot.Standard -> processRealtime(snapshot.data)
             is IletRealtimeSnapshot.Control -> processControl(snapshot.data)
         }
+        // Testing only: every realtime cycle gets the current control payload and, if the
+        // pump has sent one, the latest algo-step payload so their clocks and values can be
+        // compared without waiting for history.
+        UserError.Log.uel(
+            TAG,
+            "iLet realtime control " + when (snapshot) {
+                is IletRealtimeSnapshot.Control -> snapshot.data.debugString()
+                is IletRealtimeSnapshot.Standard -> "standard 0x1506 (no control payload)"
+            }
+        )
+        latestAlgoStep?.let { UserError.Log.uel(TAG, "iLet realtime algo-step " + it.debugString()) }
     }
 
     /** 0x1515 adds meal-announcement state and the pump-patch (infusion set) session window. */
@@ -198,7 +209,7 @@ class IletDataProcessor {
         if (reading > 0) {
             val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
             val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-            maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp, data.glucose.currentTimestamp)
+            maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp)
             if (IletPrefs.downloadGlucose()) {
                 BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
             }
@@ -248,14 +259,12 @@ class IletDataProcessor {
     }
 
     /**
-     * Remember the pump's predicted BG for the newest reading so the graph can draw a live
-     * stub. Nothing is persisted as history: the value is overwritten each CGM slot, so it
-     * is only ever shown for the latest reading.
+     * Remember the pump's predicted BG immediately for the newest reading so the graph can
+     * draw a live stub. Nothing is persisted as history: every packet updates the same
+     * current value, so it is only ever shown for the latest reading.
      */
-    private fun maybeStorePredictedBg(predictedMgdl: Int, readingMgdl: Int, timestampMs: Long, rtcSeconds: Long) {
+    private fun maybeStorePredictedBg(predictedMgdl: Int, readingMgdl: Int, timestampMs: Long) {
         if (predictedMgdl <= 0) return
-        if (rtcSeconds == lastPredictedRtc) return
-        lastPredictedRtc = rtcSeconds
         IletPrefs.setPredictedBg(predictedMgdl, readingMgdl, timestampMs)
     }
 
@@ -335,6 +344,7 @@ class IletDataProcessor {
     }
 
     fun processAlgoStep(rec: IletAlgoStepRecord) {
+        latestAlgoStep = rec
         UserError.Log.uel(TAG, "iLet algo-step " + rec.debugString())
         if (!IletPrefs.downloadBasal()) return
         val rate = IletMapping.basalRate(rec.instantBasalX10, rec.nominalBasalX10) ?: return
