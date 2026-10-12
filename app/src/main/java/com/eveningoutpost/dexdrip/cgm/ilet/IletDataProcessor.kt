@@ -9,10 +9,13 @@ import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletRealtimeSnapshot
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletRealTimeData
 import com.eveningoutpost.dexdrip.models.APStatus
 import com.eveningoutpost.dexdrip.models.BgReading
+import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.models.PumpIobReading
 import com.eveningoutpost.dexdrip.models.Treatments
 import com.eveningoutpost.dexdrip.models.UserError
+import com.eveningoutpost.dexdrip.utilitymodels.Pref
 import com.eveningoutpost.dexdrip.utilitymodels.PumpStatus
+import com.eveningoutpost.dexdrip.xdrip
 import java.util.UUID
 
 /**
@@ -158,6 +161,7 @@ class IletDataProcessor {
         if (!data.isInsulinPaused) IletPrefs.setInsulinPausedSinceMs(0L)
 
         maybeStorePumpIob(data)
+        maybeNotifyLowCartridge(data.cartridgeRemainingUnits)
 
         val reading = data.glucose.readingMgDl
         if (reading <= 0) return
@@ -184,6 +188,7 @@ class IletDataProcessor {
         PumpStatus.syncUpdate()
         IletState.updateControl(data)
         maybeStorePumpIobRaw(data.iobUnits, data.cartridgeRemainingUnits, data.batteryPct.toDouble())
+        maybeNotifyLowCartridge(data.cartridgeRemainingUnits)
 
         // Suspend start time is only in the 0x1515 control packet.
         val controlOffset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
@@ -253,6 +258,42 @@ class IletDataProcessor {
     private fun maybeStorePredictedBg(predictedMgdl: Int, readingMgdl: Int, timestampMs: Long) {
         if (predictedMgdl <= 0) return
         IletPrefs.setPredictedBg(predictedMgdl, readingMgdl, timestampMs)
+        maybeNotifyPredictedLow(predictedMgdl)
+    }
+
+    /** Notify once when the cartridge drops under [LOW_CARTRIDGE_UNITS]; clear it on a refill. */
+    private fun maybeNotifyLowCartridge(units: Double) {
+        if (!IletPrefs.notifyLowCartridge()) return
+        val context = xdrip.getAppContext() ?: return
+        if (units < LOW_CARTRIDGE_UNITS) {
+            if (!IletPrefs.lowCartridgeNotified()) {
+                IletPrefs.setLowCartridgeNotified(true)
+                IletNotifications.lowCartridge(context, units)
+            }
+        } else if (IletPrefs.lowCartridgeNotified()) {
+            IletPrefs.setLowCartridgeNotified(false)
+            IletNotifications.clearLowCartridge(context)
+        }
+    }
+
+    /**
+     * Notify once when the pump's predicted BG is below the low mark; clear it once the
+     * prediction recovers past the mark by a small hysteresis so it does not flap.
+     */
+    private fun maybeNotifyPredictedLow(predictedMgdl: Int) {
+        if (!IletPrefs.notifyPredictedLow()) return
+        val context = xdrip.getAppContext() ?: return
+        val lowMark = JoH.tolerantParseDouble(Pref.getString("lowValue", "70"), 70.0)
+        if (predictedMgdl.toDouble() < lowMark) {
+            if (!IletPrefs.predictedLowNotified()) {
+                IletPrefs.setPredictedLowNotified(true)
+                IletNotifications.predictedLow(context, predictedMgdl)
+            }
+        } else if (predictedMgdl.toDouble() >= lowMark + PREDICTED_LOW_CLEAR_HYSTERESIS_MGDL
+            && IletPrefs.predictedLowNotified()) {
+            IletPrefs.setPredictedLowNotified(false)
+            IletNotifications.clearPredictedLow(context)
+        }
     }
 
     // ------------------------------------------------------------ history
@@ -350,5 +391,11 @@ class IletDataProcessor {
     companion object {
         private const val TAG = "iLet"
         private const val IOB_STORE_INTERVAL_MS = 5 * 60 * 1000L
+
+        /** Notify when the cartridge drops below this many units. */
+        private const val LOW_CARTRIDGE_UNITS = 20.0
+
+        /** Clear the predicted-low notification once the prediction recovers by this much. */
+        private const val PREDICTED_LOW_CLEAR_HYSTERESIS_MGDL = 5.0
     }
 }

@@ -200,8 +200,8 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   `IletAlgoStepRecord` is never read and the Basal mapping above never fires; and the real-time
   characteristic always returns `0x1506`, so `IletRealTimeControlPumpData` (`0x1515`) is never
   produced. Both parsers are retained for the documented layout and for firmware that exposes
-  them, but on this firmware their code paths are inert (the service logs the unsupported
-  bounds each cycle).
+  them, but on this firmware their code paths are inert (the unsupported bounds are skipped
+  silently).
 - `PumpIobReading` feeds an optional graph line (`show_ilet_pump_iob_line`, **off by default**)
   with its own `color_ilet_pump_iob` colour, distinct from xDrip's treatment-derived IOB.
 - The pump's predicted BG (`IletRealTimeData.glucose.predictedReading`, mg/dL) is **not
@@ -213,6 +213,15 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   to the low-prediction text, in the same colour. The pump protocol does not document the
   forecast horizon; Beta Bionics' "Urgent Low Soon" alert predicts 20 minutes ahead, so the
   stub and the label use `PREDICTED_STUB_HORIZON_MS` (20 min) as a reasonable reference.
+- Two optional alerts live under an **iLet → Notifications** sub-menu (both **off by
+  default**), raised through `IletNotifications` on the general channel:
+  - **Low cartridge** — notifies once when `cartridgeRemainingUl` drops below 20 U and clears
+    the notification when the cartridge is refilled (remaining units back above 20 U).
+  - **Predicted low** — notifies once when the pump's `predictedReading` is below the user's
+    low mark (`lowValue`, default 70 mg/dL), and clears it once the prediction recovers past
+    the mark by 5 mg/dL.
+  Each has a per-episode latch in prefs (`ilet_low_cartridge_notified`,
+  `ilet_predicted_low_notified`) so it does not repeat every cycle.
 - Pump identity is never hardcoded: the serial is derived from `GetDeviceInfo` (0x2321) on
   first connection, and the Bluetooth address is user-settable, falling back to a scan when
   left blank. Deterministic dedupe falls back to the address when the serial is unknown.

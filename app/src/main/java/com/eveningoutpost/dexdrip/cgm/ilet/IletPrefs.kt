@@ -19,6 +19,12 @@ object IletPrefs {
     const val SHOW_PUMP_IOB_LINE = "show_ilet_pump_iob_line"
     const val SHOW_PREDICTED_BG_LINE = "show_ilet_predicted_bg_line"
 
+    /** Notifications sub-menu toggles, plus the per-episode notify latches. */
+    const val NOTIFY_LOW_CARTRIDGE = "ilet_notify_low_cartridge"
+    const val NOTIFY_PREDICTED_LOW = "ilet_notify_predicted_low"
+    const val LOW_CARTRIDGE_NOTIFIED = "ilet_low_cartridge_notified"
+    const val PREDICTED_LOW_NOTIFIED = "ilet_predicted_low_notified"
+
     // Latest pump predicted BG, kept in memory-of-prefs only (no history table): the
     // graph draws a single live stub for the newest reading, not a stored series.
     const val PREDICTED_BG_MGDL = "ilet_predicted_bg_mgdl"
@@ -142,6 +148,28 @@ object IletPrefs {
 
     @JvmStatic
     fun setShowPredictedBgLine(enabled: Boolean) = Pref.setBoolean(SHOW_PREDICTED_BG_LINE, enabled)
+
+    /** Notify when the cartridge drops below 20 U (off by default). */
+    @JvmStatic
+    fun notifyLowCartridge(): Boolean = Pref.getBooleanDefaultFalse(NOTIFY_LOW_CARTRIDGE)
+
+    /** Notify when the pump predicts a low BG within its 20-minute window (off by default). */
+    @JvmStatic
+    fun notifyPredictedLow(): Boolean = Pref.getBooleanDefaultFalse(NOTIFY_PREDICTED_LOW)
+
+    /** Latch so each low-cartridge episode notifies once (cleared when the cartridge is refilled). */
+    @JvmStatic
+    fun lowCartridgeNotified(): Boolean = Pref.getBooleanDefaultFalse(LOW_CARTRIDGE_NOTIFIED)
+
+    @JvmStatic
+    fun setLowCartridgeNotified(notified: Boolean) = Pref.setBoolean(LOW_CARTRIDGE_NOTIFIED, notified)
+
+    /** Latch so a predicted-low episode notifies once (cleared when the prediction recovers). */
+    @JvmStatic
+    fun predictedLowNotified(): Boolean = Pref.getBooleanDefaultFalse(PREDICTED_LOW_NOTIFIED)
+
+    @JvmStatic
+    fun setPredictedLowNotified(notified: Boolean) = Pref.setBoolean(PREDICTED_LOW_NOTIFIED, notified)
 
     /**
      * Remember the pump's latest predicted BG and the reading it came with, so the graph

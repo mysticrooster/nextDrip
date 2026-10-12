@@ -2043,6 +2043,13 @@
     <string name="ilet_predicted_bg_line_title">Show predicted BG line</string>
     <string name="ilet_predicted_bg_line_summary">Extra graph line of the pump\'s predicted blood glucose</string>
     <string name="ilet_predicted_bg_text">%1$s predicted in 20 minutes</string>
+    <string name="ilet_notifications_title">Notifications</string>
+    <string name="ilet_notify_low_cartridge_title">Low cartridge</string>
+    <string name="ilet_notify_low_cartridge_summary">Notify when the cartridge has less than 20 U left</string>
+    <string name="ilet_notify_predicted_low_title">Predicted low</string>
+    <string name="ilet_notify_predicted_low_summary">Notify when the pump predicts a low blood glucose</string>
+    <string name="ilet_notify_low_cartridge_body">The iLet cartridge has %1$s U left</string>
+    <string name="ilet_notify_predicted_low_body">iLet predicts %1$s in 20 minutes</string>
     <string name="ilet_device_info_title">Pump identity</string>
     <string name="ilet_clock_prompt_title">iLet clock is off</string>
     <string name="ilet_clock_prompt_message">The iLet clock is off by about %1$s. Please set it on the pump (or via the Beta Bionics app) so pump records and xDrip line up. This app is read-only and will not change the pump time.</string>

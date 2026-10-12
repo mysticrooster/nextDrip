@@ -1157,6 +1157,22 @@
                     android:summary="@string/ilet_unpair_summary"
                     android:title="@string/ilet_unpair_title" />
             </PreferenceScreen>
+            <PreferenceScreen
+                android:key="ilet_notifications"
+                android:title="@string/ilet_notifications_title">
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_notify_low_cartridge"
+                    android:summary="@string/ilet_notify_low_cartridge_summary"
+                    android:title="@string/ilet_notify_low_cartridge_title" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ilet_enabled"
+                    android:key="ilet_notify_predicted_low"
+                    android:summary="@string/ilet_notify_predicted_low_summary"
+                    android:title="@string/ilet_notify_predicted_low_title" />
+            </PreferenceScreen>
         </PreferenceScreen>
     </PreferenceScreen>
 
