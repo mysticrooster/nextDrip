@@ -4,17 +4,17 @@ This document describes the re-organised settings information architecture. The
 settings are split into nine per-category XML files under
 `app/src/main/res/xml/`, each with a top-level `PreferenceScreen`:
 
-| File | Root key | Title |
-|---|---|---|
-| `pref_cat_alarms.xml` | `settings_cat_alarms` | Alarms and Alerts |
-| `pref_cat_devices.xml` | `settings_cat_devices` | Devices |
-| `pref_cat_data.xml` | `settings_cat_data` | Your Data |
-| `pref_cat_general.xml` | `settings_cat_general` | General Settings |
-| `pref_cat_profile.xml` | `settings_cat_profile` | Profile |
-| `pref_cat_appearance.xml` | `settings_cat_appearance` | Appearance |
-| `pref_cat_accessibility.xml` | `settings_cat_accessibility` | Accessibility |
-| `pref_cat_advanced.xml` | `settings_cat_advanced` | Advanced |
-| `pref_cat_about.xml` | `settings_cat_about` | About |
+| File | Root key | Title | Description |
+|---|---|---|---|
+| `pref_cat_alarms.xml` | `settings_cat_alarms` | Alarms and Alerts | Glucose, calibration and sensor alerts and how they sound |
+| `pref_cat_devices.xml` | `settings_cat_devices` | Devices | How xDrip collects data and the hardware it talks to |
+| `pref_cat_data.xml` | `settings_cat_data` | Your Data | Uploads, sync, backups and data tables |
+| `pref_cat_general.xml` | `settings_cat_general` | General | Glucose units, reminders and system notifications |
+| `pref_cat_profile.xml` | `settings_cat_profile` | Profile | Insulin, carb ratios and the prediction model |
+| `pref_cat_appearance.xml` | `settings_cat_appearance` | Appearance | Colours, display, graphs and the home screen |
+| `pref_cat_accessibility.xml` | `settings_cat_accessibility` | Accessibility | Speak readings and always-on display |
+| `pref_cat_advanced.xml` | `settings_cat_advanced` | Advanced | Bluetooth, logging, inter-app, motion and calibration |
+| `pref_cat_about.xml` | `settings_cat_about` | About | Version information, updates, feedback and licence |
 
 `AllPrefsFragment.onCreate` (`utils/Preferences.java`) adds all nine in that
 order. `xdrip_plus_defaults.xml` is still loaded only for its default values.
@@ -32,7 +32,7 @@ preference key, type or default**. `SettingsStructureTest` pins the baseline in
 
 ## Tree
 
-### General Settings (`pref_cat_general`)
+### General (`pref_cat_general`)
 - → **Glucose Units**: `units`, `highValue`, `lowValue`
 - ⇒ Reminders (gated by `plus_show_reminders`) · ⇒ Emergency Messages
 - → **Notifications**: `high_priority_notifications`, `public_notifications`,
@@ -82,11 +82,11 @@ preference key, type or default**. `SettingsStructureTest` pins the baseline in
 ### Advanced (`pref_cat_advanced`)
 - → **Bluetooth Settings** · ⇒ Events Log · → **Extra Logging** ·
   → **Inter-app** (+ Health Connect) · → **Other misc. options** ·
-  → **Advanced Calibration** · → **Motion tracking** · → **Update settings**
+  → **Advanced Calibration** · → **Motion tracking**
 
 ### About (`pref_cat_about`)
-- → **Version information** · ⇒ Check for update · ⇒ Send Feedback ·
-  ⇒ Crowd-sourced translation · ⇒ EULA
+- → **Version information** · ⇒ Check for update · → **Update settings** ·
+  ⇒ Send Feedback · ⇒ Crowd-sourced translation · ⇒ EULA
 
 ## Visibility
 
