@@ -2710,7 +2710,36 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
            // removePreferenceFromCategory("run_G5_ble_tasks_on_uithread", "ob1_options");
        }
 
-       private void removePreferenceFromCategory(final String preference, final String category) {
+        private boolean removeFromParent(String key) {
+            final PreferenceScreen root = getPreferenceScreen();
+            if (root == null || key == null) {
+                Log.e(TAG, "removeFromParent: no root screen for " + key);
+                return false;
+            }
+            if (!removeFromParent(root, key)) {
+                Log.e(TAG, "removeFromParent: could not find " + key + " in the preference tree");
+                return false;
+            }
+            return true;
+        }
+
+        private static boolean removeFromParent(final PreferenceGroup group, final String key) {
+            for (int i = 0; i < group.getPreferenceCount(); i++) {
+                final Preference child = group.getPreference(i);
+                if (key.equals(child.getKey())) {
+                    group.removePreference(child);
+                    return true;
+                }
+                if (child instanceof PreferenceGroup) {
+                    if (removeFromParent((PreferenceGroup) child, key)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private void removePreferenceFromCategory(final String preference, final String category) {
            try {
                final Preference pref = findPreference(preference);
                final PreferenceGroup cat = (PreferenceGroup) findPreference(category);
