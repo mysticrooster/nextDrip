@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:key="settings_cat_data"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceScreen android:key="settings_cat_data"
     android:title="@string/settings_cat_data">
 
     <PreferenceScreen
@@ -739,5 +739,6 @@
                 android:summary="@string/temporary_work_around_disable_all_sync_detail"
                 android:title="@string/disable_all_sync_features" />
         </PreferenceCategory>
+    </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:key="settings_cat_devices"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceScreen android:key="settings_cat_devices"
     android:title="@string/settings_cat_devices">
 
     <PreferenceCategory
@@ -1558,5 +1558,6 @@
             android:switchTextOff="@string/short_off_text_for_switches"
             android:switchTextOn="@string/short_on_text_for_switches"
             android:title="@string/title_Batterylog" />
+    </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>

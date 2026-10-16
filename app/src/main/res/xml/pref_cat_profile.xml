@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:key="settings_cat_profile"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceScreen android:key="settings_cat_profile"
     android:title="@string/settings_cat_profile">
 
     <PreferenceScreen
@@ -122,5 +122,6 @@
                 android:summary=""
                 android:title="@string/default_liver_maximum_impact" />
         </PreferenceCategory>
+    </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>

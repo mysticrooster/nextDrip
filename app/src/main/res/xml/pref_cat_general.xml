@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:key="settings_cat_general"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceScreen android:key="settings_cat_general"
     android:title="@string/settings_cat_general">
 
     <PreferenceScreen
@@ -80,5 +80,6 @@
             android:key="use_proper_ongoing"
             android:summary="Use proper ongoing notification. Disabling this causes collector problems on Android 8+"
             android:title="Proper ongoing" />
+    </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>

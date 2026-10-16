@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:key="settings_cat_advanced"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceScreen android:key="settings_cat_advanced"
     android:title="@string/settings_cat_advanced">
 
     <PreferenceScreen
@@ -537,5 +537,6 @@
             android:key="enable_telemetry"
             android:summary="@string/send_data_to_developers"
             android:title="@string/enable_telemetry" />
+    </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>

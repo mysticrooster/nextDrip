@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:key="settings_cat_accessibility"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceScreen android:key="settings_cat_accessibility"
     android:title="@string/settings_cat_accessibility">
 
     <PreferenceScreen
@@ -111,5 +111,6 @@
             android:key="aod_use_bottom"
             android:summary="@string/summary_aod_use_bottom"
             android:title="@string/title_aod_use_bottom" />
+    </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>

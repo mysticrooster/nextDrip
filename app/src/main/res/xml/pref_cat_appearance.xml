@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:key="settings_cat_appearance"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceScreen android:key="settings_cat_appearance"
     android:title="@string/settings_cat_appearance">
 
     <PreferenceScreen
@@ -877,5 +877,6 @@
         <CheckBoxPreference
             android:key="home-shelf-sensor_expiry"
             android:title="@string/home_shelf_sensor_expiry" />
+    </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>
