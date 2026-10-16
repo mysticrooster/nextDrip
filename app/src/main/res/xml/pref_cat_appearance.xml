@@ -822,8 +822,7 @@
     </PreferenceScreen>
 
     <PreferenceScreen
-        android:key="xdrip_plus_number_icon"
-        android:title="@string/title_xdrip_plus_number_icon">
+        android:key="xdrip_plus_number_icon"        android:title="@string/title_xdrip_plus_number_icon">
         <Preference
             android:key="do_number_icon_test"
             android:summary="@string/summary_do_number_icon_test"
@@ -844,13 +843,39 @@
             android:switchTextOff="@string/short_off_text_for_switches"
             android:switchTextOn="@string/short_on_text_for_switches"
             android:title="@string/title_number_icon_tested" />
-        <SwitchPreference
-            android:defaultValue="false"
-            android:dependency="number_icon_tested"
-            android:key="use_number_icon"
-            android:summary="@string/summary_use_number_icon"
-            android:switchTextOff="@string/short_off_text_for_switches"
-            android:switchTextOn="@string/short_on_text_for_switches"
-            android:title="@string/title_use_number_icon" />
+            <SwitchPreference
+                android:defaultValue="false"
+                android:dependency="number_icon_tested"
+                android:key="use_number_icon"
+                android:summary="@string/summary_use_number_icon"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_use_number_icon" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="home_screen_settings_screen"
+        android:title="@string/home_screen_settings">
+        <CheckBoxPreference
+            android:key="home-shelf-time_buttons"
+            android:title="@string/home_shelf_time_buttons" />
+        <CheckBoxPreference
+            android:key="home-shelf-time_locked_always"
+            android:title="@string/home_shelf_time_locked_always" />
+        <CheckBoxPreference
+            android:key="home-shelf-chart_preview"
+            android:title="@string/home_shelf_chart_preview" />
+        <CheckBoxPreference
+            android:key="home-shelf-source_wizard"
+            android:title="@string/home_shelf_source_wizard" />
+        <CheckBoxPreference
+            android:key="home-shelf-graphic_trend_arrow"
+            android:title="@string/home_shelf_graphic_trend_arrow" />
+        <CheckBoxPreference
+            android:key="home-shelf-collector_nano_status"
+            android:title="@string/home_shelf_collector_nano_status" />
+        <CheckBoxPreference
+            android:key="home-shelf-sensor_expiry"
+            android:title="@string/home_shelf_sensor_expiry" />
     </PreferenceScreen>
 </PreferenceScreen>

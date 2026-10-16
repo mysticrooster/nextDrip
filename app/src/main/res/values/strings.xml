@@ -2178,4 +2178,12 @@
     <string name="title_emergency_messages">Emergency Messages</string>
     <string name="about_build_number">Build number</string>
     <string name="about_built_on">Built</string>
+    <string name="home_screen_settings">Home screen</string>
+    <string name="home_shelf_time_buttons">Time Buttons</string>
+    <string name="home_shelf_time_locked_always">Time Locked Always</string>
+    <string name="home_shelf_chart_preview">Chart Preview</string>
+    <string name="home_shelf_source_wizard">Source Wizard</string>
+    <string name="home_shelf_graphic_trend_arrow">Graphic Trend Arrow</string>
+    <string name="home_shelf_collector_nano_status">Collector Status</string>
+    <string name="home_shelf_sensor_expiry">Sensor Expiry</string>
 </resources>

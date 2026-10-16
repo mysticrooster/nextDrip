@@ -2671,7 +2671,7 @@ public class Home extends ActivityWithMenu implements ActivityCompat.OnRequestPe
                         builder.setMessage(String.format(gs(R.string.start_sensor_confirmation), DexCollectionType.getBestCollectorHardwareName()));
                         builder.setNegativeButton(gs(R.string.change_settings), (dialog, which) -> {
                             dialog.dismiss();
-                            startActivity(new Intent(context, Preferences.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                            startActivity(new Intent(context, Preferences.class).setAction("settings_cat_devices").setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                         });
                         builder.setPositiveButton(R.string.start_sensor, (dialog, which) -> {
                             dialog.dismiss();
