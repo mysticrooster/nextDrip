@@ -6,13 +6,13 @@ settings are split into nine per-category XML files under
 
 | File | Root key | Title | Description |
 |---|---|---|---|
+| `pref_cat_general.xml` | `settings_cat_general` | General | Glucose units, reminders, language and system notifications |
+| `pref_cat_profile.xml` | `settings_cat_profile` | Profile | Insulin, carb ratios and the prediction model |
 | `pref_cat_alarms.xml` | `settings_cat_alarms` | Alarms and Alerts | Glucose, calibration and sensor alerts and how they sound |
 | `pref_cat_devices.xml` | `settings_cat_devices` | Devices | How xDrip collects data and the hardware it talks to |
 | `pref_cat_data.xml` | `settings_cat_data` | Your Data | Uploads, sync, backups and data tables |
-| `pref_cat_general.xml` | `settings_cat_general` | General | Glucose units, reminders and system notifications |
-| `pref_cat_profile.xml` | `settings_cat_profile` | Profile | Insulin, carb ratios and the prediction model |
-| `pref_cat_appearance.xml` | `settings_cat_appearance` | Appearance | Colours, display, graphs and the home screen |
-| `pref_cat_accessibility.xml` | `settings_cat_accessibility` | Accessibility | Speak readings and always-on display |
+| `pref_cat_appearance.xml` | `settings_cat_appearance` | Appearance | Colours, display, graphs, always-on display and the home screen |
+| `pref_cat_accessibility.xml` | `settings_cat_accessibility` | Accessibility | Spoken readings and alerts |
 | `pref_cat_advanced.xml` | `settings_cat_advanced` | Advanced | Bluetooth, logging, inter-app, motion and calibration |
 | `pref_cat_about.xml` | `settings_cat_about` | About | Version information, updates, feedback and licence |
 
@@ -34,10 +34,17 @@ preference key, type or default**. `SettingsStructureTest` pins the baseline in
 
 ### General (`pref_cat_general`)
 - → **Glucose Units**: `units`, `highValue`, `lowValue`
-- ⇒ Reminders (gated by `plus_show_reminders`) · ⇒ Emergency Messages
+- `plus_show_reminders` (Enable Reminder features)
+- ⇒ Reminders (gated by `plus_show_reminders`, not a newbie) · ⇒ Emergency Messages
 - → **Notifications**: `high_priority_notifications`, `public_notifications`,
   `ongoing_notification_aodchipstyle`, `compact_persistent_notification`,
   `use_proper_ongoing`
+- → **Language**: `force_english`, `forced_language`
+
+### Profile (`pref_cat_profile`, all rows en:IU)
+- → Multiple Insulin Types · ⇒ Carb Ratio · ⇒ Insulin Sensitivity ·
+  ⇒ Basal Profile Editor · `profile_carb_absorption_default` ·
+  `simulations_enabled` · `predict_use_momentum` · → Low level prediction values
 
 ### Alarms and Alerts (`pref_cat_alarms`)
 - ⇒ Glucose Level Alerts List (`AlertList`)
@@ -57,27 +64,23 @@ preference key, type or default**. `SettingsStructureTest` pins the baseline in
 - → **blueReader Settings** (shown only for BlueReader)
 
 ### Your Data (`pref_cat_data`)
-- → **Cloud sync** (auto configure + cloud upload: REST-API, MongoDB,
-  InfluxDB, Dex Share, Tidepool, Web Deposit, NightLite, Nocturne)
-- → **Copying Settings** (`xdrip_plus_move_settings`)
+- → **Cloud Upload** (`cloud_data_sync`, first entry): REST-API, MongoDB,
+  InfluxDB, Dex Share, Tidepool, Web Deposit, NightLite, Nocturne
+- → **Copying Settings** (`xdrip_plus_move_settings`) with → **Auto configure**
+  (`auto_config_top`: camera / image file)
 - → **Backups** (`backups_screen`): cloud backup, share QR, export/import DB,
   export CSV, load/save settings
 - ⇒ BG data table · ⇒ Calibration data table (if `show_data_tables`)
 - → **xDrip sync** (en:IU) with → Remote Snoozing and → Desert Sync
 
-### Profile (`pref_cat_profile`, all rows en:IU)
-- → Multiple Insulin Types · ⇒ Carb Ratio · ⇒ Insulin Sensitivity ·
-  ⇒ Basal Profile Editor · `profile_carb_absorption_default` ·
-  `simulations_enabled` · `predict_use_momentum` · → Low level prediction values
-
 ### Appearance (`pref_cat_appearance`)
 - → **Colours** (legacy colour screen) · → **Display** (→ Font + display rows)
-- → **Language** · → **Graph Settings** · ⇒ Show Libre trend (if a Libre block
-  exists) · → **Extra Status Line** · → **Number wall** · → **Number Icon** ·
-  → **Home screen** (`home-shelf-*`)
+- → **Graph Settings** · ⇒ Show Libre trend (if a Libre block exists) ·
+  → **Always On Display** (`xdrip_plus_accessibility`) · → **Extra Status Line** ·
+  → **Number wall** · → **Number Icon** · → **Home screen** (`home-shelf-*`)
 
 ### Accessibility (`pref_cat_accessibility`)
-- → **Speak Readings** · → **Always On Display**
+- → **Speak Readings**
 
 ### Advanced (`pref_cat_advanced`)
 - → **Bluetooth Settings** · ⇒ Events Log · → **Extra Logging** ·
