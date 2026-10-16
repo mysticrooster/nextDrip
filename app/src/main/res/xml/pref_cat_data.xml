@@ -4,26 +4,6 @@
     android:title="@string/settings_cat_data"
     android:summary="@string/settings_cat_data_summary">
 
-    <PreferenceScreen
-        android:key="cloud_sync_screen"
-        android:summary="@string/options_for_upload"
-        android:title="@string/category_cloud_sync">
-
-        <PreferenceScreen
-            android:icon="@drawable/ic_qrscan"
-            android:key="auto_config_top"
-            android:summary="@string/prefs_auto_config_summary"
-            android:title="@string/auto_configure_title">
-            <PreferenceScreen
-                android:key="auto_configure"
-                android:summary="@string/auto_config_cam_summary"
-                android:title="@string/auto_config_cam_title" />
-            <PreferenceScreen
-                android:key="qr_code_from_file"
-                android:summary="@string/auto_config_image_summary"
-                android:title="@string/auto_config_image_title" />
-        </PreferenceScreen>
-
         <PreferenceScreen
             android:icon="@drawable/ic_cloud_upload_grey600_48dp"
             android:key="cloud_data_sync"
@@ -502,7 +482,6 @@
                     android:title="@string/title_nocturne_use_mobile" />
             </PreferenceScreen>
         </PreferenceScreen>
-    </PreferenceScreen>
 
     <PreferenceScreen
         android:key="xdrip_plus_move_settings"
@@ -525,6 +504,20 @@
                 android:targetClass="com.eveningoutpost.dexdrip.utils.SdcardImportExport"
                 android:targetPackage="@string/local_target_package" />
         </Preference>
+        <PreferenceScreen
+            android:icon="@drawable/ic_qrscan"
+            android:key="auto_config_top"
+            android:summary="@string/prefs_auto_config_summary"
+            android:title="@string/auto_configure_title">
+            <PreferenceScreen
+                android:key="auto_configure"
+                android:summary="@string/auto_config_cam_summary"
+                android:title="@string/auto_config_cam_title" />
+            <PreferenceScreen
+                android:key="qr_code_from_file"
+                android:summary="@string/auto_config_image_summary"
+                android:title="@string/auto_config_image_title" />
+        </PreferenceScreen>
     </PreferenceScreen>
 
     <PreferenceScreen

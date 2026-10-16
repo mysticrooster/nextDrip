@@ -1151,11 +1151,11 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             final DexCollectionType collectionType = DexCollectionType.getType(this.prefs.getString("dex_collection_method", "BluetoothWixel"));
 
             static_units = this.prefs.getString("units", "mgdl");
+            addPreferencesFromResource(R.xml.pref_cat_general);
+            addPreferencesFromResource(R.xml.pref_cat_profile);
             addPreferencesFromResource(R.xml.pref_cat_alarms);
             addPreferencesFromResource(R.xml.pref_cat_devices);
             addPreferencesFromResource(R.xml.pref_cat_data);
-            addPreferencesFromResource(R.xml.pref_cat_general);
-            addPreferencesFromResource(R.xml.pref_cat_profile);
             addPreferencesFromResource(R.xml.pref_cat_appearance);
             addPreferencesFromResource(R.xml.pref_cat_accessibility);
             addPreferencesFromResource(R.xml.pref_cat_advanced);
@@ -2900,11 +2900,11 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                     searchConfiguration.setBreadcrumbsEnabled(true);
 
                     searchConfiguration.getKeysList().addAll(getAllPreferenceKeys(this.getPreferenceScreen()));
+                    searchConfiguration.index(R.xml.pref_cat_general);
+                    searchConfiguration.index(R.xml.pref_cat_profile);
                     searchConfiguration.index(R.xml.pref_cat_alarms);
                     searchConfiguration.index(R.xml.pref_cat_devices);
                     searchConfiguration.index(R.xml.pref_cat_data);
-                    searchConfiguration.index(R.xml.pref_cat_general);
-                    searchConfiguration.index(R.xml.pref_cat_profile);
                     searchConfiguration.index(R.xml.pref_cat_appearance);
                     searchConfiguration.index(R.xml.pref_cat_accessibility);
                     searchConfiguration.index(R.xml.pref_cat_advanced);

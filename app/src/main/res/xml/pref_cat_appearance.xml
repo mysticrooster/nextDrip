@@ -401,32 +401,7 @@
                 android:switchTextOff="@string/short_off_text_for_switches"
                 android:switchTextOn="@string/short_on_text_for_switches"
                 android:title="@string/title_show_home_on_boot" />
-            <CheckBoxPreference
-                android:defaultValue="true"
-                android:key="plus_show_reminders"
-                android:summary="@string/show_reminder_features"
-                android:title="@string/enable_reminder_features" />
         </PreferenceCategory>
-    </PreferenceScreen>
-
-    <PreferenceScreen
-        android:key="xdrip_language_settings"
-        android:title="@string/title_language">
-        <SwitchPreference
-            android:defaultValue="false"
-            android:key="force_english"
-            android:summary="@string/using_local_language"
-            android:summaryOn="@string/forcing_alternate_language"
-            android:switchTextOff="@string/short_off_text_for_switches"
-            android:switchTextOn="@string/short_on_text_for_switches"
-            android:title="@string/force_english_text" />
-        <ListPreference
-            android:defaultValue="en"
-            android:entries="@array/LocaleChoices"
-            android:entryValues="@array/LocaleChoicesValues"
-            android:key="forced_language"
-            android:summary="@string/need_alternate_language"
-            android:title="@string/chosse_language" />
     </PreferenceScreen>
 
     <PreferenceScreen
@@ -605,6 +580,42 @@
                 android:value="" />
         </intent>
     </Preference>
+
+    <PreferenceScreen
+        android:key="xdrip_plus_accessibility"
+        android:title="@string/title_xdrip_plus_accessibility">
+        <Preference
+            android:key="show_accessibility_settings"
+            android:summary="@string/summary_show_accessibility_settings"
+            android:title="@string/title_show_accessibility_settings">
+            <intent android:action="android.settings.ACCESSIBILITY_SETTINGS" />
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_top"
+            android:summary="@string/summary_aod_use_top"
+            android:title="@string/title_aod_use_top" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_top_center"
+            android:summary="@string/summary_aod_use_top_center"
+            android:title="@string/title_aod_use_top_center" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_center"
+            android:summary="@string/summary_aod_use_center"
+            android:title="@string/title_aod_use_center" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_center_bottom"
+            android:summary="@string/summary_aod_use_center_bottom"
+            android:title="@string/title_aod_use_center_bottom" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_bottom"
+            android:summary="@string/summary_aod_use_bottom"
+            android:title="@string/title_aod_use_bottom" />
+    </PreferenceScreen>
 
     <PreferenceScreen
         android:key="xdrip_extra_status_line"

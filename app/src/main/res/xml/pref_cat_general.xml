@@ -33,6 +33,12 @@
         </PreferenceCategory>
     </PreferenceScreen>
 
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="plus_show_reminders"
+        android:summary="@string/show_reminder_features"
+        android:title="@string/enable_reminder_features" />
+
     <Preference
         android:key="reminders_settings"
         android:summary="@string/show_reminder_features"
@@ -81,6 +87,26 @@
             android:key="use_proper_ongoing"
             android:summary="Use proper ongoing notification. Disabling this causes collector problems on Android 8+"
             android:title="Proper ongoing" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="xdrip_language_settings"
+        android:title="@string/title_language">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="force_english"
+            android:summary="@string/using_local_language"
+            android:summaryOn="@string/forcing_alternate_language"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/force_english_text" />
+        <ListPreference
+            android:defaultValue="en"
+            android:entries="@array/LocaleChoices"
+            android:entryValues="@array/LocaleChoicesValues"
+            android:key="forced_language"
+            android:summary="@string/need_alternate_language"
+            android:title="@string/chosse_language" />
     </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>
