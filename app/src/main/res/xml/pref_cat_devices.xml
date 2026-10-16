@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceScreen android:key="settings_cat_devices"
+    <PreferenceScreen android:icon="@drawable/ic_bluetooth_settings_grey600_48dp"
+        android:key="settings_cat_devices"
     android:title="@string/settings_cat_devices"
     android:summary="@string/settings_cat_devices_summary">
 

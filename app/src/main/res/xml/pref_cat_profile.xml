@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceScreen android:key="settings_cat_profile"
+    <PreferenceScreen android:icon="@drawable/ic_mode_edit_grey_600_48dp"
+        android:key="settings_cat_profile"
     android:title="@string/settings_cat_profile"
     android:summary="@string/settings_cat_profile_summary">
 

@@ -4,17 +4,17 @@ This document describes the re-organised settings information architecture. The
 settings are split into nine per-category XML files under
 `app/src/main/res/xml/`, each with a top-level `PreferenceScreen`:
 
-| File | Root key | Title | Description |
-|---|---|---|---|
-| `pref_cat_general.xml` | `settings_cat_general` | General | Glucose units, reminders, language and system notifications |
-| `pref_cat_alarms.xml` | `settings_cat_alarms` | Alarms and Alerts | Glucose, calibration and sensor alerts and how they sound |
-| `pref_cat_devices.xml` | `settings_cat_devices` | Devices | How xDrip collects data and the hardware it talks to |
-| `pref_cat_data.xml` | `settings_cat_data` | Your Data | Uploads, sync, backups and data tables |
-| `pref_cat_appearance.xml` | `settings_cat_appearance` | Appearance | Colours, display, graphs, always-on display and the home screen |
-| `pref_cat_profile.xml` | `settings_cat_profile` | Profile | Insulin, carb ratios and the prediction model |
-| `pref_cat_accessibility.xml` | `settings_cat_accessibility` | Accessibility | Spoken readings and alerts |
-| `pref_cat_advanced.xml` | `settings_cat_advanced` | Advanced | Bluetooth, logging, inter-app, motion and calibration |
-| `pref_cat_about.xml` | `settings_cat_about` | About | Version information, updates, feedback and licence |
+| File | Root key | Title | Icon | Description |
+|---|---|---|---|---|
+| `pref_cat_general.xml` | `settings_cat_general` | General | `ic_ruler_grey600_48dp` | Glucose units, reminders, language and system notifications |
+| `pref_cat_alarms.xml` | `settings_cat_alarms` | Alarms and Alerts | `ic_add_alert_grey600_48dp` | Glucose, calibration and sensor alerts and how they sound |
+| `pref_cat_devices.xml` | `settings_cat_devices` | Devices | `ic_bluetooth_settings_grey600_48dp` | How xDrip collects data and the hardware it talks to |
+| `pref_cat_data.xml` | `settings_cat_data` | Your Data | `ic_cloud_upload_grey600_48dp` | Uploads, sync, backups and data tables |
+| `pref_cat_appearance.xml` | `settings_cat_appearance` | Appearance | `ic_palette_grey600_48dp` | Colours, display, graphs, always-on display and the home screen |
+| `pref_cat_profile.xml` | `settings_cat_profile` | Profile | `ic_mode_edit_grey_600_48dp` | Insulin, carb ratios and the prediction model |
+| `pref_cat_accessibility.xml` | `settings_cat_accessibility` | Accessibility | `ic_speak_reading_grey600_48dp` | Spoken readings and alerts |
+| `pref_cat_advanced.xml` | `settings_cat_advanced` | Advanced | `ic_wrench_grey600_48dp` | Bluetooth, logging, inter-app, motion and calibration |
+| `pref_cat_about.xml` | `settings_cat_about` | About | `ic_launcher` | Version information, updates, feedback and licence |
 
 `AllPrefsFragment.onCreate` (`utils/Preferences.java`) adds all nine in that
 order. `xdrip_plus_defaults.xml` is still loaded only for its default values.

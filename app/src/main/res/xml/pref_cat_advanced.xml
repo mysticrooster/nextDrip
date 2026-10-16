@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceScreen android:key="settings_cat_advanced"
+    <PreferenceScreen android:icon="@drawable/ic_wrench_grey600_48dp"
+        android:key="settings_cat_advanced"
     android:title="@string/settings_cat_advanced"
     android:summary="@string/settings_cat_advanced_summary">
 

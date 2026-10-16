@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceScreen android:key="settings_cat_general"
+    <PreferenceScreen android:icon="@drawable/ic_ruler_grey600_48dp"
+        android:key="settings_cat_general"
     android:title="@string/settings_cat_general"
     android:summary="@string/settings_cat_general_summary">
 
