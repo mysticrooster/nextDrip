@@ -2827,6 +2827,9 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             if (!Home.hasLibreblock()) {
                 removeFromParent("show_libre_trend");
             }
+            if (!Experience.gotData()) {
+                removeFromParent("crowd_sourced_translation");
+            }
             if (!Pref.getBooleanDefaultFalse("show_data_tables")) {
                 removeFromParent("bg_data_table");
                 removeFromParent("calibration_data_table");
