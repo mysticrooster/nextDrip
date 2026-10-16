@@ -1150,14 +1150,20 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             final DexCollectionType collectionType = DexCollectionType.getType(this.prefs.getString("dex_collection_method", "BluetoothWixel"));
 
             static_units = this.prefs.getString("units", "mgdl");
-            addPreferencesFromResource(R.xml.pref_license);
-            addPreferencesFromResource(R.xml.pref_general);
+            addPreferencesFromResource(R.xml.pref_cat_alarms);
+            addPreferencesFromResource(R.xml.pref_cat_devices);
+            addPreferencesFromResource(R.xml.pref_cat_data);
+            addPreferencesFromResource(R.xml.pref_cat_general);
+            addPreferencesFromResource(R.xml.pref_cat_profile);
+            addPreferencesFromResource(R.xml.pref_cat_appearance);
+            addPreferencesFromResource(R.xml.pref_cat_accessibility);
+            addPreferencesFromResource(R.xml.pref_cat_advanced);
+            addPreferencesFromResource(R.xml.pref_cat_about);
             bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("highValue"));
             bindPreferenceSummaryToValueAndEnsureNumeric(findPreference("lowValue"));
             units_pref = findPreference("units");
             bindPreferenceSummaryToValue(units_pref);
 
-            addPreferencesFromResource(R.xml.pref_notifications);
             bindPreferenceSummaryToValueAndWarnIfMuted(getActivity(), findPreference("bg_alert_profile"));
 
             bindPreferenceSummaryToValue(findPreference("calibration_notification_sound"));
@@ -1170,9 +1176,6 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             bindPreferenceSummaryToUnitizedValueAndEnsureNumeric(findPreference("persistent_high_threshold"));
             bindPreferenceSummaryToUnitizedValueAndEnsureNumeric(findPreference("forecast_low_threshold"));
 
-            addPreferencesFromResource(R.xml.pref_data_source);
-
-            addPreferencesFromResource(R.xml.pref_data_sync);
             setupBarcodeConfigScanner();
             setupBarcodeShareScanner();
             setupQrFromFile();
@@ -1191,10 +1194,6 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             if (nocturneUrlPref != null) {
                 bindPreferenceSummaryToValue(nocturneUrlPref);
             }
-
-            addPreferencesFromResource(R.xml.pref_advanced_settings);
-            addPreferencesFromResource(R.xml.xdrip_plus_prefs);
-
             bindPreferenceSummaryToValue(findPreference("persistent_high_threshold_mins"));
             bindPreferenceSummaryToValue(findPreference("persistent_high_repeat_mins"));
 
@@ -1359,8 +1358,6 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             final Preference interpretRaw = findPreference("interpret_raw");
             final Preference bfappid = findPreference("bugfender_appid");
             final Preference nfcSettings = findPreference("xdrip_plus_nfc_settings");
-            final Preference bluereadersettings = findPreference("xdrip_blueReader_advanced_settings");
-            final Preference libre2settings = findPreference("xdrip_libre2_advanced_settings");
             //DexCollectionType collectionType = DexCollectionType.getType(findPreference("dex_collection_method").)
 
             final ListPreference currentCalibrationPlugin = (ListPreference)findPreference("current_calibration_plugin");
@@ -1644,7 +1641,9 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             final PreferenceScreen loggingScreen = (PreferenceScreen) findPreference("xdrip_logging_adv_settings");
             final PreferenceScreen motionScreen = (PreferenceScreen) findPreference("xdrip_plus_motion_settings");
             final PreferenceScreen nfcScreen = (PreferenceScreen) findPreference("xdrip_plus_nfc_settings");
-            final PreferenceCategory otherCategory = (PreferenceCategory) findPreference("other_category");
+            // The old "other" category was split across Advanced/Appearance/Accessibility; interpret_raw and
+            // predictive_bg now live directly in the Advanced "Other misc. options" screen.
+            final PreferenceScreen otherCategory = (PreferenceScreen) findPreference("xdrip_other_misc_extra_screen");
             final PreferenceScreen calibrationAlertsScreen = (PreferenceScreen) findPreference("calibration_alerts_screen");
             final PreferenceCategory alertsCategory = (PreferenceCategory) findPreference("alerts_category");
             final Preference disableAlertsStaleDataMinutes = findPreference("disable_alerts_stale_data_minutes");
@@ -2061,7 +2060,9 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             }
 
             if (!DexCollectionService.getBestLimitterHardwareName().equals("BlueReader")) {
-                collectionCategory.removePreference(bluereadersettings);
+                // blueReader now lives directly under the Devices screen, not under collection_category,
+                // so resolve it from the live tree.
+                removeFromParent("xdrip_blueReader_advanced_settings");
             } else {
                 findPreference("blueReader_turn_off_value").setTitle(getString(R.string.blueReader_turnoffvalue) + " (" + prefs.getInt("blueReader_turn_off_value", 5) + ")");
 
@@ -2078,12 +2079,34 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
 
             try {
 
-                try {
-                    if (DexCollectionType.getDexCollectionType() != DexCollectionType.LibreReceiver) {
-                        collectionCategory.removePreference(libre2settings);
+                // Advanced Libre options are shown for any Libre collection method; the rows inside are
+                // filtered per method, matching the Compose layout.
+                if (!DexCollectionType.hasLibre(collectionType)) {
+                    removeFromParent("libre_options_screen");
+                } else {
+                    final boolean hardwareLibre = (collectionType == DexCollectionType.LimiTTer)
+                            || (collectionType == DexCollectionType.LimiTTerWifi)
+                            || (collectionType == DexCollectionType.LibreWifi);
+                    final boolean libreReceiver = collectionType == DexCollectionType.LibreReceiver;
+                    if (!(hardwareLibre || libreReceiver)) {
+                        removeFromParent("external_blukon_algorithm");
+                        removeFromParent("retrieve_blukon_history");
                     }
-                } catch (NullPointerException e) {
-                    Log.wtf(TAG, "Nullpointer Libre2Settings: ", e);
+                    if (!hardwareLibre) {
+                        removeFromParent("detect_libre_sn_changes");
+                    }
+                    if (collectionType != DexCollectionType.LimiTTer) {
+                        removeFromParent("use_non_fixed_li_parameters");
+                    }
+                    if (collectionType != DexCollectionType.LibreAlarm) {
+                        removeFromParent("libre_use_smoothed_data");
+                    }
+                    if (!libreReceiver) {
+                        removeFromParent("calibrate_external_libre_2_algorithm_type");
+                        removeFromParent("libre_one_minute");
+                        removeFromParent("Libre2_showRawGraph");
+                        removeFromParent("Libre2_showSensors");
+                    }
                 }
 
                 try {
@@ -2117,7 +2140,8 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                 }
                 if (Build.VERSION.SDK_INT < 23) {
                     try {
-                        ((PreferenceGroup)findPreference("xdrip_plus_display_category")).removePreference(findPreference("xdrip_plus_number_icon"));
+                        // number icon is now a direct child of the Appearance screen, not of the display category
+                        removeFromParent("xdrip_plus_number_icon");
                     } catch (Exception e) { //
                     }
                 }
@@ -2183,7 +2207,7 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
 
                 if (!engineering_mode) {
                     try {
-                        if (!Experience.gotData()) getPreferenceScreen().removePreference(motionScreen);
+                        if (!Experience.gotData()) removeFromParent("xdrip_plus_motion_settings");
                         calibrationSettingsScreen.removePreference(old_school_calibration_mode);
                     } catch (NullPointerException e) {
                         Log.wtf(TAG, "Nullpointer with engineering mode s ", e);
@@ -2771,12 +2795,15 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
                     searchConfiguration.setBreadcrumbsEnabled(true);
 
                     searchConfiguration.getKeysList().addAll(getAllPreferenceKeys(this.getPreferenceScreen()));
-                    searchConfiguration.index(R.xml.pref_general);
-                    searchConfiguration.index(R.xml.pref_notifications);
-                    searchConfiguration.index(R.xml.pref_data_source);
-                    searchConfiguration.index(R.xml.pref_data_sync);
-                    searchConfiguration.index(R.xml.pref_advanced_settings);
-                    searchConfiguration.index(R.xml.xdrip_plus_prefs);
+                    searchConfiguration.index(R.xml.pref_cat_alarms);
+                    searchConfiguration.index(R.xml.pref_cat_devices);
+                    searchConfiguration.index(R.xml.pref_cat_data);
+                    searchConfiguration.index(R.xml.pref_cat_general);
+                    searchConfiguration.index(R.xml.pref_cat_profile);
+                    searchConfiguration.index(R.xml.pref_cat_appearance);
+                    searchConfiguration.index(R.xml.pref_cat_accessibility);
+                    searchConfiguration.index(R.xml.pref_cat_advanced);
+                    searchConfiguration.index(R.xml.pref_cat_about);
                 } catch (NullPointerException e) {
                     Log.e(TAG, "Cannot find searchPreference item: " + e);
                 }

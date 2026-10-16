@@ -40,7 +40,7 @@ public class ColorCache {
             if (!defaultsLoaded) {
                 try {
                     the_cache.clear();
-                    PreferenceManager.setDefaultValues(xdrip.getAppContext(), R.xml.xdrip_plus_prefs, false);
+                    PreferenceManager.setDefaultValues(xdrip.getAppContext(), R.xml.pref_cat_appearance, false);
                     setDefaultsLoaded();
                 } catch (Exception e) {
                     //

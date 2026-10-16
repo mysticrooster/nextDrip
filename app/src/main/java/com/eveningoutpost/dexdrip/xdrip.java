@@ -93,13 +93,16 @@ public class xdrip extends Application {
 
         IdempotentMigrations.migrateOOP2CalibrationPreferences(); // needs to run before preferences get defaults
 
-        PreferenceManager.setDefaultValues(this, R.xml.pref_general, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_sync, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_advanced_settings, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_notifications, true);
-        PreferenceManager.setDefaultValues(this, R.xml.pref_data_source, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_alarms, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_devices, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_data, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_general, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_profile, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_appearance, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_accessibility, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_advanced, true);
+        PreferenceManager.setDefaultValues(this, R.xml.pref_cat_about, true);
         PreferenceManager.setDefaultValues(this, R.xml.xdrip_plus_defaults, true);
-        PreferenceManager.setDefaultValues(this, R.xml.xdrip_plus_prefs, true);
         ColorCache.setDefaultsLoaded();
 
         checkForcedEnglish(xdrip.context);
