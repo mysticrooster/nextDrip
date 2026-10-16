@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import androidx.appcompat.app.ActionBar;
@@ -140,20 +141,22 @@ public class NavigationDrawerFragment extends Fragment {
 //        String[] menu_options = menu_option_list.toArray(new String[menu_option_list.size()]);
 
         try {
-            mDrawerListView.setAdapter(new ArrayAdapter<String>(
+            mDrawerListView.setAdapter(new DrawerAdapter(
                     actionBar.getThemedContext(),
-                    android.R.layout.simple_list_item_activated_1,
+                    R.layout.nav_drawer_row,
                     android.R.id.text1,
-                    menu_options
+                    menu_options,
+                    navDrawerBuilder.nav_drawer_icons
             ));
 
         } catch (NullPointerException e) {
             try {
-                mDrawerListView.setAdapter(new ArrayAdapter<String>(
+                mDrawerListView.setAdapter(new DrawerAdapter(
                         getActivity().getActionBar().getThemedContext(),
-                        android.R.layout.simple_list_item_activated_1,
+                        R.layout.nav_drawer_row,
                         android.R.id.text1,
-                        menu_options
+                        menu_options,
+                        navDrawerBuilder.nav_drawer_icons
                 ));
             } catch (NullPointerException ex) {
                 Log.d("NavigationDrawerFrag", "Got second null pointer: " + ex.toString());
@@ -294,6 +297,35 @@ public class NavigationDrawerFragment extends Fragment {
             if (menu_position != 0) {
                 getActivity().finish();
             }
+        }
+    }
+
+    /**
+     * Simple icon + text adapter for the navigation drawer. The icon list is parallel to the
+     * label list built by {@link NavDrawerBuilder}.
+     */
+    private static class DrawerAdapter extends ArrayAdapter<String> {
+        private final List<Integer> icons;
+
+        DrawerAdapter(Context context, int resource, int textViewResourceId, String[] objects, List<Integer> icons) {
+            super(context, resource, textViewResourceId, objects);
+            this.icons = icons;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            final View view = super.getView(position, convertView, parent);
+            final ImageView image = view.findViewById(R.id.nav_drawer_icon);
+            if (image != null) {
+                if (icons != null && position < icons.size() && icons.get(position) != null && icons.get(position) != 0) {
+                    image.setImageResource(icons.get(position));
+                    image.setVisibility(View.VISIBLE);
+                } else {
+                    image.setImageDrawable(null);
+                    image.setVisibility(View.INVISIBLE);
+                }
+            }
+            return view;
         }
     }
 }

@@ -99,6 +99,14 @@ Row visibility is applied in `AllPrefsFragment.onCreate` with the
 root. Use it rather than a targeted `removePreference`, because a preference may
 have moved to a different parent while its visibility rule did not.
 
+## Home screen navigation drawer
+
+Every drawer entry carries an icon, held in a `nav_drawer_icons` list parallel
+to the existing label and intent lists in `NavDrawerBuilder`.
+`NavigationDrawerFragment` renders the rows with `nav_drawer_row.xml` (an
+`ImageView` plus a `TextView`, via a small `DrawerAdapter`), tinted with
+`?android:attr/textColorPrimary` so it works in light and dark themes.
+
 ## Not present
 
 The Home overflow menu has been removed (its actions are now settings rows).

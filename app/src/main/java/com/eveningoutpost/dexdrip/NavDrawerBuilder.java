@@ -36,6 +36,7 @@ public class NavDrawerBuilder {
     private boolean is_active_sensor = Sensor.isActive();
     public final List<Intent> nav_drawer_intents = new ArrayList<>();
     public final List<String> nav_drawer_options = new ArrayList<>();
+    public final List<Integer> nav_drawer_icons = new ArrayList<>();
 
     private static boolean use_note_search = false;
 
@@ -47,27 +48,33 @@ public class NavDrawerBuilder {
         if (!IUnderstand) {
             this.nav_drawer_options.add(context.getString(R.string.settings));
             this.nav_drawer_intents.add(new Intent(context, Preferences.class));
+            this.nav_drawer_icons.add(R.drawable.ic_wrench_grey600_48dp);
             return;
         }
 
         this.nav_drawer_options.add(context.getString(R.string.home_screen));
         this.nav_drawer_intents.add(new Intent(context, Home.class));
+        this.nav_drawer_icons.add(R.drawable.ic_launcher);
 
         if ((is_active_sensor) && (last_two_calibrations != null) && (last_two_calibrations.size() > 0)) {
             this.nav_drawer_options.add(context.getString(R.string.calibration_graph));
             this.nav_drawer_intents.add(new Intent(context, CalibrationGraph.class));
+            this.nav_drawer_icons.add(R.drawable.ic_chart_areaspline_grey600_48dp);
         }
 
         if (prefs.getBoolean("show_data_tables", false)) {
             this.nav_drawer_options.add(context.getString(R.string.bg_data_table));
             this.nav_drawer_intents.add(new Intent(context, BgReadingTable.class));
+            this.nav_drawer_icons.add(R.drawable.ic_chart_areaspline_grey600_48dp);
             this.nav_drawer_options.add(context.getString(R.string.calibration_data_table));
             this.nav_drawer_intents.add(new Intent(context, CalibrationDataTable.class));
+            this.nav_drawer_icons.add(R.drawable.ic_chart_areaspline_grey600_48dp);
         }
 
         if (DexCollectionType.isAlwaysNativeCal()) {
             this.nav_drawer_options.add(context.getString(R.string.add_calibration));
             this.nav_drawer_intents.add(new Intent(context, AddCalibration.class));
+            this.nav_drawer_icons.add(R.drawable.ic_eyedropper_variant_grey600_24dp);
         } else if (!collector.canNotStartStopOrCal()) {
             // Only if the collector can start/stop sensor and submit calibrations (is not passive)
 
@@ -82,22 +89,27 @@ public class NavDrawerBuilder {
                                         && !Ob1G5CollectionService.isG5WantingCalibration()) { // Put steps in place to discourage over calibration
                                     this.nav_drawer_options.add(context.getString(R.string.override_calibration));
                                     this.nav_drawer_intents.add(new Intent(context, CalibrationOverride.class));
+                                    this.nav_drawer_icons.add(R.drawable.ic_eyedropper_variant_grey600_24dp);
                                 } else { // G5, old G6, or Firefly in no-code mode, after initial calibration and long enough after previous calibration
                                     this.nav_drawer_options.add(context.getString(R.string.add_calibration));
                                     this.nav_drawer_intents.add(new Intent(context, AddCalibration.class));
+                                    this.nav_drawer_icons.add(R.drawable.ic_eyedropper_variant_grey600_24dp);
                                 }
                             } else {  // G5, old G6 or Firefly in no-code mode, not long after a calibration
                                 this.nav_drawer_options.add(context.getString(R.string.cannot_calibrate_right_now));
                                 this.nav_drawer_intents.add(new Intent(context, Home.class));
+                                this.nav_drawer_icons.add(R.drawable.ic_hourglass);
                             }
                         } else { // If there haven't been two initial calibrations
                             if (BgReading.isDataSuitableForDoubleCalibration() || Ob1G5CollectionService.isG5WantingInitialCalibration()) {
                                 if ((FirmwareCapability.isTransmitterRawIncapable(getTransmitterID()) && last_two_bgReadings.size() > 1) || FirmwareCapability.isDeviceAltOrAlt2OrAlt3(getTransmitterID()) ) { //A Firefly G6 after third reading or a G7
                                     this.nav_drawer_options.add(context.getString(R.string.add_calibration));
                                     this.nav_drawer_intents.add(new Intent(context, AddCalibration.class));
+                                    this.nav_drawer_icons.add(R.drawable.ic_eyedropper_variant_grey600_24dp);
                                 } else { // G5 or non-Firefly G6 or Firefly G6 in no-code mode, after warm-up before initial calibration
                                     this.nav_drawer_options.add(context.getString(R.string.initial_calibration));
                                     this.nav_drawer_intents.add(new Intent(context, DoubleCalibrationActivity.class));
+                                    this.nav_drawer_icons.add(R.drawable.ic_eyedropper_variant_grey600_24dp);
                                 }
                             }
                         }
@@ -106,49 +118,59 @@ public class NavDrawerBuilder {
                 if (!getBestCollectorHardwareName().equals("G7")) { // If we are using G7, there will be no stop sensor option in the menu.
                     this.nav_drawer_options.add(context.getString(R.string.stop_sensor));
                     this.nav_drawer_intents.add(new Intent(context, StopSensor.class));
+                    this.nav_drawer_icons.add(R.drawable.power_standby);
                 }
             } else {
                 this.nav_drawer_options.add(context.getString(R.string.start_sensor));
                 this.nav_drawer_intents.add(new Intent(context, StartNewSensor.class));
+                this.nav_drawer_icons.add(R.drawable.ic_add_black_36dp);
             }
         }
 
         if (DexCollectionType.usesBluetoothScan()) {
             this.nav_drawer_options.add(context.getString(R.string.bluetooth_scan));
             this.nav_drawer_intents.add(new Intent(context, BluetoothScan.class));
+            this.nav_drawer_icons.add(R.drawable.ic_bluetooth_settings_grey600_48dp);
         }
 
         //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR2) {
         this.nav_drawer_options.add(context.getString(R.string.system_status));
         this.nav_drawer_intents.add(new Intent(context, MegaStatus.class));
+        this.nav_drawer_icons.add(R.drawable.ic_heart_pulse_grey600_24dp);
         //}
 
         boolean bg_alerts = prefs.getBoolean("bg_alerts_from_main_menu", false);
         if (bg_alerts) {
             this.nav_drawer_options.add(context.getString(R.string.level_alerts));
             this.nav_drawer_intents.add(new Intent(context, AlertList.class));
+            this.nav_drawer_icons.add(R.drawable.ic_add_alert_grey600_48dp);
         }
 
         if (Experience.gotData()) {
             this.nav_drawer_options.add(context.getString(R.string.snooze_alert));
             this.nav_drawer_intents.add(new Intent(context, SnoozeActivity.class));
+            this.nav_drawer_icons.add(R.drawable.ic_av_timer_white_36dp);
         }
 
         if (use_note_search || (Treatments.last() != null)) {
             this.nav_drawer_options.add(context.getString(R.string.note_search));
             this.nav_drawer_intents.add(new Intent(context, NoteSearch.class));
+            this.nav_drawer_icons.add(R.drawable.ic_note_plus_grey600_24dp);
             use_note_search = true; // cache
         }
 
         if (Experience.gotData()) {
             this.nav_drawer_options.add(context.getString(R.string.statistics));
             this.nav_drawer_intents.add(new Intent(context, StatsActivity.class));
+            this.nav_drawer_icons.add(R.drawable.ic_chart_areaspline_grey600_48dp);
 
             this.nav_drawer_options.add(context.getString(R.string.history));
             this.nav_drawer_intents.add(new Intent(context, BGHistory.class));
+            this.nav_drawer_icons.add(R.drawable.ic_undo_variant_grey600_24dp);
         }
 
         this.nav_drawer_options.add(context.getString(R.string.settings));
         this.nav_drawer_intents.add(new Intent(context, Preferences.class));
+        this.nav_drawer_icons.add(R.drawable.ic_wrench_grey600_48dp);
     }
 }
