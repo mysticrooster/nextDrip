@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceScreen android:icon="@drawable/ic_launcher"
+    <PreferenceScreen android:icon="@drawable/ic_google_circles_communities_grey600_48dp"
         android:key="settings_cat_about"
         android:summary="@string/settings_cat_about_summary"
         android:title="@string/settings_cat_about">
