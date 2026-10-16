@@ -39,6 +39,7 @@ preference key, type or default**. `SettingsStructureTest` pins the baseline in
 - → **Notifications**: `high_priority_notifications`, `public_notifications`,
   `ongoing_notification_aodchipstyle`, `compact_persistent_notification`,
   `use_proper_ongoing`
+- → **Motion tracking / Vehicle mode** (`xdrip_plus_motion_settings`, if data)
 - → **Language**: `force_english`, `forced_language`
 
 ### Alarms and Alerts (`pref_cat_alarms`)
@@ -85,7 +86,7 @@ preference key, type or default**. `SettingsStructureTest` pins the baseline in
 ### Advanced (`pref_cat_advanced`)
 - → **Bluetooth Settings** · ⇒ Events Log · → **Extra Logging** ·
   → **Inter-app** (+ Health Connect) · → **Other misc. options** ·
-  → **Advanced Calibration** · → **Motion tracking**
+  → **Advanced Calibration**
 
 ### About (`pref_cat_about`)
 - → **Version information** · ⇒ Check for update · → **Update settings** ·

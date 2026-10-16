@@ -2158,7 +2158,7 @@
     <string name="settings_cat_accessibility">Accessibility</string>
     <string name="settings_cat_advanced">Advanced</string>
     <string name="settings_cat_about">About</string>
-    <string name="settings_cat_general_summary">Glucose units, reminders, language and system notifications</string>
+    <string name="settings_cat_general_summary">Glucose units, reminders, language, notifications and motion detection</string>
     <string name="settings_cat_alarms_summary">Glucose, calibration and sensor alerts and how they sound</string>
     <string name="settings_cat_data_summary">Uploads, sync, backups and data tables</string>
     <string name="settings_cat_profile_summary">Insulin, carb ratios and the prediction model</string>

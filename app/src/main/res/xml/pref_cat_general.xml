@@ -91,6 +91,91 @@
     </PreferenceScreen>
 
     <PreferenceScreen
+        android:icon="@drawable/ic_car_connected_grey600_48dp"
+        android:key="xdrip_plus_motion_settings"
+        android:summary="@string/movement_detection_and_vehicle_mode"
+        android:title="@string/xdrip_motion_tracking">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="motion_tracking_enabled"
+            android:summary="@string/detect_motion_types"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/enable_motion_tracking" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="motion_tracking_enabled"
+            android:key="plot_motion"
+            android:summary="@string/display_motion_types"
+            android:title="@string/log_and_plot_motion" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="motion_tracking_enabled"
+            android:key="use_remote_motion"
+            android:summary="@string/use_remote_motion_data"
+            android:title="@string/use_remote_motion" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="motion_tracking_enabled"
+            android:key="act_as_motion_master"
+            android:summary="@string/be_motion_master"
+            android:title="@string/act_as_motion_master" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="vehicle_mode_enabled"
+            android:summary="@string/vehicle_motion_extras"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/enable_vehicle_mode" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="vehicle_mode_enabled"
+            android:key="vehicle_mode_via_car_audio"
+            android:summary="@string/automatically_enable_when_connected_to_car_bluetooth"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/detect_car_audio" />
+        <Preference
+            android:dependency="vehicle_mode_enabled"
+            android:key="learn_this_audio_device"
+            android:summary="@string/tap_to_set_current_car_audio_device"
+            android:title="@string/learn_current_car_audio">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.ui.activities.SelectAudioDevice"
+                android:targetPackage="@string/local_target_package">
+                <extra
+                    android:name="none"
+                    android:value="none" />
+            </intent>
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="vehicle_mode_enabled"
+            android:key="raise_low_limit_in_vehicle_mode"
+            android:summary="@string/increase_low_alarms_vehicle_mode"
+            android:title="@string/raise_low_threshold" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="vehicle_mode_enabled"
+            android:key="speak_readings_in_vehicle_mode"
+            android:summary="@string/enable_speak_readings_when_in_vehicle"
+            android:title="@string/speak_readings" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="vehicle_mode_enabled"
+            android:key="play_sound_in_vehicle_mode"
+            android:summary="@string/notification_sound_vehicle_mode"
+            android:title="@string/play_sound" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="vehicle_mode_enabled"
+            android:key="repeat_sound_in_vehicle_mode"
+            android:summary="@string/repeat_notification_every_90_minutes"
+            android:title="@string/repeat_sound" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
         android:key="xdrip_language_settings"
         android:title="@string/title_language">
         <SwitchPreference
