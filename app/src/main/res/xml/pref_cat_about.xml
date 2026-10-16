@@ -24,6 +24,24 @@
     </Preference>
 
     <Preference
+        android:key="check_for_update"
+        android:title="@string/title_check_for_update" />
+
+    <PreferenceScreen
+        android:key="about_version_screen"
+        android:title="@string/category_version_info">
+        <Preference
+            android:key="about_version_number"
+            android:title="@string/version" />
+        <Preference
+            android:key="about_build_number"
+            android:title="@string/about_build_number" />
+        <Preference
+            android:key="about_build_time"
+            android:title="@string/about_built_on" />
+    </PreferenceScreen>
+
+    <Preference
         android:key="crowd_sourced_translation"
         android:title="@string/title_crowd_sourced_translation">
         <intent

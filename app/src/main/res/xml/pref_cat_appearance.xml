@@ -592,6 +592,19 @@
         </PreferenceScreen>
     </PreferenceScreen>
 
+    <Preference
+        android:key="show_libre_trend"
+        android:title="@string/show_libre_trend">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.eveningoutpost.dexdrip.utils.LibreTrendGraph"
+            android:targetPackage="@string/local_target_package">
+            <extra
+                android:name="events"
+                android:value="" />
+        </intent>
+    </Preference>
+
     <PreferenceScreen
         android:key="xdrip_extra_status_line"
         android:summary="@string/options_for_extra_line"

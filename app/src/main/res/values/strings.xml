@@ -2176,4 +2176,6 @@
     <string name="title_show_libre_trend">Show Libre trend</string>
     <string name="title_events_log">View events log</string>
     <string name="title_emergency_messages">Emergency Messages</string>
+    <string name="about_build_number">Build number</string>
+    <string name="about_built_on">Built</string>
 </resources>

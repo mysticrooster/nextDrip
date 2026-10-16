@@ -755,6 +755,15 @@
                     android:summary="@string/summary_enable_wear_auto_update"
                     android:title="@string/title_enable_wear_auto_update" />
             </PreferenceCategory>
+            <Preference
+                android:key="resend_glucose_to_watch"
+                android:title="@string/action_resend_to_watch" />
+            <Preference
+                android:key="open_watch_settings"
+                android:title="@string/action_open_watch_setting" />
+            <Preference
+                android:key="reset_watch_db"
+                android:title="@string/action_sync_watch_db" />
         </PreferenceScreen>
 
         <PreferenceScreen
@@ -968,6 +977,9 @@
                     android:summary="@string/pref_amazfit_widget_graph_hours_summary"
                     android:title="@string/pref_amazfit_widget_graph_hours_title" />
             </PreferenceCategory>
+            <Preference
+                android:key="resend_glucose_to_watch_amazfit"
+                android:title="@string/action_resend_to_watch" />
         </PreferenceScreen>
 
         <PreferenceScreen

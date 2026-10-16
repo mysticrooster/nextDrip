@@ -58,6 +58,7 @@ import com.bytehamster.lib.preferencesearch.SearchConfiguration;
 import com.bytehamster.lib.preferencesearch.SearchPreferenceResult;
 import com.bytehamster.lib.preferencesearch.SearchPreferenceResultListener;
 import com.eveningoutpost.dexdrip.BasePreferenceActivity;
+import com.eveningoutpost.dexdrip.BuildConfig;
 import com.eveningoutpost.dexdrip.GcmActivity;
 import com.eveningoutpost.dexdrip.Home;
 import com.eveningoutpost.dexdrip.NFCReaderX;
@@ -1196,6 +1197,8 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             }
             bindPreferenceSummaryToValue(findPreference("persistent_high_threshold_mins"));
             bindPreferenceSummaryToValue(findPreference("persistent_high_repeat_mins"));
+
+            wireSettingsActionRows();
 
             bindPreferenceTitleAppendToValueUpdateChannel(findPreference("update_channel"));
 
@@ -2747,6 +2750,102 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             return true;
         }
 
+        /**
+         * Wires the action rows that only exist in settings (Backups, About, events log, data tables,
+         * Libre trend, watch actions) and applies the gates that used to live on the Home overflow menu.
+         */
+        private void wireSettingsActionRows() {
+            final Activity activity = getActivity();
+
+            final Preference exportDb = findPreference("backup_export_db");
+            if (exportDb != null) {
+                exportDb.setOnPreferenceClickListener(preference -> {
+                    HomeActions.exportDatabase(activity);
+                    return true;
+                });
+            }
+
+            final Preference exportCsv = findPreference("backup_export_csv");
+            if (exportCsv != null) {
+                exportCsv.setOnPreferenceClickListener(preference -> {
+                    HomeActions.exportCSVasSiDiary(activity);
+                    return true;
+                });
+            }
+
+            final Preference checkUpdate = findPreference("check_for_update");
+            if (checkUpdate != null) {
+                checkUpdate.setOnPreferenceClickListener(preference -> {
+                    HomeActions.checkForUpdate(activity);
+                    return true;
+                });
+            }
+
+            final Preference resendWear = findPreference("resend_glucose_to_watch");
+            if (resendWear != null) {
+                resendWear.setOnPreferenceClickListener(preference -> {
+                    HomeActions.resendGlucoseToWatch(activity);
+                    return true;
+                });
+            }
+
+            final Preference resendAmazfit = findPreference("resend_glucose_to_watch_amazfit");
+            if (resendAmazfit != null) {
+                resendAmazfit.setOnPreferenceClickListener(preference -> {
+                    HomeActions.resendGlucoseToWatch(activity);
+                    return true;
+                });
+            }
+
+            final Preference openWatch = findPreference("open_watch_settings");
+            if (openWatch != null) {
+                openWatch.setOnPreferenceClickListener(preference -> {
+                    HomeActions.openSettingsOnWatch(activity);
+                    return true;
+                });
+            }
+
+            final Preference resetDb = findPreference("reset_watch_db");
+            if (resetDb != null) {
+                resetDb.setOnPreferenceClickListener(preference -> {
+                    HomeActions.resetWearDb(activity);
+                    return true;
+                });
+            }
+
+            // Gates carried over from Home.onCreateOptionsMenu
+            if (!Pref.getBoolean("wear_sync", false) && !Pref.getBoolean("pref_amazfit_enable_key", false)) {
+                removeFromParent("resend_glucose_to_watch");
+            }
+            if (!Pref.getBoolean("wear_sync", false)) {
+                removeFromParent("open_watch_settings");
+                removeFromParent("reset_watch_db");
+            }
+            if (!Pref.getBoolean("pref_amazfit_enable_key", false)) {
+                removeFromParent("resend_glucose_to_watch_amazfit");
+            }
+            if (!Home.hasLibreblock()) {
+                removeFromParent("show_libre_trend");
+            }
+            if (!Pref.getBooleanDefaultFalse("show_data_tables")) {
+                removeFromParent("bg_data_table");
+                removeFromParent("calibration_data_table");
+            }
+
+            // Version information (disabled rows, summaries filled from the build)
+            setDisabledSummary("about_version_number", BuildConfig.VERSION_NAME);
+            setDisabledSummary("about_build_number", String.valueOf(BuildConfig.buildVersion));
+            setDisabledSummary("about_built_on", JoH.dateTimeText(BuildConfig.buildTimestamp * 1000L));
+        }
+
+        private void setDisabledSummary(final String key, final String summary) {
+            final Preference preference = findPreference(key);
+            if (preference != null) {
+                preference.setEnabled(false);
+                preference.setSummary(summary);
+            }
+        }
+
         private static boolean removeFromParent(final PreferenceGroup group, final String key) {
             for (int i = 0; i < group.getPreferenceCount(); i++) {
                 final Preference child = group.getPreference(i);
@@ -2763,8 +2862,7 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             return false;
         }
 
-        private void removePreferenceFromCategory(final String preference, final String category) {
-           try {
+        private void removePreferenceFromCategory(final String preference, final String category) {           try {
                final Preference pref = findPreference(preference);
                final PreferenceGroup cat = (PreferenceGroup) findPreference(category);
                cat.removePreference(pref);

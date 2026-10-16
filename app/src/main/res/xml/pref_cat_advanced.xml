@@ -85,6 +85,19 @@
             android:title="@string/title_Allow_blucon_unbonding" />
     </PreferenceScreen>
 
+    <Preference
+        android:key="events_log"
+        android:title="@string/title_events_log">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.eveningoutpost.dexdrip.EventLogActivity"
+            android:targetPackage="@string/local_target_package">
+            <extra
+                android:name="events"
+                android:value="" />
+        </intent>
+    </Preference>
+
     <PreferenceScreen
         android:key="xdrip_logging_adv_settings"
         android:title="@string/extra_logging">

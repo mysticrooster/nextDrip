@@ -527,8 +527,76 @@
     </PreferenceScreen>
 
     <PreferenceScreen
-        android:dependency="I_understand"
+        android:icon="@drawable/ic_content_save_grey600_48dp"
+        android:key="backups_screen"
+        android:title="@string/category_backups">
+
+        <Preference
+            android:key="backup_cloud"
+            android:title="@string/cloud_backup">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.cloud.backup.BackupActivity"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
+
+        <Preference
+            android:key="backup_share_qr"
+            android:title="@string/share_config_via_qr_code">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.utils.DisplayQRCode"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
+
+        <Preference
+            android:key="backup_export_db"
+            android:title="@string/menu_export_database" />
+
+        <Preference
+            android:key="backup_restore_db"
+            android:title="@string/menu_import_db">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.ImportDatabaseActivity"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
+
+        <Preference
+            android:key="backup_export_csv"
+            android:title="@string/menu_export_csv_sidiary" />
+
+        <Preference
+            android:key="backup_load_save"
+            android:title="@string/load_save_settings_on_sdcard">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.utils.SdcardImportExport"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
+    </PreferenceScreen>
+
+    <Preference
+        android:key="bg_data_table"
+        android:title="@string/bg_data_table">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.eveningoutpost.dexdrip.tables.BgReadingTable"
+            android:targetPackage="@string/local_target_package" />
+    </Preference>
+
+    <Preference
+        android:key="calibration_data_table"
+        android:title="@string/calibration_data_table">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.eveningoutpost.dexdrip.tables.CalibrationDataTable"
+            android:targetPackage="@string/local_target_package" />
+    </Preference>
+
+    <PreferenceScreen
         android:key="xdrip_plus_sync_settings"
+        android:dependency="I_understand"
         android:summary="@string/settings_for_syncing"
         android:title="@string/category_xdrip_sync">
 
