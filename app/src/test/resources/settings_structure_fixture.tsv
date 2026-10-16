@@ -37,7 +37,6 @@ bg_predict_alert_sound	String	default
 bg_predict_alert_vibrate_on_alert	Boolean	true
 bg_to_speech	Boolean	false
 bg_to_speech_repeat_twice	Boolean	false
-bg_to_speech_shortcut	Boolean	false
 bg_to_speech_trend	Boolean	true
 bg_unclear_readings_alert_enable_alerts_reraise	Boolean	false
 bg_unclear_readings_alert_reraise_sec	String	60
@@ -216,6 +215,9 @@ health_connect_receive	Boolean	true
 highValue	String	170
 high_priority_notifications	Boolean	true
 high_value_is_persistent_high_threshold	Boolean	true
+home-shelf-chart_preview	Boolean	true
+home-shelf-collector_nano_status	Boolean	true
+home-shelf-sensor_expiry	Boolean	true
 infrequent_calibration	Boolean	true
 inpen_detect_priming	Boolean	true
 inpen_enabled	Boolean	false

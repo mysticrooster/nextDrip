@@ -12,7 +12,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.eveningoutpost.dexdrip.Home;
-import com.eveningoutpost.dexdrip.ImportDatabaseActivity;
 import com.eveningoutpost.dexdrip.R;
 import com.eveningoutpost.dexdrip.models.JoH;
 import com.eveningoutpost.dexdrip.profileeditor.DatePickerFragment;
@@ -135,10 +134,6 @@ public class HomeActions {
 
     public static void resetWearDb(Activity activity) {
         activity.startService(new Intent(activity, WatchUpdaterService.class).setAction(WatchUpdaterService.ACTION_RESET_DB));
-    }
-
-    public static void restoreDatabase(Activity activity) {
-        activity.startActivity(new Intent(activity, ImportDatabaseActivity.class));
     }
 
     private static android.view.View.OnClickListener makeSnackBarUriLauncher(final Activity activity, final Uri uri, final String text) {

@@ -876,6 +876,7 @@
             android:key="home-shelf-time_locked_always"
             android:title="@string/home_shelf_time_locked_always" />
         <CheckBoxPreference
+            android:defaultValue="true"
             android:key="home-shelf-chart_preview"
             android:title="@string/home_shelf_chart_preview" />
         <CheckBoxPreference
@@ -885,9 +886,11 @@
             android:key="home-shelf-graphic_trend_arrow"
             android:title="@string/home_shelf_graphic_trend_arrow" />
         <CheckBoxPreference
+            android:defaultValue="true"
             android:key="home-shelf-collector_nano_status"
             android:title="@string/home_shelf_collector_nano_status" />
         <CheckBoxPreference
+            android:defaultValue="true"
             android:key="home-shelf-sensor_expiry"
             android:title="@string/home_shelf_sensor_expiry" />
     </PreferenceScreen>

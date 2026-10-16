@@ -72,11 +72,6 @@
             android:min="4"
             android:summary=""
             android:title="@string/Speech_pitch" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="bg_to_speech_shortcut"
-            android:summary="@string/short_speak_readings_shortcut"
-            android:title="@string/speak_readings_shortcut" />
     </PreferenceScreen>
     </PreferenceScreen>
 </PreferenceScreen>
