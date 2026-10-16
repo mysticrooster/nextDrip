@@ -6,6 +6,7 @@ import android.os.PowerManager
 import com.eveningoutpost.dexdrip.cgm.ilet.ble.IletTransport
 import com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCloudSigner
 import com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletCredentialStore
+import com.eveningoutpost.dexdrip.cgm.ilet.cloud.IletSessionKeeper
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletAlarmHistory
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletAlgoStepRecord
 import com.eveningoutpost.dexdrip.cgm.ilet.protocol.IletHistoricalGlucoseRecord
@@ -105,6 +106,15 @@ class ILetService : JamBaseBluetoothService() {
 
     private suspend fun collectOnce() {
         setState("Connecting")
+
+        // Keep the Cognito session fresh so a later re-enrolment never fails signed-out. This
+        // only hits the network when the id token is expired or close to expiry.
+        try {
+            IletSessionKeeper(store).refreshIfNeeded()
+        } catch (t: Throwable) {
+            UserError.Log.e(TAG, "session refresh check failed: ${t.message}")
+        }
+
         val address = resolveAddress() ?: throw IllegalStateException("no iLet address; pair or scan first")
 
         val transport = IletTransport(address)
@@ -331,7 +341,12 @@ class ILetService : JamBaseBluetoothService() {
             is IletAlarmHistory -> record.recordTimestampRtc
             else -> return null
         }
-        return IletMapping.insulinMillis(rtc, processor.epochOffsetSeconds)
+        // Insulin-derived records use the offset without the drift fold (see IletDataProcessor).
+        val offset = when (record) {
+            is IletHistoricalGlucoseRecord -> processor.epochOffsetSeconds
+            else -> processor.insulinOffsetSeconds
+        }
+        return IletMapping.insulinMillis(rtc, offset)
     }
 
     /** Binary search for the first sequence whose record time is >= [targetMs]. */

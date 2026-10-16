@@ -45,6 +45,14 @@ class IletDataProcessor {
     var clockDriftSeconds: Long = 0L
         private set
 
+    /**
+     * Offset for insulin-derived timestamps (boluses, basal, suspend-since). This is the
+     * first approach, without the pump-vs-phone drift fold: the pump's insulin records are
+     * already timed such that folding the drift in made them show up early.
+     */
+    val insulinOffsetSeconds: Long
+        get() = if (epochOffsetSeconds >= 0) epochOffsetSeconds - clockDriftSeconds else epochOffsetSeconds
+
     private var lastIobStoreMs = 0L
     private var lastAlgoMs = 0L
     private var lastMealAnnouncementState = -1
@@ -163,11 +171,18 @@ class IletDataProcessor {
         maybeStorePumpIob(data)
         maybeNotifyLowCartridge(data.cartridgeRemainingUnits)
 
+        // Predicted BG is captured with the rest of the pump data, on every packet, whether
+        // or not this cycle carries a glucose reading.
+        val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
+        maybeStorePredictedBg(
+            data.glucose.predictedReading,
+            data.glucose.readingMgDl,
+            IletMapping.glucoseMillis(data.rtcTimestamp, offset),
+        )
+
         val reading = data.glucose.readingMgDl
         if (reading <= 0) return
-        val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
         val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-        maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp)
         if (!IletPrefs.downloadGlucose()) return
         BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
     }
@@ -190,19 +205,25 @@ class IletDataProcessor {
         maybeStorePumpIobRaw(data.iobUnits, data.cartridgeRemainingUnits, data.batteryPct.toDouble())
         maybeNotifyLowCartridge(data.cartridgeRemainingUnits)
 
-        // Suspend start time is only in the 0x1515 control packet.
-        val controlOffset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
+        // Suspend start time is only in the 0x1515 control packet; treated as insulin-derived.
+        val controlOffset = if (epochOffsetSeconds >= 0) insulinOffsetSeconds else data.clockOffset
         if (data.isInsulinPaused && data.insulinPausedTime > 0) {
             IletPrefs.setInsulinPausedSinceMs((data.insulinPausedTime + controlOffset) * 1000L)
         } else if (!data.isInsulinPaused) {
             IletPrefs.setInsulinPausedSinceMs(0L)
         }
 
+        // Predicted BG is captured with the rest of the pump data, on every packet.
+        val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
+        maybeStorePredictedBg(
+            data.glucose.predictedReading,
+            data.glucose.readingMgDl,
+            IletMapping.glucoseMillis(data.rtcTimestamp, offset),
+        )
+
         val reading = data.glucose.readingMgDl
         if (reading > 0) {
-            val offset = if (epochOffsetSeconds >= 0) epochOffsetSeconds else data.clockOffset
             val timestamp = IletMapping.glucoseMillis(data.glucose.currentTimestamp, offset)
-            maybeStorePredictedBg(data.glucose.predictedReading, reading, timestamp)
             if (IletPrefs.downloadGlucose()) {
                 BgReading.bgReadingInsertFromIlet(reading.toDouble(), timestamp, null, glucoseDedupeWindow())
             }
@@ -272,7 +293,7 @@ class IletDataProcessor {
             }
         } else if (IletPrefs.lowCartridgeNotified()) {
             IletPrefs.setLowCartridgeNotified(false)
-            IletNotifications.clearLowCartridge(context)
+            IletNotifications.clearLowCartridge()
         }
     }
 
@@ -292,7 +313,7 @@ class IletDataProcessor {
         } else if (predictedMgdl.toDouble() >= lowMark + PREDICTED_LOW_CLEAR_HYSTERESIS_MGDL
             && IletPrefs.predictedLowNotified()) {
             IletPrefs.setPredictedLowNotified(false)
-            IletNotifications.clearPredictedLow(context)
+            IletNotifications.clearPredictedLow()
         }
     }
 
@@ -353,7 +374,7 @@ class IletDataProcessor {
             return
         }
 
-        val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, epochOffsetSeconds)
+        val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, insulinOffsetSeconds)
         val uuid = UUID.nameUUIDFromBytes("ilet:$serial:insulin:${rec.sequenceNumber}".toByteArray()).toString()
         val existing = Treatments.byuuid(uuid)
         if (existing != null) {
@@ -374,7 +395,7 @@ class IletDataProcessor {
     fun processAlgoStep(rec: IletAlgoStepRecord) {
         if (!IletPrefs.downloadBasal()) return
         val rate = IletMapping.basalRate(rec.instantBasalX10, rec.nominalBasalX10) ?: return
-        val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, epochOffsetSeconds)
+        val timestamp = IletMapping.insulinMillis(rec.recordTimestampRtc, insulinOffsetSeconds)
         if (timestamp <= lastAlgoMs) return
         lastAlgoMs = timestamp
         APStatus.createEfficientRecord(timestamp, rate)

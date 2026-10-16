@@ -26,16 +26,12 @@ class IletCloudSigner(
 ) : IletSigner {
 
     override suspend fun sign(data: ByteArray): ByteArray = withContext(Dispatchers.IO) {
-        val session = store.loadSession() ?: throw IletCloudError("not signed in: no Cognito session")
-        val idToken = if (session.isExpired()) {
-            val refreshed = auth.refresh(session.refreshToken)
-            store.storeSession(
-                session.copy(idToken = refreshed.idToken, accessToken = refreshed.accessToken)
-            )
-            refreshed.idToken
-        } else {
-            session.idToken
+        // Refresh the session first if needed (and clear it if Cognito rejects the refresh).
+        if (!IletSessionKeeper(store, auth).refreshIfNeeded()) {
+            throw IletCloudError("not signed in: no valid Cognito session")
         }
+        val idToken = store.loadSession()?.idToken
+            ?: throw IletCloudError("not signed in: no Cognito session")
 
         val payload = Base64.getEncoder().encodeToString(data)
         val url = "$baseUrl/$SIGN_PATH"

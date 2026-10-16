@@ -1,19 +1,19 @@
 package com.eveningoutpost.dexdrip.cgm.ilet
 
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import androidx.core.app.NotificationCompat
 import com.eveningoutpost.dexdrip.Home
 import com.eveningoutpost.dexdrip.R
+import com.eveningoutpost.dexdrip.models.JoH
 import com.eveningoutpost.dexdrip.utilitymodels.NotificationChannels
 import com.eveningoutpost.dexdrip.utilitymodels.Unitized
 import java.util.Locale
 
 /**
- * iLet pump alert notifications (low cartridge, predicted low). Gated by the iLet
- * "Notifications" settings; the caller owns the once-per-episode latch.
+ * iLet pump alert notifications (low cartridge, predicted low). Raised through
+ * [JoH.showNotification] with sound and vibration so they behave like xDrip's
+ * update-available and sensor-expiry alerts. The caller owns the once-per-episode latch.
  */
 object IletNotifications {
 
@@ -29,7 +29,7 @@ object IletNotifications {
         )
     }
 
-    fun clearLowCartridge(context: Context) = cancel(context, LOW_CARTRIDGE_ID)
+    fun clearLowCartridge() = JoH.cancelNotification(LOW_CARTRIDGE_ID)
 
     fun predictedLow(context: Context, predictedMgdl: Int) {
         notify(
@@ -43,7 +43,7 @@ object IletNotifications {
         )
     }
 
-    fun clearPredictedLow(context: Context) = cancel(context, PREDICTED_LOW_ID)
+    fun clearPredictedLow() = JoH.cancelNotification(PREDICTED_LOW_ID)
 
     private fun notify(context: Context, id: Int, title: String, body: String) {
         val pending = PendingIntent.getActivity(
@@ -52,19 +52,18 @@ object IletNotifications {
             Intent(context, Home::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val builder = NotificationCompat.Builder(context, NotificationChannels.GENERAL_CHANNEL)
-            .setSmallIcon(R.drawable.ic_action_communication_invert_colors_on)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setAutoCancel(true)
-            .setContentIntent(pending)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
-        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).notify(id, builder.build())
-    }
-
-    private fun cancel(context: Context, id: Int) {
-        (context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).cancel(id)
+        JoH.showNotification(
+            title,
+            body,
+            pending,
+            id,
+            NotificationChannels.GENERAL_CHANNEL,
+            true, // sound
+            true, // vibrate
+            null,
+            null,
+            null,
+            false,
+        )
     }
 }
