@@ -2149,7 +2149,7 @@
     <string name="to_use_this_instead">to use this instead?</string>
     <string name="the_transmitter_id_you_have_entered_is_incorrect">The transmitter ID or pairing code you have entered is incorrect and would not work.\n\nPlease double-check the details and try again.</string>
     <!-- Settings categories -->
-    <string name="settings_cat_general">General Settings</string>
+    <string name="settings_cat_general">General</string>
     <string name="settings_cat_alarms">Alarms and Alerts</string>
     <string name="settings_cat_data">Your Data</string>
     <string name="settings_cat_profile">Profile</string>
@@ -2158,6 +2158,15 @@
     <string name="settings_cat_accessibility">Accessibility</string>
     <string name="settings_cat_advanced">Advanced</string>
     <string name="settings_cat_about">About</string>
+    <string name="settings_cat_general_summary">Glucose units, reminders and system notifications</string>
+    <string name="settings_cat_alarms_summary">Glucose, calibration and sensor alerts and how they sound</string>
+    <string name="settings_cat_data_summary">Uploads, sync, backups and data tables</string>
+    <string name="settings_cat_profile_summary">Insulin, carb ratios and the prediction model</string>
+    <string name="settings_cat_devices_summary">How xDrip collects data and the hardware it talks to</string>
+    <string name="settings_cat_appearance_summary">Colours, display, graphs and the home screen</string>
+    <string name="settings_cat_accessibility_summary">Speak readings and always-on display</string>
+    <string name="settings_cat_advanced_summary">Bluetooth, logging, inter-app, motion and calibration</string>
+    <string name="settings_cat_about_summary">Version information, updates, feedback and licence</string>
     <string name="category_backups">Backups</string>
     <string name="category_notifications">Notifications</string>
     <string name="category_version_info">Version information</string>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceScreen android:key="settings_cat_accessibility"
-    android:title="@string/settings_cat_accessibility">
+    android:title="@string/settings_cat_accessibility"
+    android:summary="@string/settings_cat_accessibility_summary">
 
     <PreferenceScreen
         android:icon="@drawable/ic_speak_reading_grey600_48dp"

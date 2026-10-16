@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceScreen android:key="settings_cat_alarms"
-    android:title="@string/settings_cat_alarms">
+    android:title="@string/settings_cat_alarms"
+    android:summary="@string/settings_cat_alarms_summary">
 
     <Preference
         android:key="bg_level_alerts"
