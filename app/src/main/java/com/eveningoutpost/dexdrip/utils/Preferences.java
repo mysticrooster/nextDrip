@@ -2830,6 +2830,10 @@ public class Preferences extends BasePreferenceActivity implements SearchPrefere
             if (!Experience.gotData()) {
                 removeFromParent("crowd_sourced_translation");
             }
+            // Reminders keeps the Home menu gate: the checkbox stays in Appearance -> Display
+            if (!Pref.getBoolean("plus_show_reminders", true) || Experience.isNewbie()) {
+                removeFromParent("reminders_settings");
+            }
             if (!Pref.getBooleanDefaultFalse("show_data_tables")) {
                 removeFromParent("bg_data_table");
                 removeFromParent("calibration_data_table");

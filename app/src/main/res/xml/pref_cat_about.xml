@@ -37,7 +37,7 @@
             android:key="about_build_number"
             android:title="@string/about_build_number" />
         <Preference
-            android:key="about_build_time"
+            android:key="about_built_on"
             android:title="@string/about_built_on" />
     </PreferenceScreen>
 
