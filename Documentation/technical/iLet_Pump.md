@@ -158,6 +158,10 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
   (`clockDriftSeconds`, positive when the pump is behind) to the same offset, so a residual
   pump clock error — a pump that is simply set wrong — no longer shifts pump data by that
   error. Unit-tested in `IletEpochTest`.
+- Insulin-derived timestamps (boluses, basal, suspend-since) deliberately use the offset
+  **without** the drift fold (`IletDataProcessor.insulinOffsetSeconds`): folding the drift in
+  made the pump's insulin records run early, so they keep the first approach while glucose
+  keeps the drift-corrected offset.
 
 ## Data mapping
 
@@ -207,14 +211,17 @@ alive from `MissedReadingService` via `ILetEntry.immortality()`; it self-stops w
 - The pump's predicted BG (`IletRealTimeData.glucose.predictedReading`, mg/dL) is **not
   persisted**: the latest value and the reading it came with are kept in prefs and the graph
   draws a single live straight stub from that reading to the prediction, gated by
-  `show_ilet_predicted_bg_line` (**off by default**, colour `color_ilet_predicted_bg`). The
+  `show_ilet_predicted_bg_line` (**off by default**, colour `color_ilet_predicted_bg`). It is
+  captured on **every** real-time packet alongside the rest of the pump data (IOB/reservoir/
+  battery), not only when the packet carries a glucose reading. The
   stub is hidden once the value goes stale, so it only ever shows for the newest reading, not
   a history. On the home screen a matching `{bg} predicted in 20 minutes` label is shown next
   to the low-prediction text, in the same colour. The pump protocol does not document the
   forecast horizon; Beta Bionics' "Urgent Low Soon" alert predicts 20 minutes ahead, so the
   stub and the label use `PREDICTED_STUB_HORIZON_MS` (20 min) as a reasonable reference.
 - Two optional alerts live under an **iLet → Notifications** sub-menu (both **off by
-  default**), raised through `IletNotifications` on the general channel:
+  default**), raised through `IletNotifications` on the general channel with **sound and the
+  same vibration pattern as xDrip's update-available / sensor-expiry alerts**:
   - **Low cartridge** — notifies once when `cartridgeRemainingUl` drops below 20 U and clears
     the notification when the cartridge is refilled (remaining units back above 20 U).
   - **Predicted low** — notifies once when the pump's `predictedReading` is below the user's
@@ -326,6 +333,12 @@ wait short via the conflated wake-up channel.
   no AWS SDK) with optional `SOFTWARE_TOKEN_MFA`; only the refresh/access/id tokens are
   persisted, never the password. This is the highest-risk component; it is unit-tested at
   the SRP math level and needs a manual login test against a real account.
+- `IletSessionKeeper` keeps the session fresh: when the id token is expired or within 5
+  minutes of expiry it refreshes it via the refresh token and persists the new tokens. It runs
+  at the start of every iLet service cycle (only touching the network when near expiry) and
+  from `IletCloudSigner.sign()`. If Cognito **rejects the refresh token** the session is
+  cleared so the UI shows signed-out and the user can sign in again; a transient network
+  failure keeps the session and retries on a later cycle.
 - The app UUID is bound to the pump, so re-signing the *same* app UUID with a fresh key is
   rejected by the attest route. `ILetLoginActivity` therefore **only mints when no credential
   exists**; to re-enrol, forget the credential (or everything) first. The signer tolerates a
