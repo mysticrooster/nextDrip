@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="settings_cat_profile"
+    android:title="@string/settings_cat_profile">
+
+    <PreferenceScreen
+        android:dependency="I_understand"
+        android:key="xdrip_plus_multiple_insulin_types_settings"
+        android:summary="@string/summary_multiple_insulin_types_settings"
+        android:title="@string/title_multiple_insulin_types_settings">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="multiple_insulin_types"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_multiple_insulin_types" />
+        <Preference
+            android:dependency="multiple_insulin_types"
+            android:key="insulin_profiles"
+            android:summary="@string/desc_enable_dedicated_insulin_profiles"
+            android:title="@string/enable_dedicated_insulin_profiles">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.insulin.InsulinProfileEditor"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="multiple_insulin_use_basal_activity"
+            android:summary="@string/summary_multiple_insulin_use_basal_activity"
+            android:title="@string/title_multiple_insulin_use_basal_activity" />
+    </PreferenceScreen>
+
+    <Preference
+        android:dependency="I_understand"
+        android:key="profile_carb_ratio_default"
+        android:summary="@string/grams_of_carbohydrate_one_unit_covers"
+        android:title="@string/carb_ratio">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.eveningoutpost.dexdrip.profileeditor.ProfileEditor"
+            android:targetPackage="@string/local_target_package" />
+    </Preference>
+
+    <Preference
+        android:dependency="I_understand"
+        android:key="profile_insulin_sensitivity_default"
+        android:summary="@string/glucose_drop_for_one_unit"
+        android:title="@string/insulin_sensitivity">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.eveningoutpost.dexdrip.profileeditor.ProfileEditor"
+            android:targetPackage="@string/local_target_package" />
+    </Preference>
+
+    <Preference
+        android:dependency="I_understand"
+        android:key="basal_profile_edit_start"
+        android:summary="@string/graphical_editor_for_pump_basal"
+        android:title="@string/basal_profile_editor">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetClass="com.eveningoutpost.dexdrip.profileeditor.BasalProfileEditor"
+            android:targetPackage="@string/local_target_package" />
+    </Preference>
+
+    <EditTextPreference
+        android:defaultValue="35"
+        android:dependency="I_understand"
+        android:key="profile_carb_absorption_default"
+        android:summary="@string/linear_model_carbs_absorbed_per_hour"
+        android:title="@string/carb_absorption_rate" />
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:dependency="I_understand"
+        android:key="simulations_enabled"
+        android:summary="@string/display_mathamatical_simulations"
+        android:switchTextOff="@string/short_off_text_for_switches"
+        android:switchTextOn="@string/short_on_text_for_switches"
+        android:title="@string/predictive_simulations" />
+
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:dependency="I_understand"
+        android:key="predict_use_momentum"
+        android:summary="@string/calculate_including_glucose_trend"
+        android:title="@string/use_trend_momentum" />
+
+    <PreferenceScreen
+        android:dependency="I_understand"
+        android:key="xdrip_plus_adv_predict"
+        android:summary="@string/deel_settings_for_algs"
+        android:title="@string/low_prediction_values">
+
+        <PreferenceCategory
+            android:key="xdrip_plus_adv_predict_cat"
+            android:title="@string/low_level_prediction_values">
+
+            <EditTextPreference
+                android:defaultValue="100"
+                android:inputType="numberDecimal"
+                android:key="plus_target_range"
+                android:summary=""
+                android:title="@string/target_glucose_default" />
+            <EditTextPreference
+                android:defaultValue="3.0"
+                android:inputType="numberDecimal"
+                android:key="xplus_insulin_dia"
+                android:summary=""
+                android:title="@string/insulin_duration_hours" />
+            <EditTextPreference
+                android:defaultValue="2"
+                android:inputType="numberDecimal"
+                android:key="xplus_liver_sensitivity"
+                android:summary=""
+                android:title="@string/default_liver_sensitivity_ratio" />
+            <EditTextPreference
+                android:defaultValue="0.8"
+                android:inputType="numberDecimal"
+                android:key="xplus_liver_maximpact"
+                android:summary=""
+                android:title="@string/default_liver_maximum_impact" />
+        </PreferenceCategory>
+    </PreferenceScreen>
+</PreferenceScreen>

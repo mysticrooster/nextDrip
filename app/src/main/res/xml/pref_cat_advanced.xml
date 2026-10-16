@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="settings_cat_advanced"
+    android:title="@string/settings_cat_advanced">
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_bluetooth_settings_grey600_48dp"
+        android:key="xdrip_bluetooth_adv_settings"
+        android:summary="@string/advanced_bluetooth_settings"
+        android:title="@string/bluetooth_settings">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="automatically_turn_bluetooth_on"
+            android:summary="@string/auto_turn_on_bluetooth"
+            android:title="@string/turn_bluetooth_on" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="bluetooth_watchdog"
+            android:summary="@string/reset_bluetooth"
+            android:title="@string/bluetooth_watchdog" />
+        <ListPreference
+            android:defaultValue="20"
+            android:dependency="bluetooth_watchdog"
+            android:entries="@array/bluetooth_watchdog_timer_entries"
+            android:entryValues="@array/bluetooth_watchdog_timer_values"
+            android:key="bluetooth_watchdog_timer"
+            android:summary="@string/bluetooth_watchdog_timer_sums"
+            android:title="@string/bluetooth_watchdog_timers" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="close_gatt_on_ble_disconnect"
+            android:summary="@string/close_gatt"
+            android:title="@string/close_gatt_on_ble_disconnect" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bluetooth_use_scan"
+            android:summary="@string/summary_Scan_before_connecting_on_xBridge_and_Libre_bluetooth"
+            android:title="@string/title_Use_scanning" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bluetooth_use_blemanager"
+            android:summary="Use a more modern BLE manager system"
+            android:title="Use BLE manager" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="bluetooth_trust_autoconnect"
+            android:summary="@string/summary_Use_and_trust_Android_bluetooth_auto_connect_feature"
+            android:title="@string/title_Trust_Auto_Connect" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="bluetooth_allow_background_scans"
+            android:summary="@string/android_8_background_scanning"
+            android:title="@string/use_background_scans" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bluetails_enabled"
+            android:summary="Use Bluetooth with companion app data source"
+            android:title="Companion Bluetooth" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bluetooth_excessive_wakelocks"
+            android:summary="@string/older_bluetooth_wakelocks"
+            android:title="@string/bluetooth_wakelocks" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_dex_collection_polling"
+            android:summary="@string/summary_Experimental_support_for_xBridge_polling_feature"
+            android:title="@string/title_xBridge_Polling_Mode" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="engineering_mode"
+            android:key="always_discover_services"
+            android:summary="@string/summary_Probe_Bluetooth_services_on_every_connect"
+            android:title="@string/title_Always_discover_services" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="engineering_mode"
+            android:key="use_gatt_refresh"
+            android:summary="Whether to use the low level gatt refresh mechanism"
+            android:title="Use GATT refresh" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="blukon_unbonding"
+            android:summary="@string/summary_Only_suitable_for_phones_which_support_automatic_pairing"
+            android:title="@string/title_Allow_blucon_unbonding" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="xdrip_logging_adv_settings"
+        android:title="@string/extra_logging">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="false"
+            android:key="enable_bugfender"
+            android:summary="@string/send_logs_to_developer"
+            android:title="@string/enable_remote_logging" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:key="bugfender_appid"
+            android:title="@string/set_logging_appid" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="engineering_mode"
+            android:key="store_logs"
+            android:summary="@string/only_enable_on_trouble"
+            android:title="@string/store_logs" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:dialogMessage="@string/extra_tags_dialog_message"
+            android:dialogTitle="@string/extra_tags_dialog_title"
+            android:inputType="textUri"
+            android:key="extra_tags_for_logging"
+            android:title="@string/extra_tags_for_logging" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_open_in_app_grey600_48dp"
+        android:key="xdrip_intrer_app_settings"
+        android:summary="@string/for_interacting_compatible_apps"
+        android:title="@string/interapp_settings">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="broadcast_data_through_intents"
+            android:summary="@string/pref_summary_broadcast_enabled"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/pref_title_broadcast_enabled" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="broadcast_data_through_intents"
+            android:key="broadcast_data_use_best_glucose"
+            android:summary="@string/use_plugins_for_brodcast"
+            android:title="@string/send_display_glucose" />
+        <ListPreference
+            android:defaultValue="200"
+            android:dependency="broadcast_data_through_intents"
+            android:entries="@array/NoiseLevelBlock"
+            android:entryValues="@array/NoiseLevelBlockValues"
+            android:key="noise_block_level"
+            android:shouldDisableView="true"
+            android:summary="@string/level_at_which_noisy_data_should_not_be_broadcast"
+            android:title="@string/noise_blocking" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="broadcast_data_through_intents"
+            android:key="broadcast_data_through_intents_without_permission"
+            android:summary="@string/send_broadcasts_old_permission_model"
+            android:title="@string/compatible_broadcast" />
+        <EditTextPreference
+            android:dependency="broadcast_data_through_intents"
+            android:key="local_broadcast_specific_package_destination"
+            android:summary="@string/summary_Only_send_to_named_package"
+            android:title="@string/title_Identify_receiver" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="accept_nsclient_sgv"
+            android:summary="@string/process_glucose_data_received"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/accept_glucose" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="accept_nsclient_treatments"
+            android:summary="@string/process_nsclient_treatments"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/accept_treatments" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="accept_nsclient_treatments"
+            android:key="profile_import_sound"
+            android:summary="@string/play_sounds_when_importing"
+            android:title="@string/import_sounds" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="accept_broadcast_calibrations"
+            android:summary="@string/process_broadcasted_calibrations"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_Accept_Calibrations" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="accept_external_status"
+            android:summary="@string/external_status_strings_eg_tbr"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/accept_external_status" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="xdrip_webservice"
+            android:summary="@string/summary_Operate_a_local_web_server_for_interacting_with_Fitbit_Ionic_etc"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_xDrip_Web_Service" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="xdrip_webservice"
+            android:key="xdrip_webservice_open"
+            android:summary="@string/summary_Accept_connections_from_any_network_instead_of_just_internally"
+            android:title="@string/title_Open_Web_Service" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:dependency="xdrip_webservice"
+            android:key="xdrip_webservice_secret"
+            android:summary="@string/summary_Shared_Secret_for_open_web_service"
+            android:title="@string/title_xDrip_Web_Service_Secret" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="broadcast_service_enabled"
+            android:summary="@string/summary_broadcast_service_api"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_broadcast_service_api" />
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="enable_iob_in_api_endpoint"
+            android:summary="@string/summary_enable_iob_in_api_endpoint"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_enable_iob_in_api_endpoint" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="fetch_iob_from_companion_app"
+            android:summary="@string/summary_fetch_iob_from_companion_app"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_fetch_iob_from_companion_app" />
+        <PreferenceScreen
+            android:key="health_connect_screen"
+            android:summary="@string/send_and_receive_data_from_google_health_connect_and_google_fit"
+            android:title="@string/google_health_connect">
+            <SwitchPreference
+                android:key="health_connect_enable"
+                android:summary="@string/requires_android_8_and_google_companion_application_or_android_14"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/use_health_connect" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="health_connect_enable"
+                android:key="health_connect_receive"
+                android:summary="@string/get_data_from_health_connect"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches" />
+            <SwitchPreference
+                android:dependency="health_connect_enable"
+                android:key="health_connect_send"
+                android:summary="@string/send_data_to_health_connect"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches" />
+            <Preference
+                android:dependency="health_connect_enable"
+                android:key="health_connect_manage"
+                android:summary="@string/open_health_connect_settings_to_manually_manage_permissions"
+                android:title="@string/manage_permissions" />
+        </PreferenceScreen>
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="xdrip_other_misc_extra_screen"
+        android:summary=""
+        android:title="@string/title_Other_misc_options">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="engineering_mode"
+            android:key="engineering_mode"
+            android:summary="@string/allow_unsafe_settings"
+            android:title="@string/engineering_mode" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="requested_ignore_battery_optimizations_new"
+            android:summary="@string/battery_optimization_on"
+            android:title="@string/battery_optimization_prompt" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="allow_samsung_workaround"
+            android:summary="@string/summary_allow_samsung_workaround"
+            android:title="@string/title_allow_samsung_workaround" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="excessive_wakelocks"
+            android:summary="@string/older_gratuitous_wakelocks"
+            android:title="@string/use_excessive_wakelocks" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="engineering_mode"
+            android:key="predictive_bg"
+            android:summary="@string/predictive_readings_old"
+            android:title="@string/display_predictive_values" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aggressive_service_restart"
+            android:summary="@string/repeatedly_restart_collection_service"
+            android:title="@string/aggressive_service_restarts" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="interpret_raw"
+            android:summary="@string/interpret_share_raw"
+            android:title="@string/interpret_raw" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="show_data_tables"
+            android:summary="@string/show_datatables_in_app_drawer"
+            android:title="@string/show_datatables" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="display_bridge_battery"
+            android:summary="@string/summary_Choose_to_display_the_bridge_battery_level"
+            android:title="@string/display_bridge_battery" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="disable_battery_warning"
+            android:summary="@string/disable_log_transmitter_battery_warning"
+            android:title="@string/disable_battery_warning" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="save_db_ondemand"
+            android:summary="@string/allow_daily_db_save"
+            android:title="@string/daily_save_db" />
+        <EditTextPreference
+            android:defaultValue="180"
+            android:key="retention_days_bg_reading"
+            android:max="366"
+            android:numeric="integer"
+            android:summary="@string/summary_Erase_data_older_than_this_many_days"
+            android:title="@string/title_Glucose_Retention" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:enabled="true"
+            android:key="Eversense_one_minute"
+            android:summary="Accept data at one-minute intervals from Inter-app broadcast.  Reboot your phone for changes to take effect."
+            android:title="1-min Inter-app broadcast" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="allow_testing_with_dead_sensor"
+            android:key="allow_testing_with_dead_sensor"
+            android:summary="@string/summary_allow_testing_with_dead_sensor"
+            android:title="@string/title_NOT_FOR_PRODUCTION_USE" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="xdrip_plus_calibration_settings"
+        android:summary="@string/extra_calibration_options"
+        android:title="@string/advanced_calibration">
+        <ListPreference
+            android:defaultValue="auto"
+            android:entries="@array/TreatmentCalibrationChoiceDetail"
+            android:entryValues="@array/TreatmentCalibrationChoice"
+            android:key="treatment_fingerstick_calibration_usage"
+            android:shouldDisableView="true"
+            android:summary="@string/choose_use_treament_bg"
+            android:title="@string/usw_treatment_bg" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bluetooth_meter_for_calibrations_auto"
+            android:summary="@string/auto_calibration_good_conditions"
+            android:title="@string/automatic_calibration" />
+        <ListPreference
+            android:defaultValue="None"
+            android:key="current_calibration_plugin"
+            android:shouldDisableView="true"
+            android:summary="@string/experimental_calibration_plugin"
+            android:title="@string/calibration_plugin" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="plugin_plot_on_graph"
+            android:summary="@string/show_plugin_results_on_graph"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/plugin_plot_on_graph" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="display_glucose_from_plugin"
+            android:summary="@string/main_glucose_plugin"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/use_plugin_glucose" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="engineering_mode"
+            android:enabled="false"
+            android:key="use_pluggable_alg_as_primary"
+            android:summary="@string/all_new_glucose_data_plugin"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/plugin_override_all" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="use_double_calibrations"
+            android:summary="@string/summary_Ask_for_a_second_optional_initial_calibration_blood_test"
+            android:title="@string/title_Double_Calibrations" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="engineering_mode"
+            android:key="old_school_calibration_mode"
+            android:summary="@string/old_school_calibrations"
+            android:title="@string/old_school_calibration_mode" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="infrequent_calibration"
+            android:summary="@string/use_infrequent_calibrations"
+            android:title="@string/infrequent_calibrations" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bypass_calibration_quality_check"
+            android:summary="@string/summary_Allow_initial_calibration_no_good_enough_data"
+            android:title="@string/title_Bypass_quality_check" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_car_connected_grey600_48dp"
+        android:key="xdrip_plus_motion_settings"
+        android:summary="@string/movement_detection_and_vehicle_mode"
+        android:title="@string/xdrip_motion_tracking">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="motion_tracking_enabled"
+            android:summary="@string/detect_motion_types"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/enable_motion_tracking" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="motion_tracking_enabled"
+            android:key="plot_motion"
+            android:summary="@string/display_motion_types"
+            android:title="@string/log_and_plot_motion" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="motion_tracking_enabled"
+            android:key="use_remote_motion"
+            android:summary="@string/use_remote_motion_data"
+            android:title="@string/use_remote_motion" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="motion_tracking_enabled"
+            android:key="act_as_motion_master"
+            android:summary="@string/be_motion_master"
+            android:title="@string/act_as_motion_master" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="vehicle_mode_enabled"
+            android:summary="@string/vehicle_motion_extras"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/enable_vehicle_mode" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:dependency="vehicle_mode_enabled"
+            android:key="vehicle_mode_via_car_audio"
+            android:summary="@string/automatically_enable_when_connected_to_car_bluetooth"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/detect_car_audio" />
+        <Preference
+            android:dependency="vehicle_mode_enabled"
+            android:key="learn_this_audio_device"
+            android:summary="@string/tap_to_set_current_car_audio_device"
+            android:title="@string/learn_current_car_audio">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.ui.activities.SelectAudioDevice"
+                android:targetPackage="@string/local_target_package">
+                <extra
+                    android:name="none"
+                    android:value="none" />
+            </intent>
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="vehicle_mode_enabled"
+            android:key="raise_low_limit_in_vehicle_mode"
+            android:summary="@string/increase_low_alarms_vehicle_mode"
+            android:title="@string/raise_low_threshold" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="vehicle_mode_enabled"
+            android:key="speak_readings_in_vehicle_mode"
+            android:summary="@string/enable_speak_readings_when_in_vehicle"
+            android:title="@string/speak_readings" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="vehicle_mode_enabled"
+            android:key="play_sound_in_vehicle_mode"
+            android:summary="@string/notification_sound_vehicle_mode"
+            android:title="@string/play_sound" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="vehicle_mode_enabled"
+            android:key="repeat_sound_in_vehicle_mode"
+            android:summary="@string/repeat_notification_every_90_minutes"
+            android:title="@string/repeat_sound" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_briefcase_download_grey600_48dp"
+        android:key="xdrip_plus_update_settings"
+        android:summary="@string/automatic_updates_crash_reports_and_feedback"
+        android:title="@string/xdrip_plus_update_settings">
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="auto_update_download"
+            android:summaryOff="New releases often have bugs fixed. It is recommended to switch on update notifications!"
+            android:summaryOn="@string/get_notified_of_new_apk_releases"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/automatic_update_check" />
+        <ListPreference
+            android:defaultValue="beta"
+            android:entries="@array/UpdateChannelDetail"
+            android:entryValues="@array/UpdateChannel"
+            android:key="update_channel"
+            android:shouldDisableView="true"
+            android:summary="@string/choose_stable_beta_or_alpha_releases"
+            android:title="@string/update_channel" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enable_crashlytics"
+            android:summary="@string/send_crash_errors_to_developer"
+            android:title="@string/automatic_crash_reporting" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="enable_crashlytics"
+            android:key="enable_telemetry"
+            android:summary="@string/send_data_to_developers"
+            android:title="@string/enable_telemetry" />
+    </PreferenceScreen>
+</PreferenceScreen>

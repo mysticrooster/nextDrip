@@ -2148,4 +2148,32 @@
     <string name="click">Click</string>
     <string name="to_use_this_instead">to use this instead?</string>
     <string name="the_transmitter_id_you_have_entered_is_incorrect">The transmitter ID or pairing code you have entered is incorrect and would not work.\n\nPlease double-check the details and try again.</string>
+    <!-- Settings categories -->
+    <string name="settings_cat_general">General Settings</string>
+    <string name="settings_cat_alarms">Alarms and Alerts</string>
+    <string name="settings_cat_data">Your Data</string>
+    <string name="settings_cat_profile">Profile</string>
+    <string name="settings_cat_devices">Devices</string>
+    <string name="settings_cat_appearance">Appearance</string>
+    <string name="settings_cat_accessibility">Accessibility</string>
+    <string name="settings_cat_advanced">Advanced</string>
+    <string name="settings_cat_about">About</string>
+    <string name="category_backups">Backups</string>
+    <string name="category_notifications">Notifications</string>
+    <string name="category_version_info">Version information</string>
+    <string name="category_events_log">Events Log</string>
+    <string name="category_glucose_meters">Glucose Meters</string>
+    <string name="category_blueReader_settings">blueReader Settings</string>
+    <string name="category_advanced_libre_options">Advanced Libre options</string>
+    <string name="category_remote_snoozing">Remote Snoozing</string>
+    <string name="category_upload_backfill">Back-fill</string>
+    <string name="category_cloud_upload">Cloud Upload</string>
+    <string name="category_cloud_sync">Cloud sync</string>
+    <string name="category_xdrip_sync">xDrip sync</string>
+    <string name="title_send_feedback">Send feedback</string>
+    <string name="title_check_for_update">Check for update</string>
+    <string name="title_crowd_sourced_translation">Crowd-sourced translation</string>
+    <string name="title_show_libre_trend">Show Libre trend</string>
+    <string name="title_events_log">View events log</string>
+    <string name="title_emergency_messages">Emergency Messages</string>
 </resources>

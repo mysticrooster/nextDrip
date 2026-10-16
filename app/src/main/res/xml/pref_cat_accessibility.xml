@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="settings_cat_accessibility"
+    android:title="@string/settings_cat_accessibility">
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_speak_reading_grey600_48dp"
+        android:key="xdrip_speak_readings_settings"
+        android:summary="@string/if_the_phone_has_text_to_speech"
+        android:title="@string/speak_readings">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="bg_to_speech"
+            android:summary="@string/if_the_phone_has_text_to_speech"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/speak_readings" />
+        <SeekBarPreference
+            android:defaultValue="0"
+            android:dependency="bg_to_speech"
+            android:key="speak_readings_change_threshold"
+            android:max="300"
+            android:min="0"
+            android:summary="@string/title_When_changes_by"
+            android:title="" />
+        <SeekBarPreference
+            android:defaultValue="0"
+            android:dependency="bg_to_speech"
+            android:key="speak_readings_change_time"
+            android:max="300"
+            android:min="0"
+            android:summary="@string/title_Or_per_number_of_minutes"
+            android:title="" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="speak_alerts"
+            android:summary="@string/Speak_Alerts_Summary"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/Speak_Alerts" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:dependency="bg_to_speech"
+            android:key="bg_to_speech_trend"
+            android:summary="@string/Speak_trend_arrow_name" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="bg_to_speech"
+            android:key="bg_to_speech_repeat_twice"
+            android:summary="@string/speak_glucose_twice" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="speak_twice"
+            android:summary="@string/Speak_everything_twice" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:key="speak_readings_custom_language"
+            android:summary="@string/spoken_readings_locale" />
+        <SeekBarPreference
+            android:defaultValue="7"
+            android:key="speech_speed"
+            android:max="20"
+            android:min="2"
+            android:summary=""
+            android:title="@string/Speech_speed" />
+        <SeekBarPreference
+            android:defaultValue="12"
+            android:key="speech_pitch"
+            android:max="20"
+            android:min="4"
+            android:summary=""
+            android:title="@string/Speech_pitch" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="bg_to_speech_shortcut"
+            android:summary="@string/short_speak_readings_shortcut"
+            android:title="@string/speak_readings_shortcut" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="xdrip_plus_accessibility"
+        android:title="@string/title_xdrip_plus_accessibility">
+        <Preference
+            android:key="show_accessibility_settings"
+            android:summary="@string/summary_show_accessibility_settings"
+            android:title="@string/title_show_accessibility_settings">
+            <intent android:action="android.settings.ACCESSIBILITY_SETTINGS" />
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_top"
+            android:summary="@string/summary_aod_use_top"
+            android:title="@string/title_aod_use_top" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_top_center"
+            android:summary="@string/summary_aod_use_top_center"
+            android:title="@string/title_aod_use_top_center" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_center"
+            android:summary="@string/summary_aod_use_center"
+            android:title="@string/title_aod_use_center" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_center_bottom"
+            android:summary="@string/summary_aod_use_center_bottom"
+            android:title="@string/title_aod_use_center_bottom" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="aod_use_bottom"
+            android:summary="@string/summary_aod_use_bottom"
+            android:title="@string/title_aod_use_bottom" />
+    </PreferenceScreen>
+</PreferenceScreen>

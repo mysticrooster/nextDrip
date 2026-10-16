@@ -1,0 +1,1550 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="settings_cat_devices"
+    android:title="@string/settings_cat_devices">
+
+    <PreferenceCategory
+        android:key="collection_category"
+        android:title="@string/data_source_settings">
+
+        <ListPreference
+            android:defaultValue="Disabled"
+            android:entries="@array/DexCollectionMethods"
+            android:entryValues="@array/DexCollectionMethodValues"
+            android:key="dex_collection_method"
+            android:summary="@string/how_receive_data"
+            android:title="@string/hardware_data_source" />
+
+        <PreferenceScreen
+            android:key="xdrip_plus_web_follow_settings"
+            android:summary="Configuration options for web follower data source"
+            android:title="Web Follower Settings">
+
+            <EditTextPreference
+                android:defaultValue="beonlabs"
+                android:key="webfollow_master_domain"
+                android:summary="This is the community helper address or keyword"
+                android:title="Configuration Script" />
+
+            <EditTextPreference
+                android:defaultValue=""
+                android:inputType="textNoSuggestions|textVisiblePassword"
+                android:key="webfollow_username"
+                android:summary="This is your registered user name or email address with the service"
+                android:title="Service logon user name" />
+
+            <EditTextPreference
+                android:defaultValue=""
+                android:inputType="textNoSuggestions|textVisiblePassword"
+                android:key="webfollow_password"
+                android:summary="This is your registered password with the service"
+                android:title="Service logon password" />
+
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="webfollow_use_proxy"
+                android:summary="Use proxy server (advanced)" />
+
+            <EditTextPreference
+                android:defaultValue=""
+                android:dependency="webfollow_use_proxy"
+                android:inputType="textNoSuggestions|textVisiblePassword"
+                android:key="webfollow_proxy_address"
+                android:summary="Proxy host address" />
+            <EditTextPreference
+                android:defaultValue=""
+                android:dependency="webfollow_use_proxy"
+                android:digits="0123456789"
+                android:inputType="number"
+                android:key="webfollow_proxy_port"
+                android:summary="Proxy host port" />
+            <EditTextPreference
+                android:defaultValue=""
+                android:dependency="webfollow_use_proxy"
+                android:inputType="textNoSuggestions|textVisiblePassword"
+                android:key="webfollow_proxy_username"
+                android:summary="Proxy username" />
+            <EditTextPreference
+                android:defaultValue=""
+                android:dependency="webfollow_use_proxy"
+                android:inputType="textNoSuggestions|textVisiblePassword"
+                android:key="webfollow_proxy_password"
+                android:summary="Proxy password" />
+
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="webfollow_use_proxy"
+                android:key="webfollow_proxy_type_http"
+                android:summaryOff="Proxy type is SOCKS (toggle to change)"
+                android:summaryOn="Proxy type is HTTP (toggle to change)" />
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:icon="@drawable/ic_nfc_grey600_48dp"
+            android:key="xdrip_plus_nfc_settings"
+            android:summary="@string/nfc_options"
+            android:title="@string/nfc_scan_features">
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="use_nfc_scan"
+                android:summary="@string/allow_sensor_scanning"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/use_nfc_feature" />
+            <ListPreference
+                android:defaultValue="enable_streaming_ask"
+                android:entries="@array/EnableStreamingMethods"
+                android:entryValues="@array/EnableStreamingValues"
+                android:key="libre2_enable_bluetooth_streaming"
+                android:summary="@string/enable_streaming_summary"
+                android:title="@string/enable_streaming_title" />
+
+            <ListPreference
+                android:defaultValue="25"
+                android:entries="@array/libreFilterLengthMethods"
+                android:entryValues="@array/libreFilterLengthValues"
+                android:key="libre_filter_length"
+                android:summary="@string/libre_filter_length_summary"
+                android:title="@string/libre_filter_length_title" />
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="nfc_show_age"
+                android:summaryOff="@string/show_expiry_time"
+                android:summaryOn="@string/show_sensor_age"
+                android:title="@string/sensor_age_or_expiry" />
+            <EditTextPreference
+                android:defaultValue="14.5"
+                android:inputType="numberDecimal"
+                android:key="nfc_expiry_days"
+                android:title="@string/change_sensor_total_days" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="use_nfc_scan"
+                android:key="nfc_scan_homescreen"
+                android:summaryOff="@string/nfc_scanning_xdrip_open"
+                android:summaryOn="@string/nfc_scanning_launcher"
+                android:title="@string/scan_when_app_closed" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="use_nfc_scan"
+                android:key="nfc_scan_vibrate"
+                android:summary="@string/vibrate_scanning_status" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="engineering_mode"
+                android:key="nfc_scan_beep"
+                android:summary="@string/beep_when_scanning_within_app" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="use_nfc_scan"
+                android:key="use_nfc_multiblock"
+                android:summary="@string/use_multi_block" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="use_nfc_scan"
+                android:key="use_nfc_any_tag"
+                android:summary="@string/use_any_tag" />
+            <EditTextPreference
+                android:defaultValue=""
+                android:dependency="engineering_mode"
+                android:key="nfc_test_diagnostic"
+                android:summary="@string/low_level_value" />
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:key="libre_options_screen"
+            android:title="@string/category_advanced_libre_options">
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="external_blukon_algorithm"
+                android:summary="@string/use_external_blukon_algorithm_summary"
+                android:title="@string/use_external_blukon_algorithm" />
+            <ListPreference
+                android:defaultValue="calibrate_raw"
+                android:entries="@array/CalibrateExternalLibre2"
+                android:entryValues="@array/CalibrateExternalLibre2Values"
+                android:key="calibrate_external_libre_2_algorithm_type"
+                android:summary="@string/calibrate_external_libre_2_algorithm_summary"
+                android:title="@string/calibrate_external_libre_2_algorithm_title" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:enabled="true"
+                android:key="libre_use_smoothed_data"
+                android:summary="@string/libre_use_smoothed_data_summary"
+                android:title="@string/libre_use_smoothed_data_title" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:enabled="true"
+                android:key="retrieve_blukon_history"
+                android:summary="@string/retrieve_blukon_history_summary"
+                android:title="@string/retrieve_blukon_history_title" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:enabled="true"
+                android:key="libre_one_minute"
+                android:summary="@string/summary_libre_one_minute_interval"
+                android:title="@string/title_libre_one_minute_interval" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="use_non_fixed_li_parameters"
+                android:summary="@string/summary_Enable_to_allow_variable_slopes_with_Libre_collection_methods"
+                android:title="@string/title_Non_fixed_Libre_slopes" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="detect_libre_sn_changes"
+                android:summary="Automatically stop if Libre serial changes unexpectedly"
+                android:title="Check Libre Serial" />
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="Libre2_showRawGraph"
+                android:summary="@string/summary_Lib2_show_raw_values"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_Lib2_show_raw_values" />
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="Libre2_showSensors"
+                android:summary="@string/summary_Lib2_show_sense_on_status"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_Lib2_show_sense_on_status" />
+        </PreferenceScreen>
+
+        <EditTextPreference
+            android:defaultValue="SM00000000"
+            android:key="share_key"
+            android:shouldDisableView="true"
+            android:title="@string/enter_ten_character_dexcom_receiver_serial" />
+        <PreferenceScreen
+            android:key="scan_share2_barcode"
+            android:shouldDisableView="true"
+            android:summary="@string/pref_share2_scan_barcode_summary"
+            android:title="@string/scan_share2_barcode" />
+
+        <EditTextPreference
+            android:defaultValue="ABCDEF"
+            android:inputType="textNoSuggestions|textVisiblePassword|textCapCharacters"
+            android:key="dex_txid"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="@string/transmitter_id"
+            android:title="@string/dexcom_transmitter_id" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="medtrum_use_native"
+            android:summary="@string/summary_medtrum_use_native"
+            android:title="@string/title_medtrum_use_native" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:inputType="textNoSuggestions|textVisiblePassword|textCapCharacters"
+            android:key="medtrum_a_hex"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="@string/summary_medtrum_a_hex"
+            android:title="@string/title_medtrum_a_hex" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:key="nsfollow_url"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="@string/summary_nsfollow_url"
+            android:title="@string/title_nsfollow_url" />
+        <PreferenceScreen
+            android:key="nsfollow_download_treatments_screen"
+            android:title="@string/title_nsfollow_download_treatments">
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="nsfollow_download_treatments"
+                android:summary="@string/summary_nsfollow_download_treatments"
+                android:title="@string/title_nsfollow_download_treatments" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="nsfollow_download_treatments"
+                android:key="cloud_storage_api_skip_download_from_xdrip"
+                android:summary="@string/summary_cloud_storage_api_download_from_xdrip"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_cloud_storage_api_download_from_xdrip" />
+        </PreferenceScreen>
+        <ListPreference
+            android:defaultValue="5"
+            android:entries="@array/nsfollow_sample_period_entries"
+            android:entryValues="@array/nsfollow_sample_period_values"
+            android:key="nsfollow_sample_period_in_minutes"
+            android:summary="@string/summary_nsfollow_sample_period"
+            android:title="@string/title_sample_period" />
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/nsfollowlag_entries"
+            android:entryValues="@array/nsfollowlag_values"
+            android:key="nsfollow_lag"
+            android:summary="@string/summary_nsfollow_lag"
+            android:title="@string/title_nsfollow_lag" />
+
+        <EditTextPreference
+            android:defaultValue=""
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:key="shfollow_user"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="Login username for Dex Share Following"
+            android:title="Share Username" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:key="shfollow_pass"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="Login password for Dex Share Following"
+            android:title="Share Password" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="dex_share_us_acct"
+            android:summary="Your account and follower app are from the USA"
+            android:title="US Servers" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="follower_chime"
+            android:summary="@string/notify_data_arrives_master"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/follower_chime_new" />
+
+        <ListPreference
+            android:defaultValue="gb"
+            android:entries="@array/carelinkCountryEntries"
+            android:entryValues="@array/carelinkCountryValues"
+            android:key="clfollow_country"
+            android:summary="@string/summary_clfollow_country"
+            android:title="@string/title_clfollow_country" />
+        <EditTextPreference
+            android:defaultValue=""
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:key="clfollow_patient"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="@string/summary_clfollow_patient"
+            android:title="@string/title_clfollow_patient" />
+        <Preference
+            android:key="clfollow_login"
+            android:summary="@string/summary_clfollow_login"
+            android:title="@string/title_clfollow_login" />
+        <EditTextPreference
+            android:defaultValue="30"
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:key="clfollow_grace_period"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="@string/summary_clfollow_grace_period"
+            android:title="@string/title_clfollow_grace_period" />
+        <EditTextPreference
+            android:defaultValue="1"
+            android:inputType="textNoSuggestions|textVisiblePassword"
+            android:key="clfollow_missed_poll_interval"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:summary="@string/summary_clfollow_missed_poll_interval"
+            android:title="@string/title_clfollow_missed_poll_interval" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="clfollow_download_finger_bgs"
+            android:summary="@string/summary_clfollow_download_finger_bgs"
+            android:title="@string/title_clfollow_download_finger_bgs" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="clfollow_download_boluses"
+            android:summary="@string/summary_clfollow_download_boluses"
+            android:title="@string/title_clfollow_download_boluses" />
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="clfollow_download_meals"
+            android:summary="@string/summary_clfollow_download_meals"
+            android:title="@string/title_clfollow_download_meals" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="clfollow_download_notifications"
+            android:summary="@string/summary_clfollow_download_notifications"
+            android:title="@string/title_clfollow_download_notifications" />
+
+        <PreferenceScreen
+            android:key="xdrip_plus_g5_extra_settings"
+            android:summary="@string/advanced_g5_settings"
+            android:title="@string/g5_debug_settings">
+            <PreferenceCategory
+                android:key="ob1_options"
+                android:title="@string/title_ob1_options">
+
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:key="ob1_g5_use_transmitter_alg"
+                    android:summary="@string/summary_ob1_g5_use_transmitter_alg"
+                    android:title="@string/title_ob1_g5_use_transmitter_alg" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ob1_g5_use_transmitter_alg"
+                    android:key="ob1_g5_restart_sensor"
+                    android:summary="@string/summary_ob1_g5_restart_sensor"
+                    android:title="@string/title_ob1_g5_restart_sensor" />
+                <PreferenceScreen
+                    android:dependency="ob1_g5_use_transmitter_alg"
+                    android:key="collection_preemptive_restart"
+                    android:summary="@string/collection_summary_ob1_g5_preemptive_restart"
+                    android:title="@string/title_ob1_g5_preemptive_restart">
+                    <CheckBoxPreference
+                        android:defaultValue="false"
+                        android:dependency="ob1_g5_use_transmitter_alg"
+                        android:key="ob1_g5_preemptive_restart"
+                        android:summary="@string/summary_ob1_g5_preemptive_restart"
+                        android:title="@string/title_ob1_g5_preemptive_restart" />
+                    <CheckBoxPreference
+                        android:defaultValue="true"
+                        android:dependency="ob1_g5_preemptive_restart"
+                        android:key="ob1_g5_preemptive_restart_alert"
+                        android:summary="@string/summary_ob1_g5_preemptive_restart_alert"
+                        android:title="@string/title_ob1_g5_preemptive_restart_alert" />
+                    <CheckBoxPreference
+                        android:defaultValue="false"
+                        android:dependency="ob1_g5_preemptive_restart"
+                        android:key="ob1_g5_preemptive_restart_extended_time_travel"
+                        android:summary="@string/summary_ob1_g5_preemptive_restart_extended_time_travel"
+                        android:title="@string/title_ob1_g5_preemptive_restart_extended_time_travel" />
+                    <CheckBoxPreference
+                        android:defaultValue="false"
+                        android:dependency="ob1_g5_preemptive_restart"
+                        android:key="ob1_g5_defer_preemptive_restart_all_firmwares"
+                        android:summary="@string/summary_ob1_g5_preemptive_restart_extended_time_travel_all_firmwares"
+                        android:title="@string/title_ob1_g5_preemptive_restart_extended_time_travel_all_firmwares" />
+                </PreferenceScreen>
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="ob1_g5_use_transmitter_alg"
+                    android:key="ob1_g5_use_insufficiently_calibrated"
+                    android:summary="@string/summary_ob1_g5_use_insufficiently_calibrated"
+                    android:title="@string/title_ob1_g5_use_insufficiently_calibrated" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="ob1_minimize_scanning"
+                    android:summary="@string/summary_ob1_minimize_scanning"
+                    android:title="@string/title_ob1_minimize_scanning" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="ob1_minimize_scanning"
+                    android:enabled="true"
+                    android:key="ob1_avoid_scanning"
+                    android:summary="@string/summary_ob1_avoid_scanning"
+                    android:title="@string/title_ob1_avoid_scanning" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="ob1_g5_allow_resetbond"
+                    android:summary="@string/summary_ob1_g5_allow_resetbond"
+                    android:title="@string/title_ob1_g5_allow_resetbond" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="ob1_special_pairing_workaround"
+                    android:summary="Some Samsung devices can have an error where they lose the pairing information. This attempts to work around the issue."
+                    android:title="@string/special_pairing_workaround" />
+                <EditTextPreference
+                    android:defaultValue=""
+                    android:dependency="engineering_mode"
+                    android:inputType="number"
+                    android:key="dex_specified_slot"
+                    android:maxLength="1"
+                    android:summary="@string/summary_dex_specified_slot"
+                    android:title="@string/title_dex_specified_slot" />
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:key="dex_battery_category"
+                android:title="@string/title_g5g6_battery_options">
+                <EditTextPreference
+                    android:defaultValue="300"
+                    android:key="g5-battery-warning-level"
+                    android:numeric="integer"
+                    android:title="@string/title_g5_battery_warning_level" />
+            </PreferenceCategory>
+        </PreferenceScreen>
+
+        <EditTextPreference
+            android:defaultValue=""
+            android:dialogMessage="@string/wifi_recievers_dialog_message"
+            android:dialogTitle="@string/wifi_recievers_dialog_title"
+            android:inputType="textUri"
+            android:key="wifi_recievers_addresses"
+            android:title="@string/list_of_receivers" />
+    </PreferenceCategory>
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_touch_app_grey600_48dp"
+        android:key="bluetooth_meters"
+        android:summary="@string/glucose_meter_options"
+        android:title="@string/category_glucose_meters">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="nfc_meter_enabled"
+            android:summary="@string/summary_use_nfc_meter"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_use_nfc_meter" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="bluetooth_meter_enabled"
+            android:summary="@string/auto_connect_to_meter"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/use_bluetooth_meter" />
+        <Preference
+            android:key="scan_and_pair_meter"
+            android:summary=""
+            android:title="@string/scan_for_bluetooth_meter">
+            <intent
+                android:action="android.intent.action.MAIN"
+                android:targetClass="com.eveningoutpost.dexdrip.glucosemeter.BTGlucoseMeterActivity"
+                android:targetPackage="@string/local_target_package" />
+        </Preference>
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="bluetooth_meter_play_sounds"
+            android:summary="@string/meter_connect_sound"
+            android:title="@string/meter_connect_sound_effect" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="bluetooth_meter_enabled"
+            android:key="bluetooth_meter_for_calibrations"
+            android:summary="@string/ask_for_calibration"
+            android:title="@string/use_meter_for_calibrations" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="bluetooth_meter_enabled"
+            android:key="bluetooth_meter_for_calibrations_auto"
+            android:summary="@string/auto_calibration_good_conditions"
+            android:title="@string/automatic_calibration" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_mode_edit_grey_600_48dp"
+        android:key="pens_screen"
+        android:title="@string/insulin_pens">
+        <PreferenceScreen
+            android:icon="@drawable/ic_mode_edit_grey_600_48dp"
+            android:key="opennov_screen"
+            android:summary="NFC dose downloading of models 6 and Echo Plus"
+            android:title="@string/title_novopen_insulin_pen">
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:key="opennov_enabled"
+                android:summary="@string/summary_inpen_open_nov_support"
+                android:title="@string/enable" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="opennov_enabled"
+                android:key="opennov_play_sounds"
+                android:summary="@string/summary_inpen_sounds"
+                android:title="@string/title_inpen_sounds" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="opennov_enabled"
+                android:key="opennov_remove_priming"
+                android:summary="@string/summary_inpen_remove_priming_doses"
+                android:title="@string/title_inpen_remove_priming_doses" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="opennov_enabled"
+                android:key="opennov_hide_priming"
+                android:summary="@string/summary_inpen_hide_priming_doses"
+                android:title="@string/title_inpen_hide_priming_doses" />
+            <EditTextPreference
+                android:defaultValue="2.0"
+                android:dependency="opennov_enabled"
+                android:inputType="numberPassword|textVisiblePassword"
+                android:key="opennov_prime_units"
+                android:maxLength="3"
+                android:summary="@string/summary_inpen_prime_units"
+                android:title="@string/title_inpen_prime_units" />
+            <EditTextPreference
+                android:defaultValue="2"
+                android:dependency="opennov_enabled"
+                android:inputType="numberPassword|textVisiblePassword"
+                android:key="opennov_prime_minutes"
+                android:maxLength="3"
+                android:summary="@string/summary_inpen_prime_minutes"
+                android:title="@string/title_inpen_prime_minutes" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="engineering_mode"
+                android:key="opennov_debug"
+                android:summary="@string/summary_inpen_additional_debug_logs"
+                android:title="@string/title_inpen_additional_debug_logs" />
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:icon="@drawable/ic_mode_edit_grey_600_48dp"
+            android:key="inpen_screen"
+            android:summary="@string/summary_inpen_screen"
+            android:title="@string/title_inpen_screen">
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="inpen_enabled"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_inpen_enabled" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="inpen_detect_priming"
+                android:summary="@string/summary_inpen_detect_priming"
+                android:title="@string/title_inpen_detect_priming" />
+            <EditTextPreference
+                android:defaultValue="2.0"
+                android:inputType="numberPassword|textVisiblePassword"
+                android:key="inpen_prime_units"
+                android:maxLength="4"
+                android:title="@string/title_inpen_prime_units" />
+            <EditTextPreference
+                android:defaultValue="2"
+                android:inputType="numberPassword|textVisiblePassword"
+                android:key="inpen_prime_minutes"
+                android:maxLength="3"
+                android:title="@string/title_inpen_prime_minutes" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="inpen_orphan_primes_ignored"
+                android:summary="@string/summary_inpen_orphan_primes_ignored"
+                android:title="@string/title_inpen_orphan_primes_ignored" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="inpen_sounds"
+                android:summary="@string/summary_inpen_sounds"
+                android:title="@string/title_inpen_sounds" />
+            <Preference
+                android:key="inpen_reset"
+                android:summary="@string/summary_inpen_reset"
+                android:title="@string/title_inpen_reset">
+                <intent
+                    android:action="android.intent.action.MAIN"
+                    android:targetClass="com.eveningoutpost.dexdrip.Home"
+                    android:targetPackage="@string/local_target_package">
+                    <extra
+                        android:name="inpen-reset"
+                        android:value="inpen-reset" />
+                </intent>
+            </Preference>
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:icon="@drawable/ic_mode_edit_grey_600_48dp"
+            android:key="pendiq_screen"
+            android:summary="@string/summary_pendiq_screen"
+            android:title="@string/title_pendiq_screen">
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="use_pendiq"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_use_pendiq" />
+            <SwitchPreference
+                android:defaultValue="false"
+                android:dependency="use_pendiq"
+                android:key="pendiq_send_treatments"
+                android:summary="@string/summary_pendiq_send_treatments"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_pendiq_send_treatments" />
+            <EditTextPreference
+                android:defaultValue="@string/zero_zero_zero_zero"
+                android:dependency="use_pendiq"
+                android:inputType="numberPassword|textVisiblePassword"
+                android:key="pendiq_pin"
+                android:maxLength="4"
+                android:title="@string/title_pendiq_pin" />
+        </PreferenceScreen>
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:icon="@drawable/ic_watch_grey600_48dp"
+        android:key="smart_watch_options"
+        android:summary="@string/pebble_and_android_wear_options"
+        android:title="@string/smart_watch_features">
+        <PreferenceScreen
+            android:key="android_wear_preferences"
+            android:title="@string/android_wear_integration">
+            <PreferenceCategory
+                android:key="watch_integration"
+                android:title="@string/wear_integration">
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="wear_sync"
+                    android:summary="@string/send_data_to_android_wear_watch"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="@string/android_wear_integration" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="wear_sync"
+                    android:key="enable_wearG5"
+                    android:summary="@string/pref_summary_enable_wearG5"
+                    android:title="@string/pref_enable_wearG5" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="enable_wearG5"
+                    android:key="force_wearG5"
+                    android:summary="@string/pref_summary_force_wearG5"
+                    android:title="@string/pref_force_wearG5" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="force_wearG5"
+                    android:key="disable_wearG5_on_lowbattery"
+                    android:summary="@string/pref_summary_disable_wearG5_on_lowbattery"
+                    android:title="@string/pref_disable_wearG5_on_lowbattery" />
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:dependency="force_wearG5"
+                    android:key="disable_wearG5_on_missedreadings"
+                    android:summary="@string/pref_summary_disable_wearG5_on_missedreadings"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="@string/pref_disable_wearG5_on_missedreadings" />
+                <EditTextPreference
+                    android:defaultValue="30"
+                    android:dependency="disable_wearG5_on_missedreadings"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="disable_wearG5_on_missedreadings_level"
+                    android:summary=""
+                    android:title="@string/pref_disable_wearG5_on_missedreadings_level" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="force_wearG5"
+                    android:key="only_ever_use_wear_collector"
+                    android:summary="@string/summary_If_you_plan_to_only_use_a_Wear_collector_and_never_your_phone"
+                    android:title="@string/title_Only_use_Wear" />
+                <EditTextPreference
+                    android:defaultValue=""
+                    android:dependency="force_wearG5"
+                    android:editable="false"
+                    android:inputType="none"
+                    android:key="node_wearG5"
+                    android:summary="@string/pref_summary_node_wearG5"
+                    android:textIsSelectable="true"
+                    android:title="@string/pref_node_wearG5" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="wear_sync"
+                    android:key="sync_wear_logs"
+                    android:summary="@string/pref_summary_sync_wear_logs"
+                    android:title="@string/pref_sync_wear_logs" />
+                <EditTextPreference
+                    android:defaultValue="wear"
+                    android:dependency="sync_wear_logs"
+                    android:editable="true"
+                    android:key="wear_logs_prefix"
+                    android:summary="@string/pref_summary_wear_logs_prefix"
+                    android:textIsSelectable="true"
+                    android:title="@string/pref_wear_logs_prefix" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="wear_sync"
+                    android:key="show_wear_treatments"
+                    android:summary="@string/pref_summary_show_treatments"
+                    android:title="@string/pref_show_treatments" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="wear_sync"
+                    android:key="enable_wear_auto_update"
+                    android:summary="@string/summary_enable_wear_auto_update"
+                    android:title="@string/title_enable_wear_auto_update" />
+            </PreferenceCategory>
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:key="pebble_preferences"
+            android:title="@string/pebble_integration">
+            <PreferenceCategory
+                android:key="pebble_integration"
+                android:title="@string/pebble_integration">
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="broadcast_to_pebble"
+                    android:summary="@string/send_data_to_pebble_watchface"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="@string/pebble_watch_integration" />
+                <ListPreference
+                    android:defaultValue="2"
+                    android:dependency="broadcast_to_pebble"
+                    android:entries="@array/SendToPebbleChoice"
+                    android:entryValues="@array/SendToPebbleChoiceValues"
+                    android:key="broadcast_to_pebble_type"
+                    android:summary="@string/standard_or_trend_pebble_watchface"
+                    android:title="@string/choose_pebble_watchface" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_display_trend"
+                    android:summary="@string/pref_summary_display_trend"
+                    android:title="@string/pref_pebble_display_trend" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_filtered_line"
+                    android:summary="@string/summary_Also_show_the_filtered_data_on_the_trend"
+                    android:title="@string/display_filtered_line" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_tiny_dots"
+                    android:summary="@string/show_tiny_dots_instead"
+                    android:title="@string/use_tiny_dots" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_high_line"
+                    android:summary="@string/displays_the_high_line"
+                    android:title="@string/pref_pebble_display_high_line" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_low_line"
+                    android:summary="@string/displays_the_low_line"
+                    android:title="@string/pref_pebble_display_low_line" />
+                <ListPreference
+                    android:defaultValue="3"
+                    android:dependency="broadcast_to_pebble"
+                    android:entries="@array/PebbleTrendPeriods"
+                    android:entryValues="@array/PebbleTrendPeriodValues"
+                    android:key="pebble_trend_period"
+                    android:summary="@string/set_the_trend_period_to_display"
+                    android:title="@string/trend_time_period" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_show_delta"
+                    android:summary="@string/displays_the_delta_value"
+                    android:title="@string/display_delta" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_show_delta_units"
+                    android:summary="@string/displays_the_delta_units"
+                    android:title="@string/display_delta_units" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_show_arrows"
+                    android:summary="@string/displays_the_slope_arrows"
+                    android:title="@string/display_slope_arrows" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="pebble_vibe_alerts"
+                    android:summary="@string/watch_vibrate_active_alerts"
+                    android:title="@string/vibrate_alerts" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_vibrate_no_signal"
+                    android:summary="@string/vibrate_watch_to_alert_no_data"
+                    android:title="@string/vibrate_when_missed_signal" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_vibrate_no_bluetooth"
+                    android:summary="@string/vibrate_watch_to_alert_no_bluetooth"
+                    android:title="@string/vibrate_when_no_bluetooth" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:key="pebble_show_bwp"
+                    android:summary="@string/summary_Show_Bolus_Wizard_Preview_Insulin_value_on_watch_when_appropriate"
+                    android:title="@string/title_Display_BWP_Insulin" />
+                <EditTextPreference
+                    android:defaultValue="99"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_special_value"
+                    android:summary="@string/special_glucose_value_to_display_message"
+                    android:title="@string/special_value" />
+                <EditTextPreference
+                    android:defaultValue="BAZINGA!"
+                    android:dependency="broadcast_to_pebble"
+                    android:key="pebble_special_text"
+                    android:summary="@string/message_to_display_when_bgl_hits"
+                    android:title="@string/text_to_display_when_hitting_special_value" />
+            </PreferenceCategory>
+
+            <PreferenceCategory
+                android:key="pebble_installers"
+                android:title="@string/install_pebble_apps">
+                <Preference
+                    android:key="install_pebble_snooze_control"
+                    android:summary="@string/attach_to_button"
+                    android:title="@string/install_pebble_snooze_control_app">
+                    <intent
+                        android:action="android.intent.action.MAIN"
+                        android:targetClass="com.eveningoutpost.dexdrip.utilitymodels.pebble.watchface.InstallPebbleSnoozeControlApp"
+                        android:targetPackage="@string/local_target_package" />
+                </Preference>
+            </PreferenceCategory>
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:key="amazfit_sync_preferences"
+            android:title="@string/amazfit_sync_service">
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:disableDependentsState="false"
+                android:key="pref_amazfit_enable_key"
+                android:summary="@string/pref_amazfit_enable_summary"
+                android:title="@string/pref_amazfit_tile" />
+            <CheckBoxPreference
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:defaultValue="false"
+                android:dependency="pref_amazfit_enable_key"
+                android:key="pref_amazfit_BG_alert_enable_key"
+                android:summary="@string/pref_amazfit_BG_alert_enable_summary"
+                android:title="@string/pref_amazfit_BG_alert_title" />
+            <CheckBoxPreference
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:defaultValue="false"
+                android:dependency="pref_amazfit_enable_key"
+                android:key="pref_amazfit_other_alert_enable_key"
+                android:summary="@string/pref_amazfit_other_alert_enable_summary"
+                android:title="@string/pref_amazfit_other_alert_title" />
+            <PreferenceCategory
+                android:key="Amazfit_Watchface"
+                android:title="@string/pref_amazfit_watchface_settings">
+                <CheckBoxPreference
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:defaultValue="false"
+                    android:dependency="pref_amazfit_enable_key"
+                    android:key="pref_amazfit_watchface_graph"
+                    android:summary="@string/pref_amazfit_watchface_graph_enable_summary"
+                    android:title="@string/pref_amazfit_watchface_graph_title" />
+                <CheckBoxPreference
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:defaultValue="false"
+                    android:dependency="pref_amazfit_watchface_graph"
+                    android:key="pref_amazfit_watchface_graph_dots"
+                    android:summary="@string/pref_amazfit_watchface_graph_dots_summary"
+                    android:title="@string/pref_amazfit_watchface_graph_dots_title" />
+                <EditTextPreference
+                    android:defaultValue="4"
+                    android:dependency="pref_amazfit_watchface_graph"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="amazfit_watchface_graph_hours"
+                    android:summary="@string/pref_amazfit_widget_graph_hours_summary"
+                    android:title="@string/pref_amazfit_watchface_graph_hours_title" />
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:key="Amazfit_Widget"
+                android:title="@string/pref_amazfit_widget_settings">
+                <CheckBoxPreference
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:defaultValue="false"
+                    android:dependency="pref_amazfit_enable_key"
+                    android:key="pref_amazfit_widget_graph"
+                    android:summary="@string/pref_amazfit_widget_graph_enable_summary"
+                    android:title="@string/pref_amazfit_widget_graph_title" />
+                <CheckBoxPreference
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:defaultValue="false"
+                    android:dependency="pref_amazfit_widget_graph"
+                    android:key="pref_amazfit_widget_graph_dots"
+                    android:summary="@string/pref_amazfit_widget_graph_dots_summary"
+                    android:title="@string/pref_amazfit_widget_graph_dots_title" />
+                <EditTextPreference
+                    android:defaultValue="4"
+                    android:dependency="pref_amazfit_widget_graph"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="amazfit_widget_graph_hours"
+                    android:summary="@string/pref_amazfit_widget_graph_hours_summary"
+                    android:title="@string/pref_amazfit_widget_graph_hours_title" />
+            </PreferenceCategory>
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:key="bluejay_preference_screen"
+            android:title="BlueJay Watch">
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="bluejay_enabled"
+                android:summary=""
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="BlueJay Watch" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_collector_enabled"
+                android:summary=""
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="Run Collector" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_local_alarms"
+                android:summary="Watch can alarm for high/low when not connected to phone."
+                android:title="Local Alarms" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_send_alarms"
+                android:summary="Send xDrip generated alarms to the watch"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="Send Alarms" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_option_call_notifications"
+                android:summary="Send call notifications to the band (Android 6+)"
+                android:title="Send Calls" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_send_readings"
+                android:summary="Send glucose values received on the Phone to the Watch"
+                android:title="Send Readings" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_option_24_hour_clock"
+                android:summary="Show 24 hour clock on display"
+                android:title="24 Hour Clock" />
+            <SeekBarPreference
+                android:defaultValue="6"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_screen_timeout"
+                android:max="7"
+                android:min="0"
+                android:summary=""
+                android:title="Screen Timeout" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_use_motion_wake"
+                android:summary="Use a shake of the wrist to wake BlueJay. Adjust sensitivity below."
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="Wake with motion" />
+            <SeekBarPreference
+                android:defaultValue="6"
+                android:dependency="bluejay_enabled"
+                android:key="bluejay_wake_velocity"
+                android:max="15"
+                android:min="0"
+                android:summary=""
+                android:title="Wake up velocity" />
+            <Preference
+                android:key="launch_bluejay_control"
+                android:title="Launch BlueJay Panel">
+                <intent
+                    android:action="android.intent.action.MAIN"
+                    android:targetClass="com.eveningoutpost.dexdrip.ui.activities.ThinJamActivity"
+                    android:targetPackage="@string/local_target_package" />
+            </Preference>
+
+            <PreferenceScreen
+                android:key="bluejay_advanced_preference_screen"
+                android:title="BlueJay Advanced Settings">
+                <EditTextPreference
+                    android:key="bluejay_mac"
+                    android:title="BlueJay Mac" />
+                <SwitchPreference
+                    android:defaultValue="true"
+                    android:dependency="bluejay_enabled"
+                    android:key="bluejay_run_phone_collector"
+                    android:summary="Also run the standard collector on this phone. Only turn this off if you don't want this phone itself to be connecting to the transmitter."
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="Run Phone Collector" />
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:dependency="bluejay_enabled"
+                    android:key="bluejay_run_as_phone_collector"
+                    android:summary="This allows the BlueJay to occupy the phone slot on the transmitter. Select this if you want another non-phone device to be able to connect to the transmitter and you are not using a phone to connect to the transmitter."
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="BlueJay uses Phone Slot" />
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:dependency="bluejay_enabled"
+                    android:key="bluejay_use_broadcast_api"
+                    android:summary="Accept commands from other apps"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="Enable remote API" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="bluejay_enabled"
+                    android:key="bluejay_send_status_line"
+                    android:summary="Show xDrip extra status line on X2 display"
+                    android:title="Send Status Line" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="bluejay_enabled"
+                    android:key="bluejay_beep_on_connect"
+                    android:summary="Play a sound when the bluejay connects"
+                    android:title="Debug sound" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="bluejay_enabled"
+                    android:enabled="false"
+                    android:key="bluejay_delta_trend"
+                    android:summary="Try to calculate xDrip style delta trend arrow instead of using transmitter estimate arrow."
+                    android:title="Attempt Delta Trend" />
+                <SeekBarPreference
+                    android:defaultValue="3"
+                    android:dependency="bluejay_enabled"
+                    android:key="bluejay_backfill_hours"
+                    android:max="12"
+                    android:min="0"
+                    android:summary="Larger backfill scope can reduce battery life"
+                    android:title="Backfill Hours" />
+                <CheckBoxPreference
+                    android:defaultValue="false"
+                    android:dependency="bluejay_enabled"
+                    android:enabled="false"
+                    android:key="bluejay_timing_failsafe"
+                    android:summary="Scan for longer periods of time if readings are missed. Uses more battery but can recover if watch gets out of sync"
+                    android:title="Timing fail-safe" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:key="bluejay_button1_vibrate"
+                    android:summary="Vibrate watch when a button long press is sent to the phone"
+                    android:title="Vibrate button" />
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:key="bluejay_send_to_another_xdrip"
+                    android:summary="If you have multiple xDrip instances on your phone you can send data to another one that has a BlueJay here"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="Send to another xDrip" />
+            </PreferenceScreen>
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:key="lefun_preferences"
+            android:title="@string/title_lefun_band">
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="lefun_enabled"
+                android:summary="@string/summary_lefun_enable"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_lefun_enable" />
+            <EditTextPreference
+                android:key="lefun_mac"
+                android:title="@string/title_lefun_mac" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="lefun_enabled"
+                android:key="lefun_send_readings"
+                android:summary="@string/summary_lefun_send_readings"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_lefun_send_readings" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="lefun_enabled"
+                android:key="lefun_send_alarms"
+                android:summary="@string/summary_lefun_send_alarms"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_lefun_send_alarms" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="lefun_send_alarms"
+                android:key="lefun_option_shake_snoozes"
+                android:title="@string/title_lefun_option_shake_snoozes" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="lefun_enabled"
+                android:key="lefun_option_call_notifications"
+                android:summary="@string/summary_lefun_send_calls"
+                android:title="@string/title_lefun_send_calls" />
+            <PreferenceScreen
+                android:key="lefun_features"
+                android:title="@string/title_lefun_screens_features">
+                <PreferenceCategory android:title="@string/title_features">
+                    <CheckBoxPreference
+                        android:defaultValue="true"
+                        android:key="lefun_feature_lift_to_wake"
+                        android:title="@string/title_lefun_feature_lift_to_wak" />
+                    <CheckBoxPreference
+                        android:key="lefun_feature_anti_lost"
+                        android:title="@string/title_lefun_feature_anti_lost" />
+                    <CheckBoxPreference
+                        android:defaultValue="true"
+                        android:key="lefun_locale_12_hour"
+                        android:title="@string/title_lefun_locale_12_hour" />
+                </PreferenceCategory>
+                <PreferenceCategory android:title="@string/title_screens">
+                    <CheckBoxPreference
+                        android:key="lefun_screen_step_counter"
+                        android:title="@string/title_lefun_screen_step_counter" />
+                    <CheckBoxPreference
+                        android:key="lefun_screen_step_distance"
+                        android:title="@string/title_lefun_screen_step_distance" />
+                    <CheckBoxPreference
+                        android:key="lefun_screen_step_calories"
+                        android:title="@string/title_lefun_screen_step_calories" />
+                    <CheckBoxPreference
+                        android:key="lefun_screen_heart_rate"
+                        android:title="@string/title_lefun_screen_heart_rate" />
+                    <CheckBoxPreference
+                        android:key="lefun_screen_heart_pressure"
+                        android:title="@string/title_lefun_screen_heart_pressure" />
+                    <CheckBoxPreference
+                        android:key="lefun_screen_find_phone"
+                        android:title="@string/title_lefun_screen_find_phone" />
+                    <CheckBoxPreference
+                        android:key="lefun_screen_mac_address"
+                        android:title="@string/title_lefun_screen_mac_address" />
+                </PreferenceCategory>
+            </PreferenceScreen>
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:key="miband_preferences"
+            android:title="@string/title_miband">
+            <SwitchPreference
+                android:defaultValue="false"
+                android:key="miband_enabled"
+                android:summary="@string/summary_miband_enable"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_miband_enable" />
+            <EditTextPreference
+                android:key="miband_data_mac"
+                android:summary="@string/summary_miband_mac"
+                android:title="@string/title_lefun_mac" />
+            <EditTextPreference
+                android:icon="@drawable/ic_vpn_key"
+                android:key="miband_data_authkey"
+                android:maxLength="32"
+                android:summary="@string/summary_miband_authkey"
+                android:title="@string/title_miband_authkey" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="miband_enabled"
+                android:key="miband_send_readings"
+                android:summary="@string/summary_lefun_send_readings"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_lefun_send_readings" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="miband_send_readings"
+                android:key="miband_send_readings_as_notification"
+                android:summary="@string/summary_miband_send_readings_as_notification"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_miband_send_readings_as_notification" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="miband_send_readings"
+                android:key="miband_vibrate_on_readings"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_miband_vibrate_on_readings" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:dependency="miband_enabled"
+                android:key="miband_send_alarms"
+                android:summary="@string/summary_lefun_send_alarms"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_lefun_send_alarms" />
+            <CheckBoxPreference
+                android:defaultValue="false"
+                android:dependency="miband_enabled"
+                android:key="miband_option_call_notifications"
+                android:summary="@string/summary_miband_send_calls"
+                android:title="@string/title_miband_send_calls" />
+            <PreferenceCategory
+                android:dependency="miband_enabled"
+                android:key="miband_graph_category"
+                android:title="@string/title_miband_graph_category">
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="miband_enabled"
+                    android:key="miband_graph_enable"
+                    android:title="@string/title_miband_graph_enable" />
+                <EditTextPreference
+                    android:defaultValue="4"
+                    android:dependency="miband_graph_enable"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="miband_graph_hours"
+                    android:summary="@string/pref_amazfit_widget_graph_hours_summary"
+                    android:title="@string/pref_amazfit_watchface_graph_hours_title" />
+                <CheckBoxPreference
+                    android:defaultValue="true"
+                    android:dependency="miband_graph_enable"
+                    android:key="miband_graph_treatment_enable"
+                    android:title="@string/title_miband_graph_treatment_enable" />
+            </PreferenceCategory>
+            <Preference
+                android:dependency="miband_enabled"
+                android:key="update_miband_bg"
+                android:title="@string/title_miband_update_bg" />
+            <PreferenceCategory
+                android:dependency="miband_enabled"
+                android:title="@string/title_miband_general_settings_category">
+                <PreferenceScreen
+                    android:key="miband_settings"
+                    android:title="@string/title_miband_screens_features">
+                    <PreferenceCategory android:title="@string/title_features">
+                        <SwitchPreference
+                            android:defaultValue="true"
+                            android:key="miband_feature_lift_to_wake"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_lefun_feature_lift_to_wak" />
+                        <SwitchPreference
+                            android:defaultValue="true"
+                            android:key="miband_feature_switch_display_on_wrist"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_miband_switch_display_on_wrist" />
+                        <SwitchPreference
+                            android:defaultValue="true"
+                            android:key="miband_feature_units"
+                            android:summary="@string/summary_miband_units"
+                            android:switchTextOff="miles"
+                            android:switchTextOn="km"
+                            android:title="@string/title_miband_units" />
+                        <SwitchPreference
+                            android:defaultValue="true"
+                            android:key="miband_feature_goal_notification"
+                            android:summary="@string/summary_miband_goal_notification"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_miband_goal_notification" />
+                        <SwitchPreference
+                            android:key="miband_feature_anti_lost"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_lefun_feature_anti_lost" />
+                        <SwitchPreference
+                            android:defaultValue="true"
+                            android:key="miband_feature_locale_24_hour"
+                            android:summary="@string/summary_miband_locale_24_hour"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_miband_locale_24_hour" />
+                        <SwitchPreference
+                            android:defaultValue="true"
+                            android:key="miband_feature_show_date"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_miband_show_date" />
+                        <SwitchPreference
+                            android:defaultValue="true"
+                            android:key="miband_feature_visibility"
+                            android:summary="@string/summary_miband_visibility"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_miband_visibility" />
+                    </PreferenceCategory>
+                    <PreferenceCategory
+                        android:key="miband_nightmode_category"
+                        android:title="@string/title_miband_nightmode_category">
+                        <SwitchPreference
+                            android:defaultValue="false"
+                            android:key="miband_nightmode_enabled"
+                            android:summary="@string/summary_miband_nightmode_enabled"
+                            android:switchTextOff="@string/short_off_text_for_switches"
+                            android:switchTextOn="@string/short_on_text_for_switches"
+                            android:title="@string/title_miband_nightmode_enabled" />
+                        <com.eveningoutpost.dexdrip.utils.TimePreference
+                            android:dependency="miband_nightmode_enabled"
+                            android:key="miband_nightmode_start"
+                            android:title="@string/title_miband_nightmode_start" />
+                        <com.eveningoutpost.dexdrip.utils.TimePreference
+                            android:dependency="miband_nightmode_enabled"
+                            android:key="miband_nightmode_end"
+                            android:title="@string/title_miband_nightmode_end" />
+                        <SeekBarPreference
+                            android:defaultValue="6"
+                            android:dependency="miband_enabled"
+                            android:key="miband_nightmode_interval"
+                            android:max="23"
+                            android:summary="@string/summary_miband_interval_in_nightmode"
+                            android:title="@string/title_miband_interval_in_nightmode" />
+                    </PreferenceCategory>
+                    <SwitchPreference
+                        android:defaultValue="true"
+                        android:key="miband_collect_heartrate"
+                        android:summary="@string/summary_miband_colect_heartrate"
+                        android:switchTextOff="@string/short_off_text_for_switches"
+                        android:switchTextOn="@string/short_on_text_for_switches"
+                        android:title="@string/title_miband_colect_heartrate" />
+                    <PreferenceCategory
+                        android:key="miband2_screen"
+                        android:title="@string/title_screens">
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_step_counter"
+                            android:title="@string/title_lefun_screen_step_counter" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_step_distance"
+                            android:title="@string/title_lefun_screen_step_distance" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_step_calories"
+                            android:title="@string/title_lefun_screen_step_calories" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_heart_rate"
+                            android:title="@string/title_lefun_screen_heart_rate" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_battery"
+                            android:title="@string/title_miband_screen_battery" />
+                    </PreferenceCategory>
+                    <PreferenceCategory
+                        android:key="miband3_4_screen"
+                        android:title="@string/title_screens">
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_notifications"
+                            android:title="@string/title_miband_screen_notifications" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_weather"
+                            android:title="@string/title_miband_screen_weather" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_activity"
+                            android:title="@string/title_miband_screen_activity" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_more"
+                            android:title="@string/title_miband_screen_more" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_status"
+                            android:title="@string/title_miband_screen_status" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_heart_rate"
+                            android:title="@string/title_miband_screen_heart_rate" />
+                        <CheckBoxPreference
+                            android:defaultValue="true"
+                            android:key="miband_screen_timer"
+                            android:title="@string/title_miband_screen_timer" />
+                        <CheckBoxPreference
+                            android:defaultValue="false"
+                            android:key="miband_screen_nfc"
+                            android:title="@string/title_miband_screen_nfc" />
+                    </PreferenceCategory>
+                </PreferenceScreen>
+            </PreferenceCategory>
+            <PreferenceCategory
+                android:key="debug_miband4"
+                android:title="Experimental">
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:dependency="miband_enabled"
+                    android:key="debug_miband_use_custom_watchface"
+                    android:summary="You should place 'my_watchface.bin' and 'my_image.png' file into 'xdrip' folder on your phone"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="Allow to use custom watchface" />
+                <EditTextPreference
+                    android:defaultValue="0"
+                    android:dependency="debug_miband_use_custom_watchface"
+                    android:digits="0123456789"
+                    android:inputType="number"
+                    android:key="debug_miband_image_offset"
+                    android:summary="Offset for autogenerated data from the beginning of 'my_image.png' file"
+                    android:title="Image offset(px)" />
+                <SwitchPreference
+                    android:defaultValue="false"
+                    android:dependency="miband_enabled"
+                    android:key="debug_miband_disable_hight_mtu"
+                    android:summary="Enabling this option in some cases can fix watchface syncronization error"
+                    android:switchTextOff="@string/short_off_text_for_switches"
+                    android:switchTextOn="@string/short_on_text_for_switches"
+                    android:title="Disable hight MTU values" />
+            </PreferenceCategory>
+        </PreferenceScreen>
+
+        <PreferenceScreen
+            android:icon="@drawable/ic_heart_pulse_grey600_24dp"
+            android:key="smartwatch_sensors_screen"
+            android:title="@string/title_Smartwatch_Sensors">
+            <SwitchPreference
+                android:defaultValue="true"
+                android:key="use_pebble_health"
+                android:summary="@string/summary_Collect_and_display_Step_counter_and_Heart_rate_when_available"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_Use_Health_Data" />
+            <SwitchPreference
+                android:defaultValue="true"
+                android:key="use_wear_heartrate"
+                android:summary="@string/summary_Activate_heart_rate_sensor_if_available"
+                android:switchTextOff="@string/short_off_text_for_switches"
+                android:switchTextOn="@string/short_on_text_for_switches"
+                android:title="@string/title_Heart_Rate_Sensor" />
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:dependency="use_wear_heartrate"
+                android:key="smooth_heartrate"
+                android:summary="@string/summary_Smooth_heart_rate_graph" />
+        </PreferenceScreen>
+    </PreferenceScreen>
+
+    <PreferenceScreen
+        android:key="xdrip_blueReader_advanced_settings"
+        android:summary="@string/advanced_bluereader_settings_summary"
+        android:title="@string/category_blueReader_settings">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="blueReader_restdays_on_home"
+            android:summary="@string/bluereader_restdays_onhome_sum"
+            android:title="@string/bluereader_restdays_onhome" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="blueReader_turn_off"
+            android:summary="@string/bluereader_turnoff_sum"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/bluereader_turnoff" />
+        <SeekBarPreference
+            android:defaultValue="5"
+            android:dependency="blueReader_turn_off"
+            android:key="blueReader_turn_off_value"
+            android:max="20"
+            android:min="1"
+            android:summary="@string/blueReader_turnoffvalue_sum"
+            android:title="@string/blueReader_turnoffvalue" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="blueReader_suppressuglystatemsg"
+            android:summary="@string/summary_Suppress_the_ugly_state_message_if_Problem_appears"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_supress_ugly_state_message" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="blueReader_writebatterylog"
+            android:summary="@string/summary_write_Battery_Information_for_additional_analytic"
+            android:switchTextOff="@string/short_off_text_for_switches"
+            android:switchTextOn="@string/short_on_text_for_switches"
+            android:title="@string/title_Batterylog" />
+    </PreferenceScreen>
+</PreferenceScreen>
