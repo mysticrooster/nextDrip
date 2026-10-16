@@ -8,7 +8,7 @@ settings are split into nine per-category XML files under
 |---|---|---|---|---|
 | `pref_cat_general.xml` | `settings_cat_general` | General | `ic_ruler_grey600_48dp` | Glucose units, reminders, language and system notifications |
 | `pref_cat_alarms.xml` | `settings_cat_alarms` | Alarms and Alerts | `ic_add_alert_grey600_48dp` | Glucose, calibration and sensor alerts and how they sound |
-| `pref_cat_devices.xml` | `settings_cat_devices` | Devices | `ic_bluetooth_settings_grey600_48dp` | How xDrip collects data and the hardware it talks to |
+| `pref_cat_devices.xml` | `settings_cat_devices` | Data Sources and Devices | `ic_bluetooth_settings_grey600_48dp` | How xDrip collects data and the hardware it talks to |
 | `pref_cat_data.xml` | `settings_cat_data` | Your Data | `ic_cloud_upload_grey600_48dp` | Uploads, sync, backups and data tables |
 | `pref_cat_appearance.xml` | `settings_cat_appearance` | Appearance | `ic_palette_grey600_48dp` | Colours, display, graphs, always-on display and the home screen |
 | `pref_cat_profile.xml` | `settings_cat_profile` | Profile | `ic_mode_edit_grey_600_48dp` | Insulin, carb ratios and the prediction model |
@@ -50,7 +50,7 @@ preference key, type or default**. `SettingsStructureTest` pins the baseline in
 - → **Persistent High Alert** · → **Forecasted Low Alert** · → **Sensor Expiry**
 - → **Calibration Alerts** · ⇒ Missed reading Alert · → **Other Alerts**
 
-### Devices (`pref_cat_devices`)
+### Data Sources and Devices (`pref_cat_devices`)
 - Data source rows (`collection_category`): `dex_collection_method` and the
   per-collector rows/screens (Web Follow, NFC, G5, Dexbridge, Medtrum, NS
   Follow, Share Follow, Follower, CareLink Follow, wifi receivers)

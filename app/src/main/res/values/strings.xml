@@ -2153,7 +2153,7 @@
     <string name="settings_cat_alarms">Alarms and Alerts</string>
     <string name="settings_cat_data">Your Data</string>
     <string name="settings_cat_profile">Profile</string>
-    <string name="settings_cat_devices">Devices</string>
+    <string name="settings_cat_devices">Data Sources and Devices</string>
     <string name="settings_cat_appearance">Appearance</string>
     <string name="settings_cat_accessibility">Accessibility</string>
     <string name="settings_cat_advanced">Advanced</string>
